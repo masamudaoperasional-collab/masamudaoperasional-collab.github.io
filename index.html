@@ -1,1 +1,139 @@
-hello boy
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stock Opname - Cafe Bar</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#ffffff;--accent:#2b8cbe;--muted:#6b7280;--danger:#e11d48}
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#eef2ff);padding:28px;color:#0f172a}
+    .container{max-width:1100px;margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    .controls{display:flex;gap:8px;align-items:center}
+    button{background:var(--accent);color:white;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid rgba(43,140,190,0.18)}
+    button.warn{background:var(--danger)}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(12,32,63,0.06)}
+    .top-row{display:flex;gap:12px;align-items:center}
+    input[type=search],input[type=number],select{padding:8px 10px;border-radius:8px;border:1px solid #e6eef8}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    thead th{background:#f1f5f9;padding:10px;text-align:left;font-size:13px;color:var(--muted);border-bottom:1px solid #edf2f7}
+    tbody td{padding:10px;border-bottom:1px solid #f3f4f6;font-size:14px}
+    .right{text-align:right}
+    .muted{color:var(--muted);font-size:13px}
+    .small{font-size:13px}
+    footer{margin-top:12px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Stock Opname - Cafe Bar</h1>
+        <div class="muted">Kelola dan catat persediaan barang untuk shift / mingguan</div>
+      </div>
+      <div class="controls">
+        <button id="addItemBtn">+ Tambah Barang</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <table id="stockTable" aria-label="Tabel stock opname">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nama Barang</th>
+            <th>Supplier</th>
+            <th class="right">Stok Sistem</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Modal Tambah/Edit -->
+    <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.5);align-items:center;justify-content:center;">
+      <div style="background:white;padding:16px;border-radius:12px;max-width:520px;width:92%;">
+        <h3 id="modalTitle">Tambah Barang</h3>
+        <div style="display:grid;gap:8px;margin-top:8px">
+          <input id="i_name" placeholder="Nama barang" />
+          <input id="i_supplier" placeholder="Nama supplier" />
+          <input id="i_system" type="number" min="0" placeholder="Stok sistem (misal 12)" />
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button id="modalCancel" class="ghost">Batal</button>
+            <button id="modalSave">Simpan</button>
+          </div>
+        </div>
+        <pre id="status" style="margin-top:12px;background:#f1f5f9;padding:10px;font-size:13px;"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dummy items
+    let items = [];
+
+    const tbody = document.querySelector('#stockTable tbody');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const modal = document.getElementById('modal');
+    const modalSave = document.getElementById('modalSave');
+    const modalCancel = document.getElementById('modalCancel');
+    const i_name = document.getElementById('i_name');
+    const i_supplier = document.getElementById('i_supplier');
+    const i_system = document.getElementById('i_system');
+    const statusEl = document.getElementById('status');
+
+    function uid(){return 'id-'+Math.random().toString(36).slice(2,9)}
+
+    function render(){
+      tbody.innerHTML='';
+      items.forEach((it,idx)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${it.name}</td>
+          <td>${it.supplier}</td>
+          <td class="right">${it.system}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openModal(){modal.style.display='flex'}
+    function closeModal(){modal.style.display='none'}
+
+    async function saveModal(){
+      const name = i_name.value.trim();
+      const supplier = i_supplier.value.trim();
+      const system = Number(i_system.value)||0;
+      if(!name){alert('Nama barang wajib diisi');return}
+
+      const newItem = {id:uid(),name,supplier,system};
+      items.push(newItem);
+      render();
+      closeModal();
+
+      // === Kirim ke server dengan fetch API ===
+      try {
+        const res = await fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/097b51de-67e9-4abe-9e0c-d1018c286912", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(newItem, null, 2)
+        });
+        const result = await res.text();
+        statusEl.textContent = "Respon server:\n"+result;
+      } catch (err) {
+        statusEl.textContent = "Error: "+err;
+      }
+    }
+
+    addItemBtn.addEventListener('click',()=>{i_name.value='';i_supplier.value='';i_system.value='0';openModal()});
+    modalCancel.addEventListener('click',closeModal);
+    modalSave.addEventListener('click',saveModal);
+
+    render();
+  </script>
+</body>
+</html>
