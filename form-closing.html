@@ -522,95 +522,87 @@
       }
   
       // Fungsi utama untuk mengambil data resi - VERSI FINAL
-      async function ambilDataResi() {
-        console.log('🚀 Memulai fungsi ambilDataResi...');
-        
-        const tanggal = document.getElementById('tanggalClosing').value;
-        const shift = document.getElementById('shift').value;
-        const karyawan = document.getElementById('karyawan').value;
-        
-        console.log('📋 Data input:', { tanggal, shift, karyawan, chatId });
-        
-        if (!tanggal || !karyawan) {
-          console.error('❌ Validasi gagal: tanggal atau karyawan kosong');
-          alert('Harap isi tanggal dan nama karyawan!');
-          return;
-        }
-        
-        // Tampilkan loading state
-        setLoading('btnProses', true);
-        document.getElementById('statusInfo').innerHTML = 
-          '<div class="status-warning status-card">Mengambil data resi dari sistem...</div>';
-        
-        try {
-          console.log('📤 Mengirim request ke webhook...');
-          
-          const requestBody = {
-            chat_id: chatId,
-            tanggal: tanggal,
-            shift: shift,
-            karyawan: karyawan
-          };
-          
-          console.log('📦 Request body:', requestBody);
-          console.log('🔗 URL webhook:', WEBHOOK_GET_DATA);
-          
-          const response = await fetch(WEBHOOK_GET_DATA, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-          });
-          
-          console.log('📥 Response received.');
-          console.log('📊 Status:', response.status);
-          console.log('✅ OK:', response.ok);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
-          const result = await response.json();
-          console.log('✅ Response data dari n8n:', result);
-          
-          // 🔍 PROSES DATA DENGAN FUNGSI YANG SUDAH DIPERBAIKI
-          dataResi = processResiData(result);
-          console.log('💾 Data resi yang diproses:', dataResi);
-          
-          // ✅ KONVERSI METODE PEMBAYARAN DARI OBJECT KE ARRAY
-          if (dataResi.metode_pembayaran && typeof dataResi.metode_pembayaran === 'object') {
-            dataResi.metode_pembayaran = convertPaymentMethods(dataResi.metode_pembayaran);
-          }
-          
-          // 🎨 Render data ke UI
-          renderDataResi();
-          
-          // 🔄 Pindah ke step berikutnya
-          console.log('🔄 Pindah ke step 2...');
-          document.getElementById('step1').classList.add('hidden');
-          document.getElementById('step2').classList.remove('hidden');
-          
-          document.getElementById('statusInfo').innerHTML = 
-            '<div class="status-success status-card">Data resi berhasil diambil!</div>';
-          
-          console.log('🎉 Proses selesai dengan sukses!');
-          
-        } catch (error) {
-          // ❌ Handle error
-          console.error('💥 Error terjadi:');
-          console.error('🔤 Error name:', error.name);
-          console.error('💬 Error message:', error.message);
-          
-          document.getElementById('statusInfo').innerHTML = 
-            `<div class="status-error status-card">Error: ${error.message}</div>`;
-            
-          alert(`Gagal mengambil data: ${error.message}`);
-        } finally {
-          setLoading('btnProses', false);
-          console.log('🏁 Fungsi ambilDataResi selesai dijalankan');
-        }
-      }
+async function ambilDataResi() {
+  console.log('🚀 Memulai fungsi ambilDataResi...');
+  
+  const tanggal = document.getElementById('tanggalClosing').value;
+  const shift = document.getElementById('shift').value;
+  const karyawan = document.getElementById('karyawan').value;
+  
+  console.log('📋 Data input:', { tanggal, shift, karyawan, chatId });
+  
+  if (!tanggal || !karyawan) {
+    console.error('❌ Validasi gagal: tanggal atau karyawan kosong');
+    alert('Harap isi tanggal dan nama karyawan!');
+    return;
+  }
+  
+  // Tampilkan loading state
+  setLoading('btnProses', true);
+  document.getElementById('statusInfo').innerHTML = 
+    '<div class="status-warning status-card">Mengambil data resi dari sistem...</div>';
+  
+  try {
+    console.log('📤 Mengirim request ke webhook...');
+    
+    const requestBody = {
+      chat_id: chatId,
+      tanggal: tanggal,
+      shift: shift,
+      karyawan: karyawan
+    };
+    
+    console.log('📦 Request body:', requestBody);
+    
+    const response = await fetch(WEBHOOK_GET_DATA, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    console.log('📥 Response received. Status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ Raw response:', result);
+    
+    // ✅ SIMPLE FIX: Langsung ambil data dari result[0].data
+    if (Array.isArray(result) && result.length > 0 && result[0].success) {
+      dataResi = result[0].data;
+      console.log('💾 Data resi extracted:', dataResi);
+    } else {
+      throw new Error('Format response tidak valid');
+    }
+    
+    // ✅ Konversi metode_pembayaran object ke array jika perlu
+    if (dataResi.metode_pembayaran && typeof dataResi.metode_pembayaran === 'object') {
+      dataResi.metode_pembayaran = convertPaymentMethods(dataResi.metode_pembayaran);
+    }
+    
+    // Render data ke UI
+    renderDataResi();
+    
+    // Pindah ke step berikutnya
+    document.getElementById('step1').classList.add('hidden');
+    document.getElementById('step2').classList.remove('hidden');
+    
+    document.getElementById('statusInfo').innerHTML = 
+      '<div class="status-success status-card">Data resi berhasil diambil!</div>';
+    
+  } catch (error) {
+    console.error('💥 Error:', error);
+    document.getElementById('statusInfo').innerHTML = 
+      `<div class="status-error status-card">Error: ${error.message}</div>`;
+    alert(`Gagal mengambil data: ${error.message}`);
+  } finally {
+    setLoading('btnProses', false);
+  }
+}
   
       // Fungsi untuk render data resi ke form - DIPERBAIKI
       function renderDataResi() {
