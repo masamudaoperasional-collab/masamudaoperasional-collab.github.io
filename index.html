@@ -278,8 +278,8 @@
               <tr>
                 <td>
                   <select name="jenis_operasional[]">
-                    <option value="listrik">Listrik</option><option value="air">Air</option>
-                    <option value="internet">Internet</option><option value="sewa">Sewa</option>
+                    <option value="listrik">Listrik</option><option value="gaji">Gaji</option><option value="sampah">Sampah</option>
+                    <option value="internet">Internet</option><option value="sewa">Sewa</option><option value="dw">DW</option>
                   </select>
                 </td>
                 <td><input type="number" name="biaya[]" min="0" step="100" placeholder="Rp"></td>
@@ -406,7 +406,7 @@
     async function confirmSubmit() {
       if (!formDataCache) return;
       try {
-        const res = await fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/097b51de-67e9-4abe-9e0c-d1018c286912", {
+        const res = await fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/097b51de-67e9-4abe-9e0c-d1018c286912", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formDataCache, null, 2)
