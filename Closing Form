@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Closing Penjualan - Masakluda</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --danger-color: #ef4444;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --text-color: #333;
+      --border-color: #ccc;
+      --background-color: #f9fafb;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 15px;
+      background: var(--background-color);
+      color: var(--text-color);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    
+    h2, h3 { 
+      text-align: center; 
+      margin-bottom: 20px; 
+      color: var(--primary-color); 
+      font-weight: 600; 
+    }
+    
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.3rem; }
+    
+    .card {
+      max-width: 100%;
+      width: 100%;
+      margin: 0 auto 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .form-row { 
+      display: flex; 
+      gap: 15px; 
+      margin-bottom: 15px; 
+      flex-wrap: wrap; 
+    }
+    
+    .form-group { 
+      flex: 1; 
+      min-width: 0;
+    }
+    
+    label { 
+      font-weight: 500; 
+      display: block; 
+      margin-bottom: 6px; 
+    }
+    
+    select, input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%; 
+      padding: 12px 10px; 
+      border: 1px solid var(--border-color);
+      border-radius: 6px; 
+      outline: none; 
+      font-family: 'Poppins', sans-serif; 
+      font-size: 16px;
+    }
+    
+    select:focus, input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+    
+    button {
+      padding: 12px 16px; 
+      border-radius: 6px; 
+      border: none; 
+      cursor: pointer;
+      font-weight: 500; 
+      transition: all 0.2s; 
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .primary-btn { 
+      background: var(--primary-color); 
+      color: white; 
+    }
+    
+    .success-btn { 
+      background: var(--success-color); 
+      color: white; 
+    }
+    
+    .danger-btn { 
+      background: var(--danger-color); 
+      color: white; 
+    }
+    
+    .warning-btn { 
+      background: var(--warning-color); 
+      color: white; 
+    }
+    
+    .table-wrapper { 
+      width: 100%; 
+      overflow-x: auto; 
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    
+    table {
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 0;
+      font-size: 14px; 
+    }
+    
+    th, td { 
+      border: 1px solid #e5e7eb; 
+      padding: 10px 8px; 
+      text-align: center; 
+      word-break: break-word;
+    }
+    
+    th { 
+      background-color: #f3f4f6; 
+      font-weight: 500; 
+      white-space: nowrap;
+    }
+    
+    .match { background-color: #d1fae5; }
+    .mismatch { background-color: #fee2e2; }
+    .warning { background-color: #fef3c7; }
+    
+    .status-card {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .status-success {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-warning {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .summary-card {
+      background-color: #f0f9ff;
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 768px) {
+      body { 
+        padding: 10px; 
+        font-size: 15px; 
+      }
+      
+      .card { 
+        padding: 15px; 
+      }
+      
+      .form-row { 
+        flex-direction: column; 
+        gap: 15px; 
+      }
+      
+      .form-group { 
+        width: 100%; 
+      }
+      
+      table { 
+        font-size: 14px; 
+        min-width: 600px;
+      }
+      
+      th, td {
+        padding: 8px 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Form Closing Penjualan - Masakluda</h2>
+  
+  <!-- Step 1: Input Data Dasar -->
+  <div class="card" id="step1">
+    <h3>Data Closing Penjualan</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="tanggalClosing">Tanggal Closing:</label>
+        <input type="date" id="tanggalClosing" name="tanggalClosing">
+      </div>
+      <div class="form-group">
+        <label for="shift">Shift:</label>
+        <select id="shift" name="shift">
+          <option value="pagi">Pagi</option>
+          <option value="siang">Siang</option>
+          <option value="malam">Malam</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="karyawan">Nama Karyawan:</label>
+      <input type="text" id="karyawan" name="karyawan" placeholder="Nama karyawan yang bertugas">
+    </div>
+    
+    <button class="primary-btn" onclick="ambilDataResi()" style="width: 100%;" id="btnProses">
+      <span id="btnText">Proses Resi dan Ambil Data</span>
+      <span id="btnLoading" class="hidden loading"></span>
+    </button>
+  </div>
+
+  <!-- Step 2: Data dari Resi dan Input Aktual -->
+  <div class="card hidden" id="step2">
+    <h3>Data dari Resi vs Aktual Kas</h3>
+    
+    <div id="statusInfo"></div>
+    
+    <!-- Informasi Header dari Resi -->
+    <div class="card summary-card">
+      <h4>Informasi Resi</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Outlet:</label>
+          <input type="text" id="outlet" readonly style="background: #f5f5f5;">
+        </div>
+        <div class="form-group">
+          <label>Tanggal Transaksi:</label>
+          <input type="text" id="tanggalTransaksi" readonly style="background: #f5f5f5;">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Jumlah Tamu:</label>
+          <input type="text" id="jumlahTamu" readonly style="background: #f5f5f5;">
+        </div>
+        <div class="form-group">
+          <label>Total Resi:</label>
+          <input type="text" id="totalResi" readonly style="background: #f5f5f5;">
+        </div>
+      </div>
+    </div>
+    
+    <!-- Ringkasan Penjualan -->
+    <div class="table-wrapper">
+      <table id="tabelRingkasan">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Nilai dari Resi (Rp)</th>
+            <th>Nilai Aktual (Rp)</th>
+            <th>Selisih (Rp)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="bodyTabelRingkasan">
+          <!-- Data akan diisi oleh JavaScript -->
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Detail Pembayaran -->
+    <h4>Detail Pembayaran</h4>
+    <div class="table-wrapper">
+      <table id="tabelPembayaran">
+        <thead>
+          <tr>
+            <th>Metode Pembayaran</th>
+            <th>Penjualan (Resi)</th>
+            <th>Penjualan (Aktual)</th>
+            <th>Selisih</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="bodyTabelPembayaran">
+          <!-- Data akan diisi oleh JavaScript -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="form-group">
+      <label for="keteranganUmum">Keterangan Umum:</label>
+      <textarea id="keteranganUmum" name="keteranganUmum" placeholder="Tambahkan catatan mengenai closing penjualan..." style="width: 100%; padding: 12px 10px; border-radius: 6px; border: 1px solid #ccc; min-height: 100px; font-family: 'Poppins', sans-serif;"></textarea>
+    </div>
+    
+    <div class="form-row">
+      <button class="danger-btn" onclick="kembaliKeStep1()" style="flex: 1;">Kembali</button>
+      <button class="success-btn" onclick="prosesClosing()" style="flex: 2;" id="btnSubmit">
+        <span id="submitText">Submit Closing</span>
+        <span id="submitLoading" class="hidden loading"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 3: Hasil Closing -->
+  <div class="card hidden summary-card" id="step3">
+    <h3>Hasil Closing Penjualan</h3>
+    
+    <div id="summaryInfo"></div>
+    
+    <div class="table-wrapper">
+      <table id="tabelHasil">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody id="bodyTabelHasil">
+          <!-- Data akan diisi oleh JavaScript -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="form-row">
+      <button class="primary-btn" onclick="cetakLaporan()" style="flex: 1;">Cetak Laporan</button>
+      <button class="success-btn" onclick="simpanDanTutup()" style="flex: 1;">Selesai</button>
+    </div>
+  </div>
+
+  <script>
+    // Webhook URLs
+    const WEBHOOK_GET_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/get-resi-data';
+    const WEBHOOK_SUBMIT_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/5aef7833-d0fb-4c04-8aec-d99784165f15';
+
+    // Variabel global
+    let dataResi = {};
+    let chatId = '';
+
+    // Fungsi untuk mengambil parameter dari URL
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        chatId: params.get('chat_id'),
+        tanggal: params.get('tanggal'),
+        shift: params.get('shift')
+      };
+    }
+
+    // Inisialisasi saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', function() {
+      const params = getUrlParams();
+      
+      // Ambil chat_id dari URL parameter (otomatis dari Telegram)
+      if (params.chatId) {
+        chatId = params.chatId;
+        console.log('Chat ID dari URL:', chatId);
+      }
+      
+      // Set nilai form dari URL parameters jika ada
+      if (params.tanggal) {
+        document.getElementById('tanggalClosing').value = params.tanggal;
+      }
+      
+      if (params.shift) {
+        document.getElementById('shift').value = params.shift;
+      }
+      
+      // Set tanggal default ke hari ini jika tidak ada parameter
+      if (!params.tanggal) {
+        const today = new Date();
+        document.getElementById('tanggalClosing').value = today.toISOString().split('T')[0];
+      }
+    });
+
+    // Fungsi untuk menampilkan/menyembunyikan loading
+    function setLoading(buttonId, isLoading) {
+      const btn = document.getElementById(buttonId);
+      const text = document.getElementById(buttonId === 'btnProses' ? 'btnText' : 'submitText');
+      const loading = document.getElementById(buttonId === 'btnProses' ? 'btnLoading' : 'submitLoading');
+      
+      if (isLoading) {
+        btn.disabled = true;
+        text.classList.add('hidden');
+        loading.classList.remove('hidden');
+      } else {
+        btn.disabled = false;
+        text.classList.remove('hidden');
+        loading.classList.add('hidden');
+      }
+    }
+
+    // Fungsi utama untuk mengambil data resi
+    async function ambilDataResi() {
+      const tanggal = document.getElementById('tanggalClosing').value;
+      const shift = document.getElementById('shift').value;
+      const karyawan = document.getElementById('karyawan').value;
+      
+      if (!tanggal || !karyawan) {
+        alert('Harap isi tanggal dan nama karyawan!');
+        return;
+      }
+      
+      // Jika tidak ada chatId dari URL, coba cari berdasarkan kombinasi lain
+      if (!chatId) {
+        console.warn('Chat ID tidak ditemukan di URL, menggunakan kombinasi karyawan+tanggal+shift');
+        // Tetap lanjutkan, n8n bisa handle lookup alternatif
+      }
+      
+      // Tampilkan loading state
+      setLoading('btnProses', true);
+      document.getElementById('statusInfo').innerHTML = 
+        '<div class="status-warning status-card">Mengambil data resi dari sistem...</div>';
+      
+      try {
+        // 📤 Kirim request ke webhook n8n
+        const response = await fetch(WEBHOOK_GET_DATA, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            tanggal: tanggal,
+            shift: shift,
+            karyawan: karyawan
+          })
+        });
+        
+        // 📥 Terima response dari n8n
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Response dari n8n:', result);
+        
+        // 🔍 Validasi response
+        if (!result.success) {
+          throw new Error(result.message || 'Gagal mengambil data resi');
+        }
+        
+        if (!result.data) {
+          throw new Error('Data resi tidak ditemukan');
+        }
+        
+        // 💾 Simpan data ke variabel global
+        dataResi = result.data;
+        
+        // 🎨 Render data ke UI
+        renderDataResi();
+        
+        // 🔄 Pindah ke step berikutnya
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step2').classList.remove('hidden');
+        
+      } catch (error) {
+        // ❌ Handle error
+        console.error('Error mengambil data resi:', error);
+        document.getElementById('statusInfo').innerHTML = 
+          `<div class="status-error status-card">Error: ${error.message}</div>`;
+      } finally {
+        setLoading('btnProses', false);
+      }
+    }
+
+    // Fungsi untuk render data resi ke form
+    function renderDataResi() {
+      // Isi informasi header
+      document.getElementById('outlet').value = dataResi.outlet || 'Masakluda';
+      document.getElementById('tanggalTransaksi').value = dataResi.tanggal_transaksi || dataResi.tanggal || '-';
+      document.getElementById('jumlahTamu').value = dataResi.jumlah_tamu || 0;
+      document.getElementById('totalResi').value = dataResi.total_resi || 0;
+      
+      // Render ringkasan penjualan
+      const ringkasanBody = document.getElementById('bodyTabelRingkasan');
+      ringkasanBody.innerHTML = `
+        <tr>
+          <td>Total Penjualan</td>
+          <td>${formatRupiah(dataResi.total_penjualan || 0)}</td>
+          <td><input type="number" id="aktualTotalPenjualan" value="${dataResi.total_penjualan || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+          <td id="selisihTotalPenjualan">${formatRupiah(0)}</td>
+          <td id="statusTotalPenjualan" class="match">Match</td>
+        </tr>
+        <tr>
+          <td>Subtotal</td>
+          <td>${formatRupiah(dataResi.subtotal || 0)}</td>
+          <td><input type="number" id="aktualSubtotal" value="${dataResi.subtotal || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+          <td id="selisihSubtotal">${formatRupiah(0)}</td>
+          <td id="statusSubtotal" class="match">Match</td>
+        </tr>
+        <tr>
+          <td>Diskon Bill</td>
+          <td>${formatRupiah(dataResi.diskon_bill || 0)}</td>
+          <td><input type="number" id="aktualDiskon" value="${dataResi.diskon_bill || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+          <td id="selisihDiskon">${formatRupiah(0)}</td>
+          <td id="statusDiskon" class="match">Match</td>
+        </tr>
+      `;
+      
+      // Render detail pembayaran
+      const pembayaranBody = document.getElementById('bodyTabelPembayaran');
+      pembayaranBody.innerHTML = '';
+      
+      if (dataResi.metode_pembayaran && dataResi.metode_pembayaran.length > 0) {
+        dataResi.metode_pembayaran.forEach((metode, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${metode.nama}</td>
+            <td>${formatRupiah(metode.penjualan || 0)}</td>
+            <td><input type="number" id="aktual-${index}" value="${metode.penjualan || 0}" onchange="updatePembayaran(${index})" style="width: 100%; padding: 5px;"></td>
+            <td id="selisih-${index}">${formatRupiah(0)}</td>
+            <td id="status-${index}" class="match">Match</td>
+          `;
+          pembayaranBody.appendChild(row);
+        });
+      } else {
+        // Fallback jika tidak ada data metode pembayaran
+        pembayaranBody.innerHTML = `
+          <tr>
+            <td>QR-MANDIRI</td>
+            <td>${formatRupiah(dataResi.total_penjualan || 0)}</td>
+            <td><input type="number" id="aktual-0" value="${dataResi.total_penjualan || 0}" onchange="updatePembayaran(0)" style="width: 100%; padding: 5px;"></td>
+            <td id="selisih-0">${formatRupiah(0)}</td>
+            <td id="status-0" class="match">Match</td>
+          </tr>
+        `;
+      }
+    }
+
+    // Fungsi untuk update ringkasan
+    function updateRingkasan() {
+      const totalPenjualanAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
+      const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
+      const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
+      
+      // Hitung selisih
+      const selisihTotal = totalPenjualanAktual - (dataResi.total_penjualan || 0);
+      const selisihSubtotal = subtotalAktual - (dataResi.subtotal || 0);
+      const selisihDiskon = diskonAktual - (dataResi.diskon_bill || 0);
+      
+      // Update tampilan
+      document.getElementById('selisihTotalPenjualan').textContent = formatRupiah(selisihTotal);
+      document.getElementById('selisihSubtotal').textContent = formatRupiah(selisihSubtotal);
+      document.getElementById('selisihDiskon').textContent = formatRupiah(selisihDiskon);
+      
+      // Update status
+      document.getElementById('statusTotalPenjualan').textContent = getStatusText(selisihTotal);
+      document.getElementById('statusTotalPenjualan').className = getStatusClass(selisihTotal);
+      
+      document.getElementById('statusSubtotal').textContent = getStatusText(selisihSubtotal);
+      document.getElementById('statusSubtotal').className = getStatusClass(selisihSubtotal);
+      
+      document.getElementById('statusDiskon').textContent = getStatusText(selisihDiskon);
+      document.getElementById('statusDiskon').className = getStatusClass(selisihDiskon);
+    }
+
+    // Fungsi untuk update pembayaran
+    function updatePembayaran(index) {
+      const nilaiAktual = parseInt(document.getElementById(`aktual-${index}`).value) || 0;
+      let nilaiResi = 0;
+      
+      if (dataResi.metode_pembayaran && dataResi.metode_pembayaran[index]) {
+        nilaiResi = dataResi.metode_pembayaran[index].penjualan || 0;
+      } else {
+        // Fallback jika tidak ada data metode pembayaran
+        nilaiResi = dataResi.total_penjualan || 0;
+      }
+      
+      const selisih = nilaiAktual - nilaiResi;
+      
+      // Update tampilan
+      document.getElementById(`selisih-${index}`).textContent = formatRupiah(selisih);
+      document.getElementById(`status-${index}`).textContent = getStatusText(selisih);
+      document.getElementById(`status-${index}`).className = getStatusClass(selisih);
+    }
+
+    // Helper functions
+    function getStatusText(selisih) {
+      if (selisih === 0) return 'Match';
+      if (Math.abs(selisih) <= 5000) return 'Perhatian';
+      return 'Mismatch';
+    }
+
+    function getStatusClass(selisih) {
+      if (selisih === 0) return 'match';
+      if (Math.abs(selisih) <= 5000) return 'warning';
+      return 'mismatch';
+    }
+
+    function formatRupiah(angka) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(angka);
+    }
+
+    // Fungsi untuk kembali ke step 1
+    function kembaliKeStep1() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step1').classList.remove('hidden');
+    }
+
+    // Fungsi untuk proses closing
+    async function prosesClosing() {
+      const tanggal = document.getElementById('tanggalClosing').value;
+      const shift = document.getElementById('shift').value;
+      const karyawan = document.getElementById('karyawan').value;
+      const keterangan = document.getElementById('keteranganUmum').value;
+      
+      // Validasi data
+      const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
+      if (totalAktual === 0) {
+        alert('Harap isi semua nilai aktual sebelum melanjutkan!');
+        return;
+      }
+      
+      // Kumpulkan data aktual
+      const ringkasanAktual = {
+        total_penjualan: totalAktual,
+        subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
+        diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
+      };
+      
+      const pembayaranAktual = [];
+      const jumlahInput = dataResi.metode_pembayaran ? dataResi.metode_pembayaran.length : 1;
+      
+      for (let i = 0; i < jumlahInput; i++) {
+        const input = document.getElementById(`aktual-${i}`);
+        if (input) {
+          pembayaranAktual.push({
+            nama: dataResi.metode_pembayaran ? dataResi.metode_pembayaran[i]?.nama || `Metode ${i+1}` : 'QR-MANDIRI',
+            penjualan_aktual: parseInt(input.value) || 0,
+            penjualan_resi: dataResi.metode_pembayaran ? dataResi.metode_pembayaran[i]?.penjualan || 0 : dataResi.total_penjualan || 0
+          });
+        }
+      }
+      
+      // Data yang akan dikirim ke n8n
+      const dataKirim = {
+        chat_id: chatId,
+        tanggal: tanggal,
+        shift: shift,
+        karyawan: karyawan,
+        data_resi: dataResi,
+        ringkasan_aktual: ringkasanAktual,
+        pembayaran_aktual: pembayaranAktual,
+        keterangan: keterangan,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Tampilkan loading
+      setLoading('btnSubmit', true);
+      
+      try {
+        // Kirim data ke webhook n8n
+        const response = await fetch(WEBHOOK_SUBMIT_DATA, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dataKirim)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Response submit:', result);
+        
+        // Tampilkan hasil
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step3').classList.remove('hidden');
+        
+        // Render hasil closing
+        renderHasilClosing(dataKirim);
+        
+        document.getElementById('summaryInfo').innerHTML = 
+          '<div class="status-success status-card">Data closing berhasil dikirim!</div>';
+          
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+        console.error('Error submit:', error);
+      } finally {
+        setLoading('btnSubmit', false);
+      }
+    }
+
+    // Fungsi untuk render hasil closing
+    function renderHasilClosing(data) {
+      const totalSelisih = data.ringkasan_aktual.total_penjualan - (dataResi.total_penjualan || 0);
+      
+      const tbody = document.getElementById('bodyTabelHasil');
+      tbody.innerHTML = `
+        <tr><td>Outlet</td><td>${dataResi.outlet || 'Masakluda'}</td></tr>
+        <tr><td>Tanggal Closing</td><td>${data.tanggal}</td></tr>
+        <tr><td>Shift</td><td>${data.shift}</td></tr>
+        <tr><td>Karyawan</td><td>${data.karyawan}</td></tr>
+        <tr><td>Total Penjualan (Resi)</td><td>${formatRupiah(dataResi.total_penjualan || 0)}</td></tr>
+        <tr><td>Total Penjualan (Aktual)</td><td>${formatRupiah(data.ringkasan_aktual.total_penjualan)}</td></tr>
+        <tr><td>Total Selisih</td><td>${formatRupiah(totalSelisih)}</td></tr>
+        <tr><td>Keterangan</td><td>${data.keterangan || '-'}</td></tr>
+        <tr><td>Waktu Submit</td><td>${new Date().toLocaleString('id-ID')}</td></tr>
+      `;
+    }
+
+    // Fungsi tambahan
+    function cetakLaporan() {
+      window.print();
+    }
+
+    function simpanDanTutup() {
+      alert('Terima kasih! Form closing telah selesai.');
+      // Untuk testing, kita tidak menutup window
+      // window.close(); 
+    }
+  </script>
+</body>
+</html>
