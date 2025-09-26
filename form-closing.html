@@ -372,6 +372,8 @@
   </div>
 
   <script>
+    console.log('📄 Script JavaScript mulai loading...');
+    
     // Webhook URLs
     const WEBHOOK_GET_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/get-resi-data';
     const WEBHOOK_SUBMIT_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/5aef7833-d0fb-4c04-8aec-d99784165f15';
@@ -382,42 +384,56 @@
 
     // Fungsi untuk mengambil parameter dari URL
     function getUrlParams() {
+      console.log('🔗 Mengambil parameter dari URL...');
       const params = new URLSearchParams(window.location.search);
-      return {
+      const result = {
         chatId: params.get('chat_id'),
         tanggal: params.get('tanggal'),
         shift: params.get('shift')
       };
+      console.log('📋 Parameter URL:', result);
+      return result;
     }
 
     // Inisialisasi saat halaman dimuat
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('✅ DOM fully loaded and parsed');
+      
       const params = getUrlParams();
       
       // Ambil chat_id dari URL parameter (otomatis dari Telegram)
       if (params.chatId) {
         chatId = params.chatId;
-        console.log('Chat ID dari URL:', chatId);
+        console.log('💬 Chat ID dari URL:', chatId);
+      } else {
+        console.warn('⚠️ Chat ID tidak ditemukan di URL');
       }
       
       // Set nilai form dari URL parameters jika ada
       if (params.tanggal) {
         document.getElementById('tanggalClosing').value = params.tanggal;
+        console.log('📅 Tanggal dari URL:', params.tanggal);
       }
       
       if (params.shift) {
         document.getElementById('shift').value = params.shift;
+        console.log('🕒 Shift dari URL:', params.shift);
       }
       
       // Set tanggal default ke hari ini jika tidak ada parameter
       if (!params.tanggal) {
         const today = new Date();
-        document.getElementById('tanggalClosing').value = today.toISOString().split('T')[0];
+        const todayStr = today.toISOString().split('T')[0];
+        document.getElementById('tanggalClosing').value = todayStr;
+        console.log('📅 Tanggal default di-set ke:', todayStr);
       }
+      
+      console.log('🎉 Form siap digunakan');
     });
 
     // Fungsi untuk menampilkan/menyembunyikan loading
     function setLoading(buttonId, isLoading) {
+      console.log('🔄 Set loading:', buttonId, isLoading);
       const btn = document.getElementById(buttonId);
       const text = document.getElementById(buttonId === 'btnProses' ? 'btnText' : 'submitText');
       const loading = document.getElementById(buttonId === 'btnProses' ? 'btnLoading' : 'submitLoading');
@@ -426,54 +442,29 @@
         btn.disabled = true;
         text.classList.add('hidden');
         loading.classList.remove('hidden');
+        console.log('⏳ Loading ditampilkan untuk', buttonId);
       } else {
         btn.disabled = false;
         text.classList.remove('hidden');
         loading.classList.add('hidden');
+        console.log('✅ Loading disembunyikan untuk', buttonId);
       }
     }
 
     // Fungsi utama untuk mengambil data resi
-      async function ambilDataResi() {
-      console.log('Memulai ambilDataResi...');
+    async function ambilDataResi() {
+      console.log('🚀 Memulai fungsi ambilDataResi...');
       
-      try {
-        const response = await fetch('https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/get-resi-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            tanggal: document.getElementById('tanggalClosing').value,
-            shift: document.getElementById('shift').value,
-            karyawan: document.getElementById('karyawan').value
-          })
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        
-        const result = await response.json();
-        console.log('Response data:', result);
-        
-        if (result.success) {
-          dataResi = result.data;
-          renderDataResi();
-          document.getElementById('step1').classList.add('hidden');
-          document.getElementById('step2').classList.remove('hidden');
-        } else {
-          alert('Error: ' + result.message);
-        }
-        
-      } catch (error) {
-        console.error('Fetch error:', error);
-        alert('Error: ' + error.message);
-      }
-    }
+      const tanggal = document.getElementById('tanggalClosing').value;
+      const shift = document.getElementById('shift').value;
+      const karyawan = document.getElementById('karyawan').value;
       
-      // Jika tidak ada chatId dari URL, coba cari berdasarkan kombinasi lain
-      if (!chatId) {
-        console.warn('Chat ID tidak ditemukan di URL, menggunakan kombinasi karyawan+tanggal+shift');
-        // Tetap lanjutkan, n8n bisa handle lookup alternatif
+      console.log('📋 Data input:', { tanggal, shift, karyawan, chatId });
+      
+      if (!tanggal || !karyawan) {
+        console.error('❌ Validasi gagal: tanggal atau karyawan kosong');
+        alert('Harap isi tanggal dan nama karyawan!');
+        return;
       }
       
       // Tampilkan loading state
@@ -482,64 +473,91 @@
         '<div class="status-warning status-card">Mengambil data resi dari sistem...</div>';
       
       try {
-        // 📤 Kirim request ke webhook n8n
+        console.log('📤 Mengirim request ke webhook...');
+        
+        const requestBody = {
+          chat_id: chatId,
+          tanggal: tanggal,
+          shift: shift,
+          karyawan: karyawan
+        };
+        
+        console.log('📦 Request body:', requestBody);
+        console.log('🔗 URL webhook:', WEBHOOK_GET_DATA);
+        
         const response = await fetch(WEBHOOK_GET_DATA, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            chat_id: chatId,
-            tanggal: tanggal,
-            shift: shift,
-            karyawan: karyawan
-          })
+          body: JSON.stringify(requestBody)
         });
         
-        // 📥 Terima response dari n8n
+        console.log('📥 Response received.');
+        console.log('📊 Status:', response.status);
+        console.log('✅ OK:', response.ok);
+        console.log('🔤 Status Text:', response.statusText);
+        
         if (!response.ok) {
+          console.error('❌ HTTP Error:', response.status, response.statusText);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('Response dari n8n:', result);
+        console.log('✅ Response data dari n8n:', result);
         
         // 🔍 Validasi response
         if (!result.success) {
+          console.error('❌ Business logic error:', result.message);
           throw new Error(result.message || 'Gagal mengambil data resi');
         }
         
         if (!result.data) {
+          console.error('❌ Data tidak ditemukan di response');
           throw new Error('Data resi tidak ditemukan');
         }
         
         // 💾 Simpan data ke variabel global
         dataResi = result.data;
+        console.log('💾 Data resi disimpan:', dataResi);
         
         // 🎨 Render data ke UI
         renderDataResi();
         
         // 🔄 Pindah ke step berikutnya
+        console.log('🔄 Pindah ke step 2...');
         document.getElementById('step1').classList.add('hidden');
         document.getElementById('step2').classList.remove('hidden');
         
+        console.log('🎉 Proses selesai dengan sukses!');
+        
       } catch (error) {
         // ❌ Handle error
-        console.error('Error mengambil data resi:', error);
+        console.error('💥 Error terjadi:');
+        console.error('🔤 Error name:', error.name);
+        console.error('💬 Error message:', error.message);
+        console.error('📋 Error stack:', error.stack);
+        
         document.getElementById('statusInfo').innerHTML = 
           `<div class="status-error status-card">Error: ${error.message}</div>`;
       } finally {
         setLoading('btnProses', false);
+        console.log('🏁 Fungsi ambilDataResi selesai dijalankan');
       }
     }
 
     // Fungsi untuk render data resi ke form
     function renderDataResi() {
+      console.log('🎨 Memulai renderDataResi...');
+      console.log('📊 Data yang akan di-render:', dataResi);
+      
       // Isi informasi header
       document.getElementById('outlet').value = dataResi.outlet || 'Masakluda';
       document.getElementById('tanggalTransaksi').value = dataResi.tanggal_transaksi || dataResi.tanggal || '-';
       document.getElementById('jumlahTamu').value = dataResi.jumlah_tamu || 0;
       document.getElementById('totalResi').value = dataResi.total_resi || 0;
+      
+      console.log('📝 Informasi header diisi');
       
       // Render ringkasan penjualan
       const ringkasanBody = document.getElementById('bodyTabelRingkasan');
@@ -567,11 +585,14 @@
         </tr>
       `;
       
+      console.log('📊 Tabel ringkasan di-render');
+      
       // Render detail pembayaran
       const pembayaranBody = document.getElementById('bodyTabelPembayaran');
       pembayaranBody.innerHTML = '';
       
       if (dataResi.metode_pembayaran && dataResi.metode_pembayaran.length > 0) {
+        console.log('💳 Metode pembayaran ditemukan:', dataResi.metode_pembayaran.length, 'item');
         dataResi.metode_pembayaran.forEach((metode, index) => {
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -584,6 +605,7 @@
           pembayaranBody.appendChild(row);
         });
       } else {
+        console.log('⚠️ Tidak ada metode pembayaran, menggunakan fallback');
         // Fallback jika tidak ada data metode pembayaran
         pembayaranBody.innerHTML = `
           <tr>
@@ -595,18 +617,26 @@
           </tr>
         `;
       }
+      
+      console.log('✅ Render data selesai');
     }
 
     // Fungsi untuk update ringkasan
     function updateRingkasan() {
+      console.log('🧮 Update ringkasan dipanggil');
+      
       const totalPenjualanAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
       const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
       const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
+      
+      console.log('📊 Nilai aktual:', { totalPenjualanAktual, subtotalAktual, diskonAktual });
       
       // Hitung selisih
       const selisihTotal = totalPenjualanAktual - (dataResi.total_penjualan || 0);
       const selisihSubtotal = subtotalAktual - (dataResi.subtotal || 0);
       const selisihDiskon = diskonAktual - (dataResi.diskon_bill || 0);
+      
+      console.log('📈 Selisih:', { selisihTotal, selisihSubtotal, selisihDiskon });
       
       // Update tampilan
       document.getElementById('selisihTotalPenjualan').textContent = formatRupiah(selisihTotal);
@@ -622,10 +652,14 @@
       
       document.getElementById('statusDiskon').textContent = getStatusText(selisihDiskon);
       document.getElementById('statusDiskon').className = getStatusClass(selisihDiskon);
+      
+      console.log('✅ Update ringkasan selesai');
     }
 
     // Fungsi untuk update pembayaran
     function updatePembayaran(index) {
+      console.log('💳 Update pembayaran untuk index:', index);
+      
       const nilaiAktual = parseInt(document.getElementById(`aktual-${index}`).value) || 0;
       let nilaiResi = 0;
       
@@ -638,10 +672,14 @@
       
       const selisih = nilaiAktual - nilaiResi;
       
+      console.log('💰 Pembayaran:', { index, nilaiAktual, nilaiResi, selisih });
+      
       // Update tampilan
       document.getElementById(`selisih-${index}`).textContent = formatRupiah(selisih);
       document.getElementById(`status-${index}`).textContent = getStatusText(selisih);
       document.getElementById(`status-${index}`).className = getStatusClass(selisih);
+      
+      console.log('✅ Update pembayaran selesai');
     }
 
     // Helper functions
@@ -667,20 +705,26 @@
 
     // Fungsi untuk kembali ke step 1
     function kembaliKeStep1() {
+      console.log('↩️ Kembali ke step 1');
       document.getElementById('step2').classList.add('hidden');
       document.getElementById('step1').classList.remove('hidden');
     }
 
     // Fungsi untuk proses closing
     async function prosesClosing() {
+      console.log('🚀 Memulai prosesClosing...');
+      
       const tanggal = document.getElementById('tanggalClosing').value;
       const shift = document.getElementById('shift').value;
       const karyawan = document.getElementById('karyawan').value;
       const keterangan = document.getElementById('keteranganUmum').value;
       
+      console.log('📋 Data closing:', { tanggal, shift, karyawan, keterangan });
+      
       // Validasi data
       const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
       if (totalAktual === 0) {
+        console.error('❌ Validasi gagal: total aktual = 0');
         alert('Harap isi semua nilai aktual sebelum melanjutkan!');
         return;
       }
@@ -694,6 +738,8 @@
       
       const pembayaranAktual = [];
       const jumlahInput = dataResi.metode_pembayaran ? dataResi.metode_pembayaran.length : 1;
+      
+      console.log('📊 Mengumpulkan data pembayaran, jumlah input:', jumlahInput);
       
       for (let i = 0; i < jumlahInput; i++) {
         const input = document.getElementById(`aktual-${i}`);
@@ -719,6 +765,8 @@
         timestamp: new Date().toISOString()
       };
       
+      console.log('📦 Data yang akan dikirim ke webhook 2:', dataKirim);
+      
       // Tampilkan loading
       setLoading('btnSubmit', true);
       
@@ -732,12 +780,14 @@
           body: JSON.stringify(dataKirim)
         });
         
+        console.log('📥 Response dari webhook 2:', response.status, response.ok);
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('Response submit:', result);
+        console.log('✅ Response submit:', result);
         
         // Tampilkan hasil
         document.getElementById('step2').classList.add('hidden');
@@ -749,16 +799,21 @@
         document.getElementById('summaryInfo').innerHTML = 
           '<div class="status-success status-card">Data closing berhasil dikirim!</div>';
           
+        console.log('🎉 Proses closing selesai');
+          
       } catch (error) {
+        console.error('💥 Error saat submit:', error);
         alert(`Error: ${error.message}`);
-        console.error('Error submit:', error);
       } finally {
         setLoading('btnSubmit', false);
+        console.log('🏁 Fungsi prosesClosing selesai');
       }
     }
 
     // Fungsi untuk render hasil closing
     function renderHasilClosing(data) {
+      console.log('🎨 Render hasil closing...');
+      
       const totalSelisih = data.ringkasan_aktual.total_penjualan - (dataResi.total_penjualan || 0);
       
       const tbody = document.getElementById('bodyTabelHasil');
@@ -773,18 +828,22 @@
         <tr><td>Keterangan</td><td>${data.keterangan || '-'}</td></tr>
         <tr><td>Waktu Submit</td><td>${new Date().toLocaleString('id-ID')}</td></tr>
       `;
+      
+      console.log('✅ Hasil closing di-render');
     }
 
     // Fungsi tambahan
     function cetakLaporan() {
+      console.log('🖨️ Cetak laporan');
       window.print();
     }
 
     function simpanDanTutup() {
+      console.log('💾 Simpan dan tutup');
       alert('Terima kasih! Form closing telah selesai.');
-      // Untuk testing, kita tidak menutup window
-      // window.close(); 
     }
+    
+    console.log('✅ Semua fungsi JavaScript berhasil di-load');
   </script>
 </body>
 </html>
