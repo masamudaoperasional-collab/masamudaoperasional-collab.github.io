@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- penting untuk mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Form Rekam Pengeluaran</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -15,12 +15,18 @@
       --background-color: #f9fafb;
     }
     
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
       font-family: 'Poppins', sans-serif;
-      margin: 15px;
+      margin: 0;
+      padding: 15px;
       background: var(--background-color);
       color: var(--text-color);
       font-size: 16px;
+      line-height: 1.5;
     }
     
     h2 { 
@@ -32,30 +38,35 @@
     }
     
     form, .card {
-      max-width: 1000px;
-      margin: auto;
+      max-width: 100%;
+      width: 100%;
+      margin: 0 auto;
       background: white;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
     }
     
     .form-row { 
       display: flex; 
-      gap: 20px; 
+      gap: 15px; 
       margin-bottom: 15px; 
       flex-wrap: wrap; 
     }
     
     .form-group { 
       flex: 1; 
-      min-width: 200px; 
+      min-width: 0;
     }
     
     label { 
       font-weight: 500; 
       display: block; 
       margin-bottom: 6px; 
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     select, input[type="number"], input[type="text"], textarea {
@@ -65,8 +76,13 @@
       border-radius: 6px; 
       outline: none; 
       font-family: 'Poppins', sans-serif; 
-      box-sizing: border-box;
-      font-size: 16px; /* Mencegah zoom pada iOS */
+      font-size: 16px;
+      max-width: 100%;
+    }
+    
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
     }
     
     textarea { 
@@ -78,6 +94,7 @@
       display: flex; 
       align-items: center; 
       gap: 8px; 
+      width: 100%;
     }
     
     .date-nav button {
@@ -89,8 +106,9 @@
       cursor: pointer; 
       font-weight: 500;
       font-size: 16px;
-      min-width: 44px; /* Ukuran touch-friendly */
+      min-width: 44px;
       min-height: 44px;
+      flex-shrink: 0;
     }
     
     .date-nav button:hover { 
@@ -101,7 +119,8 @@
       text-align: center; 
       background: var(--background-color); 
       border: 1px solid var(--border-color); 
-      flex: 1; 
+      flex: 1;
+      min-width: 0;
       padding: 10px;
     }
     
@@ -109,43 +128,46 @@
       display: flex; 
       justify-content: space-between; 
       align-items: center; 
-      margin: 15px 0 5px; 
+      margin: 15px 0 10px; 
     }
     
     .table-header h3 { 
       margin: 0; 
       font-weight: 600; 
       color: #111827; 
+      font-size: 1.2rem;
     }
 
     /* Table wrapper untuk scroll di mobile */
     .table-wrapper { 
       width: 100%; 
       overflow-x: auto; 
-      -webkit-overflow-scrolling: touch; /* Smooth scrolling di iOS */
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 15px;
     }
     
     table {
       width: 100%; 
       border-collapse: collapse; 
-      margin-top: 5px;
-      border-radius: 8px; 
-      overflow: hidden; 
+      margin: 0;
       font-size: 14px; 
-      min-width: 100%; /* Ubah dari fixed width ke 100% */
+      min-width: 600px;
     }
     
     th, td { 
       border: 1px solid #e5e7eb; 
       padding: 10px 8px; 
       text-align: center; 
-      word-break: break-word; /* Mencegah teks keluar dari sel */
+      word-break: break-word;
+      max-width: 200px;
     }
     
     th { 
       background-color: #f3f4f6; 
       font-weight: 500; 
-      white-space: nowrap; /* Header tidak wrap */
+      white-space: nowrap;
     }
     
     tr:hover td { 
@@ -158,16 +180,20 @@
       border: none; 
       cursor: pointer;
       font-weight: 500; 
-      transition: 0.2s; 
+      transition: all 0.2s; 
       font-family: 'Poppins', sans-serif;
       font-size: 16px;
-      min-height: 44px; /* Ukuran touch-friendly */
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     
     .add-btn { 
       background: var(--primary-color); 
       color: white; 
       margin-top: 12px; 
+      width: 100%;
     }
     
     .remove-btn { 
@@ -175,15 +201,14 @@
       color: white; 
       padding: 8px 12px;
       font-size: 14px;
+      min-height: 36px;
+      white-space: nowrap;
     }
     
     .submit-btn { 
       background: var(--success-color); 
       color: white; 
       margin-top: 20px; 
-      display: block; 
-      margin-left: auto; 
-      margin-right: auto; 
       width: 100%;
       max-width: 300px;
     }
@@ -192,15 +217,11 @@
       background: var(--danger-color); 
       color: white; 
       margin-right: 10px; 
-      width: 100%;
-      max-width: 140px;
     }
     
     .confirm-btn { 
       background: var(--success-color); 
       color: white; 
-      width: 100%;
-      max-width: 140px;
     }
     
     pre { 
@@ -209,13 +230,74 @@
       margin-top: 20px; 
       font-size: 13px; 
       white-space: pre-wrap; 
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+
+    /* Tampilan kartu untuk tabel di mobile */
+    .mobile-card-view {
+      display: none;
+    }
+    
+    .card-row {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: white;
+    }
+    
+    .card-field {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .card-field:last-child {
+      margin-bottom: 0;
+    }
+    
+    .card-label {
+      font-weight: 600;
+      min-width: 120px;
+    }
+    
+    .card-value {
+      flex: 1;
+      text-align: right;
+    }
+    
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    /* Styling khusus untuk halaman review */
+    .review-summary {
+      margin-bottom: 20px;
+    }
+    
+    .review-summary .card-row {
+      margin-bottom: 0;
+    }
+    
+    .review-table-container {
+      margin-top: 20px;
+    }
+    
+    .review-table-container h4 {
+      margin: 0 0 10px 0;
+      font-weight: 600;
+      color: #111827;
     }
 
     /* Responsive */
     @media (max-width: 768px) {
       body { 
-        margin: 10px; 
-        font-size: 14px; 
+        padding: 10px; 
+        font-size: 15px; 
       }
       
       form, .card { 
@@ -224,66 +306,90 @@
       
       .form-row { 
         flex-direction: column; 
-        gap: 12px; 
+        gap: 15px; 
       }
       
       .form-group { 
-        min-width: 100%; 
+        width: 100%; 
       }
       
       table { 
-        font-size: 13px; 
+        font-size: 14px; 
       }
       
       th, td {
-        padding: 8px 4px;
+        padding: 8px 6px;
+        max-width: 150px;
       }
       
       .date-nav { 
-        flex-direction: row; 
-      }
-      
-      .date-nav button { 
-        flex: 0 0 auto; 
+        flex-wrap: nowrap;
       }
       
       .button-group {
         display: flex;
         flex-direction: column;
         gap: 10px;
-        align-items: center;
       }
       
       .back-btn, .confirm-btn {
-        max-width: 100%;
+        width: 100%;
         margin-right: 0;
+      }
+      
+      /* Sembunyikan tabel, tampilkan kartu pada layar kecil */
+      .table-wrapper {
+        display: none;
+      }
+      
+      .mobile-card-view {
+        display: block;
+      }
+      
+      .add-btn {
+        margin-top: 15px;
+      }
+      
+      /* Tampilan mobile untuk tabel review */
+      .review-table-wrapper {
+        display: block;
+      }
+      
+      .review-table-wrapper table {
+        display: none;
+      }
+      
+      .review-mobile-view {
+        display: block;
       }
     }
     
     @media (max-width: 480px) {
       body {
-        margin: 5px;
+        padding: 8px;
       }
       
       form, .card {
-        padding: 10px;
+        padding: 12px;
       }
       
       h2 {
         font-size: 1.3rem;
+        margin-bottom: 15px;
       }
       
-      table { 
-        font-size: 12px; 
+      .table-header h3 {
+        font-size: 1.1rem;
       }
       
       th, td {
-        padding: 6px 3px;
-        font-size: 12px;
+        padding: 6px 4px;
+        font-size: 13px;
+        max-width: 120px;
       }
       
       select, input, textarea { 
-        font-size: 14px; 
+        font-size: 15px; 
         padding: 10px 8px;
       }
       
@@ -291,50 +397,40 @@
         padding: 8px 10px;
         min-width: 40px;
         min-height: 40px;
+        font-size: 14px;
+      }
+      
+      .card-field {
+        flex-direction: column;
+      }
+      
+      .card-label {
+        min-width: auto;
+        margin-bottom: 5px;
+      }
+      
+      .card-value {
+        text-align: left;
       }
     }
     
-    /* Tampilan khusus untuk tabel di mobile */
-    @media (max-width: 600px) {
-      /* Untuk tabel dengan banyak kolom, ubah ke tampilan kartu */
-      .mobile-table-card {
-        display: block;
+    @media (max-width: 360px) {
+      body {
+        padding: 5px;
       }
       
-      .mobile-table-card thead {
-        display: none;
-      }
-      
-      .mobile-table-card tbody, 
-      .mobile-table-card tr, 
-      .mobile-table-card td {
-        display: block;
-        width: 100%;
-      }
-      
-      .mobile-table-card tr {
-        margin-bottom: 15px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+      form, .card {
         padding: 10px;
-        background: white;
       }
       
-      .mobile-table-card td {
-        text-align: left;
-        padding: 8px 5px;
-        border: none;
-        position: relative;
-        padding-left: 50%;
+      .date-nav {
+        flex-wrap: wrap;
       }
       
-      .mobile-table-card td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        width: 45%;
-        font-weight: bold;
-        text-align: left;
+      .date-nav input {
+        order: -1;
+        width: 100%;
+        margin-bottom: 8px;
       }
     }
   </style>
@@ -377,11 +473,36 @@
   <!-- Step 2: Review -->
   <div id="reviewCard" class="card" style="display:none;">
     <h3>Review Data Anda</h3>
-    <div class="table-wrapper">
-      <table>
-        <tbody id="reviewTable"></tbody>
-      </table>
+    
+    <div class="review-summary">
+      <div class="card-row">
+        <div class="card-field">
+          <span class="card-label">Jenis Pengeluaran</span>
+          <span class="card-value" id="reviewJenis">-</span>
+        </div>
+        <div class="card-field">
+          <span class="card-label">Tanggal</span>
+          <span class="card-value" id="reviewTanggal">-</span>
+        </div>
+        <div class="card-field">
+          <span class="card-label">Keterangan</span>
+          <span class="card-value" id="reviewKeterangan">-</span>
+        </div>
+      </div>
     </div>
+    
+    <div class="review-table-container">
+      <h4>Detail Item</h4>
+      <div class="table-wrapper">
+        <table id="reviewTable">
+          <!-- Tabel akan diisi oleh JavaScript -->
+        </table>
+      </div>
+      <div id="reviewMobileView" class="mobile-card-view">
+        <!-- Tampilan mobile akan diisi oleh JavaScript -->
+      </div>
+    </div>
+    
     <div style="margin-top:20px;" class="button-group">
       <button class="back-btn" onclick="goBack()">Kembali</button>
       <button class="confirm-btn" onclick="confirmSubmit()">Konfirmasi & Kirim</button>
@@ -413,197 +534,217 @@
 
     function renderTable(jenis) {
       const container = document.getElementById("tableContainer");
+      
       if (jenis === "bahan_baku") {
         container.innerHTML = `
-          <div class="table-header"><h3>Daftar Bahan Baku</h3></div>
+          <div class="table-header">
+            <h3>Daftar Bahan Baku</h3>
+          </div>
           <div class="table-wrapper">
-            <table id="bahanTable" class="mobile-table-card">
+            <table id="bahanTable">
               <thead>
                 <tr>
-                  <th>Nama Barang</th><th>Kuantitas</th><th>Satuan</th>
-                  <th>Harga (Rp)</th><th>Total Harga (Rp)</th><th>Aksi</th>
+                  <th>Nama Barang</th>
+                  <th>Kuantitas</th>
+                  <th>Satuan</th>
+                  <th>Harga (Rp)</th>
+                  <th>Total Harga (Rp)</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td data-label="Nama Barang">
+                  <td>
                     <select name="nama_barang[]">
                       <option value="Air Cleo">Air Cleo</option>
                       <option value="Mineral Botol Cleo">Mineral Botol Cleo</option>
                       <option value="Es Batu IPB">Es Batu IPB</option>
                       <option value="House Blend Beans; Omni Roaster">House Blend Beans; Omni Roaster</option>
                       <option value="FM UHT; Diamond">FM UHT; Diamond</option>
-                      <option value="FM COCO; Frisian Flag">FM COCO; Frisian Flag</option>
-                      <option value="Aren Cair; Omni Roaster">Aren Cair; Omni Roaster</option>
-                      <option value="Chai Syrup; Monin">Chai Syrup; Monin</option>
-                      <option value="Pistachio Syrup; W&C">Pistachio Syrup; W&C</option>
-                      <option value="Caramel Syrup; Dripp">Caramel Syrup; Dripp</option>
-                      <option value="Banana Syrup; W&C">Banana Syrup; W&C</option>
-                      <option value="Strawberry Pure; W&C">Strawberry Pure; W&C</option>
-                      <option value="Creamer; W&C">Creamer; W&C</option>
-                      <option value="SKM Dairy Champ">SKM Dairy Champ</option>
-                      <option value="Gula Pasir; PSM">Gula Pasir; PSM</option>
-                      <option value="Perisa Pandan; Koepoe">Perisa Pandan; Koepoe</option>
-                      <option value="Matcha Powder; Denali">Matcha Powder; Denali</option>
-                      <option value="Cinnamon Powder; Koepoe">Cinnamon Powder; Koepoe</option>
-                      <option value="Dark Choco Powder; Delmoro">Dark Choco Powder; Delmoro</option>
-                      <option value="Avocado Powder">Avocado Powder</option>
-                      <option value="Jeruk Peras">Jeruk Peras</option>
-                      <option value="Biji Selasih">Biji Selasih</option>
-                      <option value="Nata De Coco">Nata De Coco</option>
-                      <option value="Earlgrey; Toe a Tea">Earlgrey; Toe a Tea</option>
-                      <option value="Black Tea; Goalpara">Black Tea; Goalpara</option>
-                      <option value="Single Origin varian1">Single Origin varian1</option>
-                      <option value="Single Origin varian2">Single Origin varian2</option>
-                      <option value="Simple Syrup">Simple Syrup</option>
-                      <option value="Masa Base">Masa Base</option>
-                      <option value="Muda Base">Muda Base</option>
-                      <option value="Chocolate Base">Chocolate Base</option>
-                      <option value="Matcha Base">Matcha Base</option>
-                      <option value="Black Tea Base">Black Tea Base</option>
-                      <option value="Espresso Base">Espresso Base</option>
-                      <option value="Espresso Cinn Base">Espresso Cinn Base</option>
-                      <option value="Strawberry Frozen">Strawberry Frozen</option>
-                      <option value="Alpukat Frozen">Alpukat Frozen</option>
-                      <option value="Pisang Frozen">Pisang Frozen</option>
-                      <option value="Ice Cup">Ice Cup</option>
-                      <option value="Lid Ice Cup">Lid Ice Cup</option>
-                      <option value="Hot Cup">Hot Cup</option>
-                      <option value="Lid Hot Cup">Lid Hot Cup</option>
-                      <option value="Plastik Mini TA">Plastik Mini TA</option>
-                      <option value="Plastik Big TA">Plastik Big TA</option>
-                      <option value="Sendok TA">Sendok TA</option>
-                      <option value="Mini Thermal">Mini Thermal</option>
-                      <option value="Big Thermal">Big Thermal</option>
-                      <option value="Straw/Sedotan">Straw/Sedotan</option>
-                      <option value="Cable Ties">Cable Ties</option>
-                      <option value="Floor Cleaner">Floor Cleaner</option>
-                      <option value="Table Cleaner">Table Cleaner</option>
-                      <option value="Hand Soap">Hand Soap</option>
-                      <option value="Sunlight">Sunlight</option>
-                      <option value="SiBiru">SiBiru</option>
-                      <option value="Porstex">Porstex</option>
-                      <option value="Harpic Closet">Harpic Closet</option>
-                      <option value="Kamper">Kamper</option>
-                      <option value="Trashbag">Trashbag</option>
-                      <option value="Kain Pel">Kain Pel</option>
-                      <option value="Livi Napkin">Livi Napkin</option>
-                      <option value="Livi Multifold">Livi Multifold</option>
-                      <option value="Livi Roll WC.">Livi Roll WC.</option>
-                      <option value="B Bombai">B Bombai</option>
-                      <option value="B Merah">B Merah</option>
-                      <option value="B Putih">B Putih</option>
-                      <option value="C Merah Besar">C Merah Besar</option>
-                      <option value="C Merah Keriting">C Merah Keriting</option>
-                      <option value="Tomat">Tomat</option>
-                      <option value="Timun">Timun</option>
-                      <option value="Wortel">Wortel</option>
-                      <option value="D Bawang">D Bawang</option>
-                      <option value="D Jeruk">D Jeruk</option>
-                      <option value="D Salam">D Salam</option>
-                      <option value="D Parsley">D Parsley</option>
-                      <option value="Jahe">Jahe</option>
-                      <option value="Kelapa Parut">Kelapa Parut</option>
-                      <option value="Kemangi">Kemangi</option>
-                      <option value="Kemiri">Kemiri</option>
-                      <option value="Kol">Kol</option>
-                      <option value="Kunyit">Kunyit</option>
-                      <option value="Lengkuas Parut">Lengkuas Parut</option>
-                      <option value="Uli">Uli</option>
-                      <option value="Selada">Selada</option>
-                      <option value="Pakcoy">Pakcoy</option>
-                      <option value="Kacang Panjang">Kacang Panjang</option>
-                      <option value="Brokoli">Brokoli</option>
-                      <option value="Sereh">Sereh</option>
-                      <option value="Mix Vegetabls">Mix Vegetabls</option>
-                      <option value="Coklat Clara">Coklat Clara</option>
-                      <option value="Beras Pera">Beras Pera</option>
-                      <option value="Beras Normal">Beras Normal</option>
-                      <option value="Ayam Serundeng">Ayam Serundeng</option>
-                      <option value="Ayam Fillet Crispy">Ayam Fillet Crispy</option>
-                      <option value="Ayam Saus Mentega">Ayam Saus Mentega</option>
-                      <option value="Ayam Nasi Goreng Kemangi">Ayam Nasi Goreng Kemangi</option>
-                      <option value="Telur">Telur</option>
-                      <option value="Saus Tomat; Delmonte">Saus Tomat; Delmonte</option>
-                      <option value="Saus Cabai; Delmonte">Saus Cabai; Delmonte</option>
-                      <option value="Saus Tiram; Cap Panda">Saus Tiram; Cap Panda</option>
-                      <option value="Mayonaise">Mayonaise</option>
-                      <option value="Kecap Maggi">Kecap Maggi</option>
-                      <option value="Cuka Makan">Cuka Makan</option>
-                      <option value="Minyak">Minyak</option>
-                      <option value="Soda Kue">Soda Kue</option>
-                      <option value="Chicken Powder">Chicken Powder</option>
-                      <option value="Marinasi Bubuk">Marinasi Bubuk</option>
-                      <option value="Ketumbar Bubuk">Ketumbar Bubuk</option>
-                      <option value="Tepung Maizena">Tepung Maizena</option>
-                      <option value="B Putih Bubuk">B Putih Bubuk</option>
-                      <option value="Merica Bubuk">Merica Bubuk</option>
-                      <option value="Tepung Terigu">Tepung Terigu</option>
-                      <option value="Tepung Kentucky">Tepung Kentucky</option>
-                      <option value="Tepung Roti">Tepung Roti</option>
-                      <option value="Kertas Minyak">Kertas Minyak</option>
-                      <option value="Plastik bwng 1/4">Plastik bwng 1/4</option>
-                      <option value="Plastik bwng 2kg">Plastik bwng 2kg</option>
-                      <option value="Sendok TA">Sendok TA</option>
-                      <option value="Bento TA">Bento TA</option>
-                      <option value="Bowl TA">Bowl TA</option>
-                      <option value="Tisu Roll Kitchen">Tisu Roll Kitchen</option>
-                      <option value="Trashbag">Trashbag</option>
-                      <option value="HandGlove">HandGlove</option>
-                      <option value="Cup Saus">Cup Saus</option>
-                      <option value="Sunlight">Sunlight</option>
-                      <!-- Opsi lainnya tetap sama -->
                     </select>
                   </td>
-                  <td data-label="Kuantitas"><input type="number" name="kuantitas[]" min="1" value="1" oninput="hitungTotal(this)"></td>
-                  <td data-label="Satuan">
-                    <select name="satuan[]"><option value="kg">Kg</option><option value="liter">Liter</option><option value="pcs">Pcs</option><option value="gal">Galon</option><option value="bal">Bal</option><option value="pack">Pack</option><option value="jerigen">Jerigen</option><option value="karton">Karton</option></select>
+                  <td><input type="number" name="kuantitas[]" min="1" value="1" oninput="hitungTotal(this)"></td>
+                  <td>
+                    <select name="satuan[]">
+                      <option value="kg">Kg</option>
+                      <option value="liter">Liter</option>
+                      <option value="pcs">Pcs</option>
+                      <option value="gal">Galon</option>
+                      <option value="bal">Bal</option>
+                      <option value="pack">Pack</option>
+                      <option value="jerigen">Jerigen</option>
+                      <option value="karton">Karton</option>
+                    </select>
                   </td>
-                  <td data-label="Harga"><input type="number" name="harga[]" min="0" step="100" placeholder="Rp" oninput="hitungTotal(this)"></td>
-                  <td data-label="Total"><input type="text" name="total[]" readonly></td>
-                  <td data-label="Aksi"><button type="button" class="remove-btn" onclick="hapusRow(this)">Hapus</button></td>
+                  <td><input type="number" name="harga[]" min="0" step="100" placeholder="Rp" oninput="hitungTotal(this)"></td>
+                  <td><input type="text" name="total[]" readonly></td>
+                  <td><button type="button" class="remove-btn" onclick="hapusRow(this)">Hapus</button></td>
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div class="mobile-card-view" id="bahanCardView">
+            <div class="card-row">
+              <div class="card-field">
+                <span class="card-label">Nama Barang:</span>
+                <span class="card-value">
+                  <select name="nama_barang_mobile[]">
+                    <option value="Air Cleo">Air Cleo</option>
+                    <option value="Mineral Botol Cleo">Mineral Botol Cleo</option>
+                    <option value="Es Batu IPB">Es Batu IPB</option>
+                    <option value="House Blend Beans; Omni Roaster">House Blend Beans; Omni Roaster</option>
+                    <option value="FM UHT; Diamond">FM UHT; Diamond</option>
+                  </select>
+                </span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Kuantitas:</span>
+                <span class="card-value"><input type="number" name="kuantitas_mobile[]" min="1" value="1" oninput="hitungTotalMobile(this)"></span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Satuan:</span>
+                <span class="card-value">
+                  <select name="satuan_mobile[]">
+                    <option value="kg">Kg</option>
+                    <option value="liter">Liter</option>
+                    <option value="pcs">Pcs</option>
+                    <option value="gal">Galon</option>
+                    <option value="bal">Bal</option>
+                    <option value="pack">Pack</option>
+                    <option value="jerigen">Jerigen</option>
+                    <option value="karton">Karton</option>
+                  </select>
+                </span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Harga (Rp):</span>
+                <span class="card-value"><input type="number" name="harga_mobile[]" min="0" step="100" placeholder="Rp" oninput="hitungTotalMobile(this)"></span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Total Harga (Rp):</span>
+                <span class="card-value"><input type="text" name="total_mobile[]" readonly></span>
+              </div>
+              <div class="card-actions">
+                <button type="button" class="remove-btn" onclick="hapusCardRow(this)">Hapus</button>
+              </div>
+            </div>
           </div>
           <button type="button" class="add-btn" onclick="tambahRow()">+ Tambah Barang</button>
         `;
       } else if (jenis === "operasional") {
         container.innerHTML = `
-          <div class="table-header"><h3>Biaya Operasional</h3></div>
+          <div class="table-header">
+            <h3>Biaya Operasional</h3>
+          </div>
           <div class="table-wrapper">
-            <table id="operasionalTable" class="mobile-table-card">
+            <table id="operasionalTable">
               <thead>
-                <tr><th>Jenis Operasional</th><th>Biaya (Rp)</th><th>Bulan</th><th>PIC</th><th>Aksi</th></tr>
+                <tr>
+                  <th>Jenis Operasional</th>
+                  <th>Biaya (Rp)</th>
+                  <th>Bulan</th>
+                  <th>PIC</th>
+                  <th>Aksi</th>
+                </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td data-label="Jenis Operasional">
+                  <td>
                     <select name="jenis_operasional[]">
-                      <option value="listrik">Listrik</option><option value="gaji">Gaji</option><option value="sampah">Sampah</option>
-                      <option value="internet">Internet</option><option value="sewa">Sewa</option><option value="dw">DW</option>
+                      <option value="listrik">Listrik</option>
+                      <option value="gaji">Gaji</option>
+                      <option value="sampah">Sampah</option>
+                      <option value="internet">Internet</option>
+                      <option value="sewa">Sewa</option>
+                      <option value="dw">DW</option>
                     </select>
                   </td>
-                  <td data-label="Biaya"><input type="number" name="biaya[]" min="0" step="100" placeholder="Rp"></td>
-                  <td data-label="Bulan">
+                  <td><input type="number" name="biaya[]" min="0" step="100" placeholder="Rp"></td>
+                  <td>
                     <select name="bulan[]">
-                      <option>Januari</option><option>Februari</option><option>Maret</option><option>April</option>
-                      <option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option>
-                      <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
+                      <option>Januari</option>
+                      <option>Februari</option>
+                      <option>Maret</option>
+                      <option>April</option>
+                      <option>Mei</option>
+                      <option>Juni</option>
+                      <option>Juli</option>
+                      <option>Agustus</option>
+                      <option>September</option>
+                      <option>Oktober</option>
+                      <option>November</option>
+                      <option>Desember</option>
                     </select>
                   </td>
-                  <td data-label="PIC">
-                    <select name="pic[]"><option value="person1">Person1</option><option value="person2">Person2</option><option value="person3">Person3</option></select>
+                  <td>
+                    <select name="pic[]">
+                      <option value="person1">Person1</option>
+                      <option value="person2">Person2</option>
+                      <option value="person3">Person3</option>
+                    </select>
                   </td>
-                  <td data-label="Aksi"><button type="button" class="remove-btn" onclick="hapusRow(this)">Hapus</button></td>
+                  <td><button type="button" class="remove-btn" onclick="hapusRow(this)">Hapus</button></td>
                 </tr>
               </tbody>
             </table>
           </div>
+          <div class="mobile-card-view" id="operasionalCardView">
+            <div class="card-row">
+              <div class="card-field">
+                <span class="card-label">Jenis Operasional:</span>
+                <span class="card-value">
+                  <select name="jenis_operasional_mobile[]">
+                    <option value="listrik">Listrik</option>
+                    <option value="gaji">Gaji</option>
+                    <option value="sampah">Sampah</option>
+                    <option value="internet">Internet</option>
+                    <option value="sewa">Sewa</option>
+                    <option value="dw">DW</option>
+                  </select>
+                </span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Biaya (Rp):</span>
+                <span class="card-value"><input type="number" name="biaya_mobile[]" min="0" step="100" placeholder="Rp"></span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Bulan:</span>
+                <span class="card-value">
+                  <select name="bulan_mobile[]">
+                    <option>Januari</option>
+                    <option>Februari</option>
+                    <option>Maret</option>
+                    <option>April</option>
+                    <option>Mei</option>
+                    <option>Juni</option>
+                    <option>Juli</option>
+                    <option>Agustus</option>
+                    <option>September</option>
+                    <option>Oktober</option>
+                    <option>November</option>
+                    <option>Desember</option>
+                  </select>
+                </span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">PIC:</span>
+                <span class="card-value">
+                  <select name="pic_mobile[]">
+                    <option value="person1">Person1</option>
+                    <option value="person2">Person2</option>
+                    <option value="person3">Person3</option>
+                  </select>
+                </span>
+              </div>
+              <div class="card-actions">
+                <button type="button" class="remove-btn" onclick="hapusCardRow(this)">Hapus</button>
+              </div>
+            </div>
+          </div>
           <button type="button" class="add-btn" onclick="tambahRow()">+ Tambah Baris</button>
         `;
       } else {
-        container.innerHTML = `<p style="text-align:center; color:#666;">Silakan pilih jenis pengeluaran</p>`;
+        container.innerHTML = `<p style="text-align:center; color:#666; padding:20px;">Silakan pilih jenis pengeluaran</p>`;
       }
       
       // Tambahkan event listener untuk input harga dan kuantitas
@@ -614,25 +755,53 @@
         document.querySelectorAll('input[name="kuantitas[]"]').forEach(input => {
           input.addEventListener('input', function() { hitungTotal(this); });
         });
+        
+        // Untuk tampilan mobile
+        document.querySelectorAll('input[name="harga_mobile[]"]').forEach(input => {
+          input.addEventListener('input', function() { hitungTotalMobile(this); });
+        });
+        document.querySelectorAll('input[name="kuantitas_mobile[]"]').forEach(input => {
+          input.addEventListener('input', function() { hitungTotalMobile(this); });
+        });
       }, 100);
     }
 
     function tambahRow() {
+      // Untuk tampilan desktop (tabel)
       const table = document.querySelector("#tableContainer table tbody");
-      if (!table) return;
-      const newRow = table.rows[0].cloneNode(true);
-      newRow.querySelectorAll("input").forEach(input => {
-        if (input.type !== 'button') input.value = "";
-      });
-      table.appendChild(newRow);
+      if (table) {
+        const newRow = table.rows[0].cloneNode(true);
+        newRow.querySelectorAll("input").forEach(input => {
+          if (input.type !== 'button') input.value = "";
+        });
+        table.appendChild(newRow);
+        
+        // Tambahkan event listener untuk input baru
+        newRow.querySelectorAll('input[name="harga[]"]').forEach(input => {
+          input.addEventListener('input', function() { hitungTotal(this); });
+        });
+        newRow.querySelectorAll('input[name="kuantitas[]"]').forEach(input => {
+          input.addEventListener('input', function() { hitungTotal(this); });
+        });
+      }
       
-      // Tambahkan event listener untuk input baru
-      newRow.querySelectorAll('input[name="harga[]"]').forEach(input => {
-        input.addEventListener('input', function() { hitungTotal(this); });
-      });
-      newRow.querySelectorAll('input[name="kuantitas[]"]').forEach(input => {
-        input.addEventListener('input', function() { hitungTotal(this); });
-      });
+      // Untuk tampilan mobile (kartu)
+      const cardView = document.querySelector("#tableContainer .mobile-card-view");
+      if (cardView) {
+        const newCard = cardView.querySelector(".card-row").cloneNode(true);
+        newCard.querySelectorAll("input").forEach(input => {
+          if (input.type !== 'button') input.value = "";
+        });
+        cardView.appendChild(newCard);
+        
+        // Tambahkan event listener untuk input baru
+        newCard.querySelectorAll('input[name="harga_mobile[]"]').forEach(input => {
+          input.addEventListener('input', function() { hitungTotalMobile(this); });
+        });
+        newCard.querySelectorAll('input[name="kuantitas_mobile[]"]').forEach(input => {
+          input.addEventListener('input', function() { hitungTotalMobile(this); });
+        });
+      }
     }
     
     function hapusRow(btn) {
@@ -642,11 +811,31 @@
       else alert("Minimal 1 baris harus ada.");
     }
     
+    function hapusCardRow(btn) {
+      const card = btn.closest(".card-row"); 
+      const container = card.parentNode;
+      if (container.children.length > 1) card.remove();
+      else alert("Minimal 1 baris harus ada.");
+    }
+    
     function hitungTotal(elem) {
       const row = elem.closest("tr");
       const qtyInput = row.querySelector("input[name='kuantitas[]']");
       const hargaInput = row.querySelector("input[name='harga[]']");
       const totalInput = row.querySelector("input[name='total[]']");
+      
+      if (!qtyInput || !hargaInput || !totalInput) return;
+      
+      const qty = parseFloat(qtyInput.value) || 0;
+      const harga = parseFloat(hargaInput.value) || 0;
+      totalInput.value = (qty * harga).toLocaleString("id-ID");
+    }
+    
+    function hitungTotalMobile(elem) {
+      const card = elem.closest(".card-row");
+      const qtyInput = card.querySelector("input[name='kuantitas_mobile[]']");
+      const hargaInput = card.querySelector("input[name='harga_mobile[]']");
+      const totalInput = card.querySelector("input[name='total_mobile[]']");
       
       if (!qtyInput || !hargaInput || !totalInput) return;
       
@@ -672,68 +861,196 @@
 
       let items = [];
       if (jenis === "bahan_baku") {
-        items = Array.from(document.querySelectorAll("#bahanTable tbody tr")).map(row => ({
-          nama_barang: row.querySelector("select[name='nama_barang[]']").value,
-          kuantitas: row.querySelector("input[name='kuantitas[]']").value,
-          satuan: row.querySelector("select[name='satuan[]']").value,
-          harga: row.querySelector("input[name='harga[]']").value,
-          total: row.querySelector("input[name='total[]']").value
-        }));
+        // Coba ambil data dari tampilan desktop terlebih dahulu
+        const desktopRows = document.querySelectorAll("#bahanTable tbody tr");
+        if (desktopRows.length > 0) {
+          items = Array.from(desktopRows).map(row => ({
+            nama_barang: row.querySelector("select[name='nama_barang[]']").value,
+            kuantitas: row.querySelector("input[name='kuantitas[]']").value,
+            satuan: row.querySelector("select[name='satuan[]']").value,
+            harga: row.querySelector("input[name='harga[]']").value,
+            total: row.querySelector("input[name='total[]']").value
+          }));
+        } else {
+          // Jika tidak ada, ambil dari tampilan mobile
+          const mobileCards = document.querySelectorAll("#bahanCardView .card-row");
+          items = Array.from(mobileCards).map(card => ({
+            nama_barang: card.querySelector("select[name='nama_barang_mobile[]']").value,
+            kuantitas: card.querySelector("input[name='kuantitas_mobile[]']").value,
+            satuan: card.querySelector("select[name='satuan_mobile[]']").value,
+            harga: card.querySelector("input[name='harga_mobile[]']").value,
+            total: card.querySelector("input[name='total_mobile[]']").value
+          }));
+        }
       } else if (jenis === "operasional") {
-        items = Array.from(document.querySelectorAll("#operasionalTable tbody tr")).map(row => ({
-          jenis_operasional: row.querySelector("select[name='jenis_operasional[]']").value,
-          biaya: row.querySelector("input[name='biaya[]']").value,
-          bulan: row.querySelector("select[name='bulan[]']").value,
-          pic: row.querySelector("select[name='pic[]']").value
-        }));
+        // Coba ambil data dari tampilan desktop terlebih dahulu
+        const desktopRows = document.querySelectorAll("#operasionalTable tbody tr");
+        if (desktopRows.length > 0) {
+          items = Array.from(desktopRows).map(row => ({
+            jenis_operasional: row.querySelector("select[name='jenis_operasional[]']").value,
+            biaya: row.querySelector("input[name='biaya[]']").value,
+            bulan: row.querySelector("select[name='bulan[]']").value,
+            pic: row.querySelector("select[name='pic[]']").value
+          }));
+        } else {
+          // Jika tidak ada, ambil dari tampilan mobile
+          const mobileCards = document.querySelectorAll("#operasionalCardView .card-row");
+          items = Array.from(mobileCards).map(card => ({
+            jenis_operasional: card.querySelector("select[name='jenis_operasional_mobile[]']").value,
+            biaya: card.querySelector("input[name='biaya_mobile[]']").value,
+            bulan: card.querySelector("select[name='bulan_mobile[]']").value,
+            pic: card.querySelector("select[name='pic_mobile[]']").value
+          }));
+        }
       }
 
       formDataCache = { jenis, tanggal, keterangan, items };
 
-      // Render review table
+      // Render review page
+      renderReviewPage(jenis, tanggal, keterangan, items);
+    });
+
+    function renderReviewPage(jenis, tanggal, keterangan, items) {
+      // Isi data summary
+      document.getElementById("reviewJenis").textContent = jenis;
+      document.getElementById("reviewTanggal").textContent = tanggal;
+      document.getElementById("reviewKeterangan").textContent = keterangan || "-";
+      
+      // Render tabel untuk desktop
       const reviewTable = document.getElementById("reviewTable");
-      let rows = `
-        <tr><th>Jenis Pengeluaran</th><td>${jenis}</td></tr>
-        <tr><th>Tanggal</th><td>${tanggal}</td></tr>
-        <tr><th>Keterangan</th><td>${keterangan || "-"}</td></tr>
-      `;
-
-      if (items.length > 0) {
-        rows += `<tr><th colspan="2">Detail</th></tr>`;
-        rows += `<tr><td colspan="2">
-          <div class="table-wrapper">
-            <table style="width:100%; border-collapse: collapse; font-size:13px;">
-              <thead>`;
-        if (jenis === "bahan_baku") {
-          rows += `<tr>
-              <th>Nama Barang</th><th>Kuantitas</th><th>Satuan</th>
-              <th>Harga</th><th>Total</th>
-            </tr></thead><tbody>`;
-          items.forEach(it => {
-            rows += `<tr>
-              <td>${it.nama_barang}</td><td>${it.kuantitas}</td><td>${it.satuan}</td>
-              <td>${it.harga}</td><td>${it.total}</td>
-            </tr>`;
-          });
-        } else if (jenis === "operasional") {
-          rows += `<tr>
-              <th>Jenis</th><th>Biaya</th><th>Bulan</th><th>PIC</th>
-            </tr></thead><tbody>`;
-          items.forEach(it => {
-            rows += `<tr>
-              <td>${it.jenis_operasional}</td><td>${it.biaya}</td>
-              <td>${it.bulan}</td><td>${it.pic}</td>
-            </tr>`;
-          });
-        }
-        rows += `</tbody></table></div></td></tr>`;
+      let tableHTML = "";
+      
+      if (jenis === "bahan_baku") {
+        tableHTML = `
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Barang</th>
+              <th>Kuantitas</th>
+              <th>Satuan</th>
+              <th>Harga (Rp)</th>
+              <th>Total (Rp)</th>
+            </tr>
+          </thead>
+          <tbody>
+        `;
+        
+        items.forEach((item, index) => {
+          tableHTML += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${item.nama_barang}</td>
+              <td>${item.kuantitas}</td>
+              <td>${item.satuan}</td>
+              <td>${parseInt(item.harga).toLocaleString("id-ID")}</td>
+              <td>${item.total}</td>
+            </tr>
+          `;
+        });
+        
+        tableHTML += `</tbody>`;
+      } else if (jenis === "operasional") {
+        tableHTML = `
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Jenis Operasional</th>
+              <th>Biaya (Rp)</th>
+              <th>Bulan</th>
+              <th>PIC</th>
+            </tr>
+          </thead>
+          <tbody>
+        `;
+        
+        items.forEach((item, index) => {
+          tableHTML += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${item.jenis_operasional}</td>
+              <td>${parseInt(item.biaya).toLocaleString("id-ID")}</td>
+              <td>${item.bulan}</td>
+              <td>${item.pic}</td>
+            </tr>
+          `;
+        });
+        
+        tableHTML += `</tbody>`;
       }
-
-      reviewTable.innerHTML = rows;
+      
+      reviewTable.innerHTML = tableHTML;
+      
+      // Render tampilan mobile
+      const reviewMobileView = document.getElementById("reviewMobileView");
+      let mobileHTML = "";
+      
+      if (items.length > 0) {
+        items.forEach((item, index) => {
+          if (jenis === "bahan_baku") {
+            mobileHTML += `
+              <div class="card-row">
+                <div class="card-field">
+                  <span class="card-label">Item ${index + 1}</span>
+                  <span class="card-value"></span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Nama Barang</span>
+                  <span class="card-value">${item.nama_barang}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Kuantitas</span>
+                  <span class="card-value">${item.kuantitas}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Satuan</span>
+                  <span class="card-value">${item.satuan}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Harga</span>
+                  <span class="card-value">${parseInt(item.harga).toLocaleString("id-ID")}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Total</span>
+                  <span class="card-value">${item.total}</span>
+                </div>
+              </div>
+            `;
+          } else if (jenis === "operasional") {
+            mobileHTML += `
+              <div class="card-row">
+                <div class="card-field">
+                  <span class="card-label">Item ${index + 1}</span>
+                  <span class="card-value"></span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Jenis</span>
+                  <span class="card-value">${item.jenis_operasional}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Biaya</span>
+                  <span class="card-value">${parseInt(item.biaya).toLocaleString("id-ID")}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Bulan</span>
+                  <span class="card-value">${item.bulan}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">PIC</span>
+                  <span class="card-value">${item.pic}</span>
+                </div>
+              </div>
+            `;
+          }
+        });
+      } else {
+        mobileHTML = `<p style="text-align:center; color:#666; padding:10px;">Tidak ada item</p>`;
+      }
+      
+      reviewMobileView.innerHTML = mobileHTML;
 
       document.getElementById("pengeluaranForm").style.display = "none";
       document.getElementById("reviewCard").style.display = "block";
-    });
+    }
 
     function goBack() {
       document.getElementById("reviewCard").style.display = "none";
