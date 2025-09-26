@@ -226,6 +226,24 @@
       th, td {
         padding: 8px 6px;
       }
+      .loading {
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          border: 3px solid rgba(255,255,255,.3);
+          border-radius: 50%;
+          border-top-color: #fff;
+          animation: spin 1s ease-in-out infinite;
+          margin-right: 10px;
+      }
+      
+      @keyframes spin {
+          to { transform: rotate(360deg); }
+      }
+      
+      .hidden {
+          display: none;
+      }
     }
   </style>
 </head>
@@ -345,31 +363,34 @@
     </div>
   </div>
 
-  <!-- Step 3: Hasil Closing -->
-  <div class="card hidden summary-card" id="step3">
-    <h3>Hasil Closing Penjualan</h3>
-    
-    <div id="summaryInfo"></div>
-    
-    <div class="table-wrapper">
-      <table id="tabelHasil">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Nilai</th>
-          </tr>
-        </thead>
-        <tbody id="bodyTabelHasil">
-          <!-- Data akan diisi oleh JavaScript -->
-        </tbody>
-      </table>
-    </div>
-    
-    <div class="form-row">
-      <button class="primary-btn" onclick="cetakLaporan()" style="flex: 1;">Cetak Laporan</button>
-      <button class="success-btn" onclick="simpanDanTutup()" style="flex: 1;">Selesai</button>
-    </div>
-  </div>
+      <!-- Step 3: Hasil Closing -->
+      <div class="card hidden summary-card" id="step3">
+          <h3>Hasil Closing Penjualan</h3>
+          
+          <div id="summaryInfo"></div>
+          
+          <div class="table-wrapper">
+              <table id="tabelHasil">
+                  <thead>
+                      <tr>
+                          <th>Item</th>
+                          <th>Nilai</th>
+                      </tr>
+                  </thead>
+                  <tbody id="bodyTabelHasil">
+                      <!-- Data akan diisi oleh JavaScript -->
+                  </tbody>
+              </table>
+          </div>
+          
+          <div class="form-row">
+              <button class="primary-btn" onclick="kirimEmailLaporan()" style="flex: 1;" id="btnKirimEmail">
+                  <span id="btnKirimText">Kirim PDF via Email</span>
+                  <span id="btnKirimLoading" class="hidden loading"></span>
+              </button>
+              <button class="success-btn" onclick="simpanDanTutup()" style="flex: 1;">Selesai</button>
+          </div>
+      </div>
 
   <script>
       console.log('📄 Script JavaScript mulai loading...');
@@ -377,7 +398,8 @@
       // Webhook URLs
       const WEBHOOK_GET_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/get-resi-data';
       const WEBHOOK_SUBMIT_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/5aef7833-d0fb-4c04-8aec-d99784165f15';
-  
+  // Tambahkan di bagian atas dengan webhook lainnya
+      const WEBHOOK_SEND_EMAIL = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/send-email-pdf';
       // Variabel global
       let dataResi = {};
       let chatId = '';
@@ -893,11 +915,99 @@ async function ambilDataResi() {
         console.log('✅ Hasil closing di-render');
       }
   
-      // Fungsi tambahan
-      function cetakLaporan() {
-        console.log('🖨️ Cetak laporan');
-        window.print();
-      }
+          // Fungsi untuk kirim PDF via email - menggantikan cetakLaporan()
+          async function kirimEmailLaporan() {
+              console.log('📧 Memulai kirimEmailLaporan...');
+              
+              // Tampilkan loading state untuk tombol kirim email
+              const btnKirim = document.getElementById('btnKirimEmail');
+              const btnText = document.getElementById('btnKirimText');
+              const btnLoading = document.getElementById('btnKirimLoading');
+              
+              if (btnKirim) {
+                  btnKirim.disabled = true;
+                  btnText.textContent = 'Mengirim...';
+                  if (btnLoading) btnLoading.classList.remove('hidden');
+              }
+              
+              try {
+                  // Siapkan data untuk PDF
+                  const dataPDF = {
+                      chat_id: chatId,
+                      tanggal: document.getElementById('tanggalClosing').value,
+                      shift: document.getElementById('shift').value,
+                      karyawan: document.getElementById('karyawan').value,
+                      data_resi: dataResi,
+                      ringkasan_aktual: {
+                          total_penjualan: parseInt(document.getElementById('aktualTotalPenjualan').value) || 0,
+                          subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
+                          diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
+                      },
+                      pembayaran_aktual: getPembayaranAktual(),
+                      keterangan: document.getElementById('keteranganUmum').value,
+                      timestamp: new Date().toISOString()
+                  };
+                  
+                  console.log('📦 Data untuk PDF:', dataPDF);
+                  
+                  // Kirim request ke webhook untuk generate dan kirim PDF
+                  const response = await fetch(WEBHOOK_SEND_EMAIL, {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(dataPDF)
+                  });
+                  
+                  console.log('📥 Response dari webhook email:', response.status);
+                  
+                  if (!response.ok) {
+                      throw new Error(`Gagal mengirim email: ${response.status}`);
+                  }
+                  
+                  const result = await response.json();
+                  console.log('✅ Response kirim email:', result);
+                  
+                  // Tampilkan notifikasi sukses
+                  document.getElementById('summaryInfo').innerHTML = 
+                      '<div class="status-success status-card">✓ Laporan PDF berhasil dikirim via email!</div>';
+                  
+                  alert('Laporan PDF berhasil dikirim via email!');
+                  
+              } catch (error) {
+                  console.error('💥 Error kirim email:', error);
+                  
+                  document.getElementById('summaryInfo').innerHTML = 
+                      `<div class="status-error status-card">❌ Gagal mengirim email: ${error.message}</div>`;
+                  
+                  alert(`Gagal mengirim email: ${error.message}`);
+              } finally {
+                  // Reset tombol
+                  if (btnKirim) {
+                      btnKirim.disabled = false;
+                      btnText.textContent = 'Kirim PDF via Email';
+                      if (btnLoading) btnLoading.classList.add('hidden');
+                  }
+              }
+          }
+          
+          // Helper function untuk mendapatkan data pembayaran aktual
+          function getPembayaranAktual() {
+              const pembayaranAktual = [];
+              const jumlahInput = dataResi.metode_pembayaran ? dataResi.metode_pembayaran.length : 1;
+              
+              for (let i = 0; i < jumlahInput; i++) {
+                  const input = document.getElementById(`aktual-${i}`);
+                  if (input) {
+                      pembayaranAktual.push({
+                          nama: dataResi.metode_pembayaran ? dataResi.metode_pembayaran[i]?.nama || `Metode ${i+1}` : 'QR-MANDIRI',
+                          penjualan_aktual: parseInt(input.value) || 0
+                      });
+                  }
+              }
+              
+              return pembayaranAktual;
+          }
   
       function simpanDanTutup() {
         console.log('💾 Simpan dan tutup');
