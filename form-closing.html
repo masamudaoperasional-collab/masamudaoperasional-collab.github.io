@@ -868,118 +868,307 @@
           
           return pembayaranAktual;
       }
-  
-      // Fungsi untuk proses closing
-      async function prosesClosing() {
-        console.log('🚀 Memulai prosesClosing...');
-        
-        const tanggal = document.getElementById('tanggalClosing').value;
-        const shift = document.getElementById('shift').value;
-        const karyawan = document.getElementById('karyawan').value;
-        const keterangan = document.getElementById('keteranganUmum').value;
-        
-        console.log('📋 Data closing:', { tanggal, shift, karyawan, keterangan });
-        
-        // Validasi data
-        const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
-        if (totalAktual === 0) {
-          console.error('❌ Validasi gagal: total aktual = 0');
-          alert('Harap isi semua nilai aktual sebelum melanjutkan!');
-          return;
-        }
-        
-        // Kumpulkan data aktual
-        const ringkasanAktual = {
-          total_penjualan: totalAktual,
-          subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
-          diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
-        };
-        
-        // Kumpulkan data pembayaran aktual menggunakan helper function
-        const pembayaranAktual = getPembayaranAktual();
-        console.log('📊 Data pembayaran aktual:', pembayaranAktual);
-        
-        // Data yang akan dikirim ke n8n
-        const dataKirim = {
-          chat_id: chatId,
-          tanggal: tanggal,
-          shift: shift,
-          karyawan: karyawan,
-          data_resi: dataResi,
-          ringkasan_aktual: ringkasanAktual,
-          pembayaran_aktual: pembayaranAktual,
-          keterangan: keterangan,
-          timestamp: new Date().toISOString()
-        };
-        
-        console.log('📦 Data yang akan dikirim ke webhook 2:', dataKirim);
-        
-        // Tampilkan loading
-        setLoading('btnSubmit', true);
-        
-        try {
-          // Kirim data ke webhook n8n
-          const response = await fetch(WEBHOOK_SUBMIT_DATA, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(dataKirim)
-          });
+    // Fungsi untuk generate kesimpulan matching
+          function generateKesimpulan() {
+              console.log('📊 Generate kesimpulan matching...');
+              
+              const kesimpulan = {
+                  totalMatch: true,
+                  detailMatch: {},
+                  totalSelisih: 0,
+                  rekomendasi: []
+              };
           
-          console.log('📥 Response dari webhook 2:', response.status, response.ok);
+              // 1. Check Total Penjualan
+              const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
+              const totalResi = dataResi.total_penjualan || 0;
+              const selisihTotal = totalAktual - totalResi;
+              
+              kesimpulan.detailMatch.total_penjualan = {
+                  match: selisihTotal === 0,
+                  selisih: selisihTotal,
+                  status: getStatusText(selisihTotal)
+              };
+              
+              if (selisihTotal !== 0) {
+                  kesimpulan.totalMatch = false;
+                  kesimpulan.totalSelisih += Math.abs(selisihTotal);
+              }
           
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+              // 2. Check Subtotal
+              const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
+              const subtotalResi = dataResi.subtotal || 0;
+              const selisihSubtotal = subtotalAktual - subtotalResi;
+              
+              kesimpulan.detailMatch.subtotal = {
+                  match: selisihSubtotal === 0,
+                  selisih: selisihSubtotal,
+                  status: getStatusText(selisihSubtotal)
+              };
+              
+              if (selisihSubtotal !== 0) {
+                  kesimpulan.totalMatch = false;
+                  kesimpulan.totalSelisih += Math.abs(selisihSubtotal);
+              }
+          
+              // 3. Check Diskon
+              const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
+              const diskonResi = dataResi.diskon_bill || 0;
+              const selisihDiskon = diskonAktual - diskonResi;
+              
+              kesimpulan.detailMatch.diskon_bill = {
+                  match: selisihDiskon === 0,
+                  selisih: selisihDiskon,
+                  status: getStatusText(selisihDiskon)
+              };
+              
+              if (selisihDiskon !== 0) {
+                  kesimpulan.totalMatch = false;
+                  kesimpulan.totalSelisih += Math.abs(selisihDiskon);
+              }
+          
+              // 4. Check Metode Pembayaran
+              kesimpulan.detailMatch.metode_pembayaran = [];
+              let semuaPembayaranMatch = true;
+              let totalSelisihPembayaran = 0;
+          
+              if (dataResi.metode_pembayaran && dataResi.metode_pembayaran.length > 0) {
+                  dataResi.metode_pembayaran.forEach((metode, index) => {
+                      const input = document.getElementById(`aktual-${index}`);
+                      if (input) {
+                          const nilaiAktual = parseInt(input.value) || 0;
+                          const nilaiResi = metode.penjualan || 0;
+                          const selisih = nilaiAktual - nilaiResi;
+                          
+                          const matchPembayaran = {
+                              metode: metode.nama,
+                              match: selisih === 0,
+                              selisih: selisih,
+                              status: getStatusText(selisih)
+                          };
+                          
+                          kesimpulan.detailMatch.metode_pembayaran.push(matchPembayaran);
+                          
+                          if (selisih !== 0) {
+                              semuaPembayaranMatch = false;
+                              totalSelisihPembayaran += Math.abs(selisih);
+                          }
+                      }
+                  });
+              }
+              
+              kesimpulan.totalMatch = kesimpulan.totalMatch && semuaPembayaranMatch;
+              kesimpulan.totalSelisih += totalSelisihPembayaran;
+          
+              // 5. Generate Rekomendasi
+              if (kesimpulan.totalMatch) {
+                  kesimpulan.rekomendasi.push("✅ Semua data matching sempurna");
+                  kesimpulan.rekomendasi.push("✅ Tidak perlu tindakan lebih lanjut");
+              } else {
+                  if (Math.abs(selisihTotal) > 0) {
+                      kesimpulan.rekomendasi.push(`⚠️ Periksa total penjualan (selisih: ${formatRupiah(selisihTotal)})`);
+                  }
+                  if (Math.abs(selisihSubtotal) > 0) {
+                      kesimpulan.rekomendasi.push(`⚠️ Periksa subtotal (selisih: ${formatRupiah(selisihSubtotal)})`);
+                  }
+                  if (Math.abs(selisihDiskon) > 0) {
+                      kesimpulan.rekomendasi.push(`⚠️ Periksa diskon bill (selisih: ${formatRupiah(selisihDiskon)})`);
+                  }
+                  
+                  kesimpulan.detailMatch.metode_pembayaran.forEach(pembayaran => {
+                      if (!pembayaran.match) {
+                          kesimpulan.rekomendasi.push(`⚠️ Periksa ${pembayaran.metode} (selisih: ${formatRupiah(pembayaran.selisih)})`);
+                      }
+                  });
+                  
+                  if (kesimpulan.totalSelisih > 100000) {
+                      kesimpulan.rekomendasi.push("🚨 Selisih signifikan, perlu investigasi mendalam");
+                  } else if (kesimpulan.totalSelisih > 50000) {
+                      kesimpulan.rekomendasi.push("⚠️ Selisih cukup besar, perlu pengecekan ulang");
+                  } else {
+                      kesimpulan.rekomendasi.push("💡 Selisih kecil, mungkin karena pembulatan");
+                  }
+              }
+          
+              // 6. Status Overall
+              kesimpulan.statusOverall = kesimpulan.totalMatch ? "MATCH SEMPURNA" : 
+                                        kesimpulan.totalSelisih <= 5000 ? "HAMPIR MATCH" : 
+                                        "PERLU PERBAIKAN";
+          
+              console.log('✅ Kesimpulan generated:', kesimpulan);
+              return kesimpulan;
           }
           
-          const result = await response.json();
-          console.log('✅ Response submit:', result);
+          // Fungsi untuk mendapatkan teks kesimpulan yang lebih readable
+          function getKesimpulanText(kesimpulan) {
+              let text = `STATUS: ${kesimpulan.statusOverall}\n\n`;
+              
+              if (kesimpulan.totalMatch) {
+                  text += "🎉 SELAMAT! Semua data matching sempurna antara sistem dan kas aktual.\n\n";
+              } else {
+                  text += `📊 TOTAL SELISIH: ${formatRupiah(kesimpulan.totalSelisih)}\n\n`;
+                  text += "🔍 DETAIL KETIDAKSESUAIAN:\n";
+                  
+                  Object.keys(kesimpulan.detailMatch).forEach(key => {
+                      if (key !== 'metode_pembayaran') {
+                          const detail = kesimpulan.detailMatch[key];
+                          if (!detail.match) {
+                              text += `• ${key.replace('_', ' ').toUpperCase()}: ${formatRupiah(detail.selisih)} (${detail.status})\n`;
+                          }
+                      }
+                  });
+                  
+                  if (kesimpulan.detailMatch.metode_pembayaran) {
+                      kesimpulan.detailMatch.metode_pembayaran.forEach(pembayaran => {
+                          if (!pembayaran.match) {
+                              text += `• ${pembayaran.metode.toUpperCase()}: ${formatRupiah(pembayaran.selisih)} (${pembayaran.status})\n`;
+                          }
+                      });
+                  }
+                  
+                  text += "\n💡 REKOMENDASI:\n";
+                  kesimpulan.rekomendasi.forEach(rec => {
+                      text += `• ${rec}\n`;
+                  });
+              }
+              
+              return text;
+          }
+  
+      // Fungsi untuk proses closing
+// Dalam fungsi prosesClosing(), tambahkan kesimpulan ke data yang dikirim
+      async function prosesClosing() {
+          console.log('🚀 Memulai prosesClosing...');
           
-          // Tampilkan hasil
-          document.getElementById('step2').classList.add('hidden');
-          document.getElementById('step3').classList.remove('hidden');
+          const tanggal = document.getElementById('tanggalClosing').value;
+          const shift = document.getElementById('shift').value;
+          const karyawan = document.getElementById('karyawan').value;
+          const keterangan = document.getElementById('keteranganUmum').value;
           
-          // Render hasil closing
-          renderHasilClosing(dataKirim);
+          console.log('📋 Data closing:', { tanggal, shift, karyawan, keterangan });
           
-          document.getElementById('summaryInfo').innerHTML = 
-            '<div class="status-success status-card">Data closing berhasil dikirim!</div>';
-            
-          console.log('🎉 Proses closing selesai');
-            
-        } catch (error) {
-          console.error('💥 Error saat submit:', error);
-          alert(`Error: ${error.message}`);
-        } finally {
-          setLoading('btnSubmit', false);
-          console.log('🏁 Fungsi prosesClosing selesai');
-        }
+          // Validasi data
+          const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
+          if (totalAktual === 0) {
+              console.error('❌ Validasi gagal: total aktual = 0');
+              alert('Harap isi semua nilai aktual sebelum melanjutkan!');
+              return;
+          }
+          
+          // Generate kesimpulan matching
+          const kesimpulan = generateKesimpulan();
+          
+          // Kumpulkan data aktual
+          const ringkasanAktual = {
+              total_penjualan: totalAktual,
+              subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
+              diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
+          };
+          
+          // Kumpulkan data pembayaran aktual menggunakan helper function
+          const pembayaranAktual = getPembayaranAktual();
+          console.log('📊 Data pembayaran aktual:', pembayaranAktual);
+          
+          // Data yang akan dikirim ke n8n - DITAMBAH KESIMPULAN
+          const dataKirim = {
+              chat_id: chatId,
+              tanggal: tanggal,
+              shift: shift,
+              karyawan: karyawan,
+              data_resi: dataResi,
+              ringkasan_aktual: ringkasanAktual,
+              pembayaran_aktual: pembayaranAktual,
+              keterangan: keterangan,
+              kesimpulan: kesimpulan, // ⬅️ INI YANG BARU
+              kesimpulan_text: getKesimpulanText(kesimpulan), // ⬅️ TEKS READABLE
+              timestamp: new Date().toISOString()
+          };
+          
+          console.log('📦 Data yang akan dikirim ke webhook 2:', dataKirim);
+          
+          // Tampilkan loading
+          setLoading('btnSubmit', true);
+          
+          try {
+              // Kirim data ke webhook n8n
+              const response = await fetch(WEBHOOK_SUBMIT_DATA, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(dataKirim)
+              });
+              
+              console.log('📥 Response dari webhook 2:', response.status, response.ok);
+              
+              if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              
+              const result = await response.json();
+              console.log('✅ Response submit:', result);
+              
+              // Tampilkan hasil
+              document.getElementById('step2').classList.add('hidden');
+              document.getElementById('step3').classList.remove('hidden');
+              
+              // Render hasil closing - TAMBAH KESIMPULAN
+              renderHasilClosing(dataKirim, kesimpulan);
+              
+              document.getElementById('summaryInfo').innerHTML = 
+                  '<div class="status-success status-card">Data closing berhasil dikirim!</div>';
+                  
+              console.log('🎉 Proses closing selesai');
+                  
+          } catch (error) {
+              console.error('💥 Error saat submit:', error);
+              alert(`Error: ${error.message}`);
+          } finally {
+              setLoading('btnSubmit', false);
+              console.log('🏁 Fungsi prosesClosing selesai');
+          }
       }
   
       // Fungsi untuk render hasil closing
-      function renderHasilClosing(data) {
-        console.log('🎨 Render hasil closing...');
-        
-        const totalSelisih = data.ringkasan_aktual.total_penjualan - (dataResi.total_penjualan || 0);
-        
-        const tbody = document.getElementById('bodyTabelHasil');
-        tbody.innerHTML = `
-          <tr><td>Outlet</td><td>${dataResi.outlet || 'Masakluda'}</td></tr>
-          <tr><td>Tanggal Closing</td><td>${data.tanggal}</td></tr>
-          <tr><td>Shift</td><td>${data.shift}</td></tr>
-          <tr><td>Karyawan</td><td>${data.karyawan}</td></tr>
-          <tr><td>Total Penjualan (Resi)</td><td>${formatRupiah(dataResi.total_penjualan || 0)}</td></tr>
-          <tr><td>Total Penjualan (Aktual)</td><td>${formatRupiah(data.ringkasan_aktual.total_penjualan)}</td></tr>
-          <tr><td>Total Selisih</td><td>${formatRupiah(totalSelisih)}</td></tr>
-          <tr><td>Keterangan</td><td>${data.keterangan || '-'}</td></tr>
-          <tr><td>Waktu Submit</td><td>${new Date().toLocaleString('id-ID')}</td></tr>
-        `;
-        
-        console.log('✅ Hasil closing di-render');
+     // Update fungsi renderHasilClosing()
+      function renderHasilClosing(data, kesimpulan) {
+          console.log('🎨 Render hasil closing...');
+          
+          const totalSelisih = data.ringkasan_aktual.total_penjualan - (dataResi.total_penjualan || 0);
+          
+          const tbody = document.getElementById('bodyTabelHasil');
+          tbody.innerHTML = `
+              <tr><td>Outlet</td><td>${dataResi.outlet || 'Masakluda'}</td></tr>
+              <tr><td>Tanggal Closing</td><td>${data.tanggal}</td></tr>
+              <tr><td>Shift</td><td>${data.shift}</td></tr>
+              <tr><td>Karyawan</td><td>${data.karyawan}</td></tr>
+              <tr><td>Total Penjualan (Resi)</td><td>${formatRupiah(dataResi.total_penjualan || 0)}</td></tr>
+              <tr><td>Total Penjualan (Aktual)</td><td>${formatRupiah(data.ringkasan_aktual.total_penjualan)}</td></tr>
+              <tr><td>Total Selisih</td><td>${formatRupiah(totalSelisih)}</td></tr>
+              <tr><td>Status Matching</td><td><strong>${kesimpulan.statusOverall}</strong></td></tr>
+              <tr><td>Keterangan</td><td>${data.keterangan || '-'}</td></tr>
+              <tr><td>Waktu Submit</td><td>${new Date().toLocaleString('id-ID')}</td></tr>
+          `;
+          
+          // Tambahkan card kesimpulan
+          const summaryInfo = document.getElementById('summaryInfo');
+          summaryInfo.innerHTML = `
+              <div class="status-card ${kesimpulan.totalMatch ? 'status-success' : kesimpulan.totalSelisih <= 5000 ? 'status-warning' : 'status-error'}">
+                  <h4>KESIMPULAN MATCHING</h4>
+                  <p><strong>Status: ${kesimpulan.statusOverall}</strong></p>
+                  <p>Total Selisih: ${formatRupiah(kesimpulan.totalSelisih)}</p>
+                  ${kesimpulan.rekomendasi.length > 0 ? 
+                      `<p>Rekomendasi:<br>${kesimpulan.rekomendasi.join('<br>')}</p>` : 
+                      '<p>✅ Semua data matching sempurna</p>'
+                  }
+              </div>
+          `;
+          
+          console.log('✅ Hasil closing di-render');
       }
   
       // Fungsi untuk kirim PDF via email - menggantikan cetakLaporan()
+      // Update fungsi kirimEmailLaporan()
       async function kirimEmailLaporan() {
           console.log('📧 Memulai kirimEmailLaporan...');
           
@@ -995,7 +1184,10 @@
           }
           
           try {
-              // Siapkan data untuk PDF
+              // Generate kesimpulan
+              const kesimpulan = generateKesimpulan();
+              
+              // Siapkan data untuk PDF - DITAMBAH KESIMPULAN
               const dataPDF = {
                   chat_id: chatId,
                   tanggal: document.getElementById('tanggalClosing').value,
@@ -1009,6 +1201,8 @@
                   },
                   pembayaran_aktual: getPembayaranAktual(),
                   keterangan: document.getElementById('keteranganUmum').value,
+                  kesimpulan: kesimpulan, // ⬅️ INI YANG BARU
+                  kesimpulan_text: getKesimpulanText(kesimpulan), // ⬅️ TEKS READABLE
                   timestamp: new Date().toISOString()
               };
               
@@ -1034,9 +1228,9 @@
               
               // Tampilkan notifikasi sukses
               document.getElementById('summaryInfo').innerHTML = 
-                  '<div class="status-success status-card">✓ Laporan PDF berhasil dikirim via email!</div>';
+                  `<div class="status-success status-card">✓ Laporan PDF berhasil dikirim via email!\nStatus: ${kesimpulan.statusOverall}</div>`;
               
-              alert('Laporan PDF berhasil dikirim via email!');
+              alert(`Laporan PDF berhasil dikirim via email!\nStatus: ${kesimpulan.statusOverall}`);
               
           } catch (error) {
               console.error('💥 Error kirim email:', error);
