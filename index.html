@@ -69,7 +69,7 @@
       text-overflow: ellipsis;
     }
     
-    select, input[type="number"], input[type="text"], textarea {
+    select, input[type="number"], input[type="text"], textarea, input[type="file"] {
       width: 100%; 
       padding: 12px 10px; 
       border: 1px solid var(--border-color);
@@ -293,6 +293,48 @@
       color: #111827;
     }
 
+    /* Upload file styling */
+    .upload-section {
+      margin-top: 15px;
+      padding: 15px;
+      border: 1px dashed var(--border-color);
+      border-radius: 6px;
+      background-color: #f9fafb;
+    }
+    
+    .upload-section h4 {
+      margin: 0 0 10px 0;
+      font-weight: 500;
+      color: #4b5563;
+    }
+    
+    .file-preview {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .file-item {
+      display: flex;
+      align-items: center;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+    
+    .file-item button {
+      background: none;
+      border: none;
+      color: var(--danger-color);
+      margin-left: 8px;
+      padding: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       body { 
@@ -361,6 +403,10 @@
       
       .review-mobile-view {
         display: block;
+      }
+      
+      .file-preview {
+        flex-direction: column;
       }
     }
     
@@ -447,6 +493,7 @@
         <select id="jenis" name="jenis">
           <option value="bahan_baku">Bahan Baku</option>
           <option value="operasional">Operasional</option>
+          <option value="inventaris">Inventaris</option>
           <option value="lainnya">Lainnya</option>
         </select>
       </div>
@@ -465,6 +512,13 @@
     <div class="form-group" style="margin-top:20px;">
       <label for="keterangan">Keterangan Tambahan:</label>
       <textarea id="keterangan" name="keterangan" placeholder="Tambahkan catatan tambahan di sini..."></textarea>
+    </div>
+
+    <!-- Upload File Section -->
+    <div class="upload-section">
+      <h4>Upload File atau Foto</h4>
+      <input type="file" id="fileUpload" name="fileUpload" multiple accept="image/*,.pdf,.doc,.docx">
+      <div id="filePreview" class="file-preview"></div>
     </div>
 
     <button type="submit" class="submit-btn">Lanjut Review</button>
@@ -487,6 +541,10 @@
         <div class="card-field">
           <span class="card-label">Keterangan</span>
           <span class="card-value" id="reviewKeterangan">-</span>
+        </div>
+        <div class="card-field">
+          <span class="card-label">File Terlampir</span>
+          <span class="card-value" id="reviewFiles">-</span>
         </div>
       </div>
     </div>
@@ -519,6 +577,8 @@
 
   <script>
     let currentDate = new Date();
+    let uploadedFiles = [];
+    
     tampilkanTanggal();
     
     function tampilkanTanggal() {
@@ -556,11 +616,135 @@
                 <tr>
                   <td>
                     <select name="nama_barang[]">
-                      <option value="Air Cleo">Air Cleo</option>
-                      <option value="Mineral Botol Cleo">Mineral Botol Cleo</option>
-                      <option value="Es Batu IPB">Es Batu IPB</option>
-                      <option value="House Blend Beans; Omni Roaster">House Blend Beans; Omni Roaster</option>
-                      <option value="FM UHT; Diamond">FM UHT; Diamond</option>
+                    <option value="Air Cleo">Air Cleo</option>
+                    <option value="Es Batu IPB">Es Batu IPB</option>
+                    <option value="House Blend Beans; Omni Roaster">House Blend Beans; Omni Roaster</option>
+                    <option value="FM UHT; Diamond">FM UHT; Diamond</option>
+                    <option value="FM COCO; Frisian Flag">FM COCO; Frisian Flag</option>
+                    <option value="Aren Cair; Omni Roaster">Aren Cair; Omni Roaster</option>
+                    <option value="Chai Syrup; Monin">Chai Syrup; Monin</option>
+                    <option value="Pistachio Syrup; W&C">Pistachio Syrup; W&C</option>
+                    <option value="Caramel Syrup; Dripp">Caramel Syrup; Dripp</option>
+                    <option value="Banana Syrup; W&C">Banana Syrup; W&C</option>
+                    <option value="Strawberry Pure; W&C">Strawberry Pure; W&C</option>
+                    <option value="Creamer; W&C">Creamer; W&C</option>
+                    <option value="SKM Dairy Champ">SKM Dairy Champ</option>
+                    <option value="Gula Pasir; PSM">Gula Pasir; PSM</option>
+                    <option value="Perisa Pandan; Koepoe">Perisa Pandan; Koepoe</option>
+                    <option value="Matcha Powder; Denali">Matcha Powder; Denali</option>
+                    <option value="Cinnamon Powder; Koepoe">Cinnamon Powder; Koepoe</option>
+                    <option value="Dark Choco Powder; Delmoro">Dark Choco Powder; Delmoro</option>
+                    <option value="Avocado Powder">Avocado Powder</option>
+                    <option value="Jeruk Peras">Jeruk Peras</option>
+                    <option value="Biji Selasih">Biji Selasih</option>
+                    <option value="Nata De Coco">Nata De Coco</option>
+                    <option value="Earlgrey; Toe a Tea">Earlgrey; Toe a Tea</option>
+                    <option value="Black Tea; Goalpara">Black Tea; Goalpara</option>
+                    <option value="Single Origin varian1">Single Origin varian1</option>
+                    <option value="Single Origin varian2">Single Origin varian2</option>
+                    <option value="Simple Syrup">Simple Syrup</option>
+                    <option value="Masa Base">Masa Base</option>
+                    <option value="Muda Base">Muda Base</option>
+                    <option value="Chocolate Base">Chocolate Base</option>
+                    <option value="Matcha Base">Matcha Base</option>
+                    <option value="Black Tea Base">Black Tea Base</option>
+                    <option value="Espresso Base">Espresso Base</option>
+                    <option value="Espresso Cinn Base">Espresso Cinn Base</option>
+                    <option value="Strawberry Frozen">Strawberry Frozen</option>
+                    <option value="Alpukat Frozen">Alpukat Frozen</option>
+                    <option value="Pisang Frozen">Pisang Frozen</option>
+                    <option value="Ice Cup">Ice Cup</option>
+                    <option value="Lid Ice Cup">Lid Ice Cup</option>
+                    <option value="Hot Cup">Hot Cup</option>
+                    <option value="Lid Hot Cup">Lid Hot Cup</option>
+                    <option value="Plastik Mini TA">Plastik Mini TA</option>
+                    <option value="Plastik Big TA">Plastik Big TA</option>
+                    <option value="Sendok TA">Sendok TA</option>
+                    <option value="Mini Thermal">Mini Thermal</option>
+                    <option value="Big Thermal">Big Thermal</option>
+                    <option value="Straw/Sedotan">Straw/Sedotan</option>
+                    <option value="Cable Ties">Cable Ties</option>
+                    <option value="Floor Cleaner">Floor Cleaner</option>
+                    <option value="Table Cleaner">Table Cleaner</option>
+                    <option value="Hand Soap">Hand Soap</option>
+                    <option value="Sunlight">Sunlight</option>
+                    <option value="SiBiru">SiBiru</option>
+                    <option value="Porstex">Porstex</option>
+                    <option value="Harpic Closet">Harpic Closet</option>
+                    <option value="Kamper">Kamper</option>
+                    <option value="Trashbag">Trashbag</option>
+                    <option value="Kain Pel">Kain Pel</option>
+                    <option value="Livi Napkin">Livi Napkin</option>
+                    <option value="Livi Multifold">Livi Multifold</option>
+                    <option value="Livi Roll WC.">Livi Roll WC.</option>
+                    <option value="B Bombai">B Bombai</option>
+                    <option value="B Merah">B Merah</option>
+                    <option value="B Putih">B Putih</option>
+                    <option value="C Merah Besar">C Merah Besar</option>
+                    <option value="C Merah Keriting">C Merah Keriting</option>
+                    <option value="Tomat">Tomat</option>
+                    <option value="Timun">Timun</option>
+                    <option value="Wortel">Wortel</option>
+                    <option value="D Bawang">D Bawang</option>
+                    <option value="D Jeruk">D Jeruk</option>
+                    <option value="D Salam">D Salam</option>
+                    <option value="D Parsley">D Parsley</option>
+                    <option value="Jahe">Jahe</option>
+                    <option value="Kelapa Parut">Kelapa Parut</option>
+                    <option value="Kemangi">Kemangi</option>
+                    <option value="Kemiri">Kemiri</option>
+                    <option value="Kol">Kol</option>
+                    <option value="Kunyit">Kunyit</option>
+                    <option value="Lengkuas Parut">Lengkuas Parut</option>
+                    <option value="Uli">Uli</option>
+                    <option value="Selada">Selada</option>
+                    <option value="Pakcoy">Pakcoy</option>
+                    <option value="Kacang Panjang">Kacang Panjang</option>
+                    <option value="Brokoli">Brokoli</option>
+                    <option value="Sereh">Sereh</option>
+                    <option value="Mix Vegetabls">Mix Vegetabls</option>
+                    <option value="Coklat Clara">Coklat Clara</option>
+                    <option value="Beras Pera">Beras Pera</option>
+                    <option value="Beras Normal">Beras Normal</option>
+                    <option value="Ayam Serundeng">Ayam Serundeng</option>
+                    <option value="Ayam Fillet Crispy">Ayam Fillet Crispy</option>
+                    <option value="Ayam Saus Mentega">Ayam Saus Mentega</option>
+                    <option value="Ayam Nasi Goreng Kemangi">Ayam Nasi Goreng Kemangi</option>
+                    <option value="French Fries">French Fries</option>
+                    <option value="Cireng">Cireng</option>
+                    <option value="Banana Bites">Banana Bites</option>
+                    <option value="Bola Ubi">Bola Ubi</option>
+                    <option value="Singkong Goreng">Singkong Goreng</option>
+                    <option value="Churros">Churros</option>
+                    <option value="Telur">Telur</option>
+                    <option value="Saus Tomat; Delmonte">Saus Tomat; Delmonte</option>
+                    <option value="Saus Cabai; Delmonte">Saus Cabai; Delmonte</option>
+                    <option value="Saus Tiram; Cap Panda">Saus Tiram; Cap Panda</option>
+                    <option value="Mayonaise">Mayonaise</option>
+                    <option value="Kecap Maggi">Kecap Maggi</option>
+                    <option value="Cuka Makan">Cuka Makan</option>
+                    <option value="Minyak">Minyak</option>
+                    <option value="Soda Kue">Soda Kue</option>
+                    <option value="Chicken Powder">Chicken Powder</option>
+                    <option value="Marinasi Bubuk">Marinasi Bubuk</option>
+                    <option value="Ketumbar Bubuk">Ketumbar Bubuk</option>
+                    <option value="Tepung Maizena">Tepung Maizena</option>
+                    <option value="B Putih Bubuk">B Putih Bubuk</option>
+                    <option value="Merica Bubuk">Merica Bubuk</option>
+                    <option value="Tepung Terigu">Tepung Terigu</option>
+                    <option value="Tepung Kentucky">Tepung Kentucky</option>
+                    <option value="Tepung Roti">Tepung Roti</option>
+                    <option value="Kertas Minyak">Kertas Minyak</option>
+                    <option value="Plastik bwng 1/4">Plastik bwng 1/4</option>
+                    <option value="Plastik bwng 2kg">Plastik bwng 2kg</option>
+                    <option value="Sendok TA">Sendok TA</option>
+                    <option value="Bento TA">Bento TA</option>
+                    <option value="Bowl TA">Bowl TA</option>
+                    <option value="Tisu Roll Kitchen">Tisu Roll Kitchen</option>
+                    <option value="Trashbag">Trashbag</option>
+                    <option value="HandGlove">HandGlove</option>
+                    <option value="Cup Saus">Cup Saus</option>
+                    <option value="Sunlight">Sunlight</option>
                     </select>
                   </td>
                   <td><input type="number" name="kuantitas[]" min="1" value="1" oninput="hitungTotal(this)"></td>
@@ -802,9 +986,12 @@
                   </td>
                   <td>
                     <select name="pic[]">
-                      <option value="person1">Person1</option>
-                      <option value="person2">Person2</option>
-                      <option value="person3">Person3</option>
+                      <option value="person1">Aziz</option>
+                      <option value="person2">Rafli</option>
+                      <option value="person3">Atiyah</option>
+                      <option value="person4">Lutfi</option>
+                      <option value="person5">Naya</option>
+                      <option value="person6">DW</option>
                     </select>
                   </td>
                   <td><button type="button" class="remove-btn" onclick="hapusRow(this)">Hapus</button></td>
@@ -854,9 +1041,12 @@
                 <span class="card-label">PIC:</span>
                 <span class="card-value">
                   <select name="pic_mobile[]">
-                    <option value="person1">Person1</option>
-                    <option value="person2">Person2</option>
-                    <option value="person3">Person3</option>
+                      <option value="person1">Aziz</option>
+                      <option value="person2">Rafli</option>
+                      <option value="person3">Atiyah</option>
+                      <option value="person4">Lutfi</option>
+                      <option value="person5">Naya</option>
+                      <option value="person6">DW</option>
                   </select>
                 </span>
               </div>
@@ -866,6 +1056,80 @@
             </div>
           </div>
           <button type="button" class="add-btn" onclick="tambahRow()">+ Tambah Baris</button>
+        `;
+      } else if (jenis === "inventaris" || jenis === "lainnya") {
+        container.innerHTML = `
+          <div class="table-header">
+            <h3>${jenis === "inventaris" ? "Daftar Inventaris" : "Daftar Pengeluaran Lainnya"}</h3>
+          </div>
+          <div class="table-wrapper">
+            <table id="${jenis}Table">
+              <thead>
+                <tr>
+                  <th>Nama Barang</th>
+                  <th>Satuan</th>
+                  <th>Harga Total (Rp)</th>
+                  <th>Harga Satuan (Rp)</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="text" name="nama_barang[]" placeholder="Nama barang"></td>
+                  <td>
+                    <select name="satuan[]">
+                      <option value="pcs">Pcs</option>
+                      <option value="unit">Unit</option>
+                      <option value="set">Set</option>
+                      <option value="paket">Paket</option>
+                      <option value="lusin">Lusin</option>
+                      <option value="rim">Rim</option>
+                      <option value="kg">Kg</option>
+                      <option value="liter">Liter</option>
+                    </select>
+                  </td>
+                  <td><input type="number" name="harga_total[]" min="0" step="100" placeholder="Rp" oninput="hitungHargaSatuan(this)"></td>
+                  <td><input type="text" name="harga_satuan[]" readonly></td>
+                  <td><button type="button" class="remove-btn" onclick="hapusRow(this)">Hapus</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mobile-card-view" id="${jenis}CardView">
+            <div class="card-row">
+              <div class="card-field">
+                <span class="card-label">Nama Barang:</span>
+                <span class="card-value"><input type="text" name="nama_barang_mobile[]" placeholder="Nama barang"></span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Satuan:</span>
+                <span class="card-value">
+                  <select name="satuan_mobile[]">
+                    <option value="pcs">Pcs</option>
+                    <option value="unit">Unit</option>
+                    <option value="set">Set</option>
+                    <option value="paket">Paket</option>
+                    <option value="lusin">Lusin</option>
+                    <option value="rim">Rim</option>
+                    <option value="kg">Kg</option>
+                    <option value="liter">Liter</option>
+                  </select>
+                </span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Harga Total (Rp):</span>
+                <span class="card-value"><input type="number" name="harga_total_mobile[]" min="0" step="100" placeholder="Rp" oninput="hitungHargaSatuanMobile(this)"></span>
+              </div>
+              <div class="card-field">
+                <span class="card-label">Harga Satuan (Rp):</span>
+                <span class="card-value"><input type="text" name="harga_satuan_mobile[]" readonly></span>
+              </div>
+              <div class="card-actions">
+                <button type="button" class="remove-btn" onclick="hapusCardRow(this)">Hapus</button>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="add-btn" onclick="tambahRow()">+ Tambah Barang</button>
         `;
       } else {
         container.innerHTML = `<p style="text-align:center; color:#666; padding:20px;">Silakan pilih jenis pengeluaran</p>`;
@@ -887,26 +1151,43 @@
         document.querySelectorAll('input[name="kuantitas_mobile[]"]').forEach(input => {
           input.addEventListener('input', function() { hitungTotalMobile(this); });
         });
+        
+        // Untuk inventaris/lainnya
+        document.querySelectorAll('input[name="harga_total[]"]').forEach(input => {
+          input.addEventListener('input', function() { hitungHargaSatuan(this); });
+        });
+        document.querySelectorAll('input[name="harga_total_mobile[]"]').forEach(input => {
+          input.addEventListener('input', function() { hitungHargaSatuanMobile(this); });
+        });
       }, 100);
     }
 
     function tambahRow() {
+      const jenis = document.getElementById("jenis").value;
+      
       // Untuk tampilan desktop (tabel)
       const table = document.querySelector("#tableContainer table tbody");
       if (table) {
         const newRow = table.rows[0].cloneNode(true);
         newRow.querySelectorAll("input").forEach(input => {
           if (input.type !== 'button') input.value = "";
+          if (input.name.includes("harga_satuan")) input.value = "";
         });
         table.appendChild(newRow);
         
         // Tambahkan event listener untuk input baru
-        newRow.querySelectorAll('input[name="harga[]"]').forEach(input => {
-          input.addEventListener('input', function() { hitungTotal(this); });
-        });
-        newRow.querySelectorAll('input[name="kuantitas[]"]').forEach(input => {
-          input.addEventListener('input', function() { hitungTotal(this); });
-        });
+        if (jenis === "bahan_baku") {
+          newRow.querySelectorAll('input[name="harga[]"]').forEach(input => {
+            input.addEventListener('input', function() { hitungTotal(this); });
+          });
+          newRow.querySelectorAll('input[name="kuantitas[]"]').forEach(input => {
+            input.addEventListener('input', function() { hitungTotal(this); });
+          });
+        } else if (jenis === "inventaris" || jenis === "lainnya") {
+          newRow.querySelectorAll('input[name="harga_total[]"]').forEach(input => {
+            input.addEventListener('input', function() { hitungHargaSatuan(this); });
+          });
+        }
       }
       
       // Untuk tampilan mobile (kartu)
@@ -915,16 +1196,23 @@
         const newCard = cardView.querySelector(".card-row").cloneNode(true);
         newCard.querySelectorAll("input").forEach(input => {
           if (input.type !== 'button') input.value = "";
+          if (input.name.includes("harga_satuan")) input.value = "";
         });
         cardView.appendChild(newCard);
         
         // Tambahkan event listener untuk input baru
-        newCard.querySelectorAll('input[name="harga_mobile[]"]').forEach(input => {
-          input.addEventListener('input', function() { hitungTotalMobile(this); });
-        });
-        newCard.querySelectorAll('input[name="kuantitas_mobile[]"]').forEach(input => {
-          input.addEventListener('input', function() { hitungTotalMobile(this); });
-        });
+        if (jenis === "bahan_baku") {
+          newCard.querySelectorAll('input[name="harga_mobile[]"]').forEach(input => {
+            input.addEventListener('input', function() { hitungTotalMobile(this); });
+          });
+          newCard.querySelectorAll('input[name="kuantitas_mobile[]"]').forEach(input => {
+            input.addEventListener('input', function() { hitungTotalMobile(this); });
+          });
+        } else if (jenis === "inventaris" || jenis === "lainnya") {
+          newCard.querySelectorAll('input[name="harga_total_mobile[]"]').forEach(input => {
+            input.addEventListener('input', function() { hitungHargaSatuanMobile(this); });
+          });
+        }
       }
     }
     
@@ -967,6 +1255,63 @@
       const harga = parseFloat(hargaInput.value) || 0;
       totalInput.value = (qty * harga).toLocaleString("id-ID");
     }
+    
+    function hitungHargaSatuan(elem) {
+      const row = elem.closest("tr");
+      const hargaTotalInput = row.querySelector("input[name='harga_total[]']");
+      const hargaSatuanInput = row.querySelector("input[name='harga_satuan[]']");
+      
+      if (!hargaTotalInput || !hargaSatuanInput) return;
+      
+      const hargaTotal = parseFloat(hargaTotalInput.value) || 0;
+      hargaSatuanInput.value = hargaTotal.toLocaleString("id-ID");
+    }
+    
+    function hitungHargaSatuanMobile(elem) {
+      const card = elem.closest(".card-row");
+      const hargaTotalInput = card.querySelector("input[name='harga_total_mobile[]']");
+      const hargaSatuanInput = card.querySelector("input[name='harga_satuan_mobile[]']");
+      
+      if (!hargaTotalInput || !hargaSatuanInput) return;
+      
+      const hargaTotal = parseFloat(hargaTotalInput.value) || 0;
+      hargaSatuanInput.value = hargaTotal.toLocaleString("id-ID");
+    }
+
+    // Fungsi untuk mengelola upload file
+    document.getElementById("fileUpload").addEventListener("change", function(e) {
+      const files = e.target.files;
+      const previewContainer = document.getElementById("filePreview");
+      previewContainer.innerHTML = "";
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileItem = document.createElement("div");
+        fileItem.className = "file-item";
+        
+        const fileName = document.createElement("span");
+        fileName.textContent = file.name;
+        
+        const removeBtn = document.createElement("button");
+        removeBtn.innerHTML = "×";
+        removeBtn.title = "Hapus file";
+        removeBtn.onclick = function() {
+          fileItem.remove();
+          // Hapus file dari array uploadedFiles
+          const index = uploadedFiles.findIndex(f => f.name === file.name);
+          if (index !== -1) {
+            uploadedFiles.splice(index, 1);
+          }
+        };
+        
+        fileItem.appendChild(fileName);
+        fileItem.appendChild(removeBtn);
+        previewContainer.appendChild(fileItem);
+        
+        // Simpan file ke array
+        uploadedFiles.push(file);
+      }
+    });
 
     document.getElementById("jenis").addEventListener("change", function() { 
       renderTable(this.value); 
@@ -1026,9 +1371,35 @@
             pic: card.querySelector("select[name='pic_mobile[]']").value
           }));
         }
+      } else if (jenis === "inventaris" || jenis === "lainnya") {
+        // Coba ambil data dari tampilan desktop terlebih dahulu
+        const desktopRows = document.querySelectorAll(`#${jenis}Table tbody tr`);
+        if (desktopRows.length > 0) {
+          items = Array.from(desktopRows).map(row => ({
+            nama_barang: row.querySelector("input[name='nama_barang[]']").value,
+            satuan: row.querySelector("select[name='satuan[]']").value,
+            harga_total: row.querySelector("input[name='harga_total[]']").value,
+            harga_satuan: row.querySelector("input[name='harga_satuan[]']").value
+          }));
+        } else {
+          // Jika tidak ada, ambil dari tampilan mobile
+          const mobileCards = document.querySelectorAll(`#${jenis}CardView .card-row`);
+          items = Array.from(mobileCards).map(card => ({
+            nama_barang: card.querySelector("input[name='nama_barang_mobile[]']").value,
+            satuan: card.querySelector("select[name='satuan_mobile[]']").value,
+            harga_total: card.querySelector("input[name='harga_total_mobile[]']").value,
+            harga_satuan: card.querySelector("input[name='harga_satuan_mobile[]']").value
+          }));
+        }
       }
 
-      formDataCache = { jenis, tanggal, keterangan, items };
+      formDataCache = { 
+        jenis, 
+        tanggal, 
+        keterangan, 
+        items,
+        files_count: uploadedFiles.length
+      };
 
       // Render review page
       renderReviewPage(jenis, tanggal, keterangan, items);
@@ -1039,6 +1410,9 @@
       document.getElementById("reviewJenis").textContent = jenis;
       document.getElementById("reviewTanggal").textContent = tanggal;
       document.getElementById("reviewKeterangan").textContent = keterangan || "-";
+      document.getElementById("reviewFiles").textContent = uploadedFiles.length > 0 
+        ? `${uploadedFiles.length} file terlampir` 
+        : "Tidak ada file";
       
       // Render tabel untuk desktop
       const reviewTable = document.getElementById("reviewTable");
@@ -1095,6 +1469,33 @@
               <td>${parseInt(item.biaya).toLocaleString("id-ID")}</td>
               <td>${item.bulan}</td>
               <td>${item.pic}</td>
+            </tr>
+          `;
+        });
+        
+        tableHTML += `</tbody>`;
+      } else if (jenis === "inventaris" || jenis === "lainnya") {
+        tableHTML = `
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Barang</th>
+              <th>Satuan</th>
+              <th>Harga Total (Rp)</th>
+              <th>Harga Satuan (Rp)</th>
+            </tr>
+          </thead>
+          <tbody>
+        `;
+        
+        items.forEach((item, index) => {
+          tableHTML += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${item.nama_barang}</td>
+              <td>${item.satuan}</td>
+              <td>${parseInt(item.harga_total).toLocaleString("id-ID")}</td>
+              <td>${item.harga_satuan}</td>
             </tr>
           `;
         });
@@ -1164,6 +1565,31 @@
                 </div>
               </div>
             `;
+          } else if (jenis === "inventaris" || jenis === "lainnya") {
+            mobileHTML += `
+              <div class="card-row">
+                <div class="card-field">
+                  <span class="card-label">Item ${index + 1}</span>
+                  <span class="card-value"></span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Nama Barang</span>
+                  <span class="card-value">${item.nama_barang}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Satuan</span>
+                  <span class="card-value">${item.satuan}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Harga Total</span>
+                  <span class="card-value">${parseInt(item.harga_total).toLocaleString("id-ID")}</span>
+                </div>
+                <div class="card-field">
+                  <span class="card-label">Harga Satuan</span>
+                  <span class="card-value">${item.harga_satuan}</span>
+                </div>
+              </div>
+            `;
           }
         });
       } else {
@@ -1183,14 +1609,30 @@
 
     async function confirmSubmit() {
       if (!formDataCache) return;
+      
       try {
-        const res = await fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/b481ef90-7fd7-4410-a59a-cac4a7fc82a7", {
+        // Kirim data form terlebih dahulu
+        const formResponse = await fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/input-dariform-pengeluaran", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formDataCache, null, 2)
         });
-        const result = await res.text();
-    
+        
+        // Kirim file jika ada
+        if (uploadedFiles.length > 0) {
+          for (const file of uploadedFiles) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("jenis", formDataCache.jenis);
+            formData.append("tanggal", formDataCache.tanggal);
+            
+            await fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/input-dariform-pengeluaran", {
+              method: "POST",
+              body: formData
+            });
+          }
+        }
+        
         // Kalau berhasil, tampilkan halaman terima kasih
         document.getElementById("reviewCard").style.display = "none";
         document.getElementById("thankyouCard").style.display = "block";
@@ -1200,8 +1642,13 @@
     }
     
     function startNew() {
-      // arahkan ke URL form awal
-      window.location.href = "https://masamudaoperasional-collab.github.io/"; 
+      // Reset form dan kembali ke halaman awal
+      document.getElementById("thankyouCard").style.display = "none";
+      document.getElementById("pengeluaranForm").style.display = "block";
+      document.getElementById("pengeluaranForm").reset();
+      uploadedFiles = [];
+      document.getElementById("filePreview").innerHTML = "";
+      renderTable(document.getElementById("jenis").value);
     }
 
   </script>
