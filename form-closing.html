@@ -392,682 +392,541 @@
           </div>
       </div>
 
-<script>
-    console.log('📄 Script JavaScript mulai loading...');
-    
-    // Webhook URLs
-    const WEBHOOK_GET_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/get-resi-data';
-    const WEBHOOK_SUBMIT_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/5aef7833-d0fb-4c04-8aec-d99784165f15';
-    const WEBHOOK_SEND_EMAIL = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/send-email-pdf';
-
-    // Variabel global
-    let dataResi = {};
-    let chatId = '';
-
-    // Fungsi untuk mengambil parameter dari URL
-    function getUrlParams() {
-      console.log('🔗 Mengambil parameter dari URL...');
-      const params = new URLSearchParams(window.location.search);
-      const result = {
-        chatId: params.get('chat_id'),
-        tanggal: params.get('tanggal'),
-        shift: params.get('shift')
-      };
-      console.log('📋 Parameter URL:', result);
-      return result;
-    }
-
-    // Inisialisasi saat halaman dimuat
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('✅ DOM fully loaded and parsed');
+  <script>
+      console.log('📄 Script JavaScript mulai loading...');
       
-      const params = getUrlParams();
-      
-      // Ambil chat_id dari URL parameter (otomatis dari Telegram)
-      if (params.chatId) {
-        chatId = params.chatId;
-        console.log('💬 Chat ID dari URL:', chatId);
-      } else {
-        console.warn('⚠️ Chat ID tidak ditemukan di URL');
+      // Webhook URLs
+      const WEBHOOK_GET_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/get-resi-data';
+      const WEBHOOK_SUBMIT_DATA = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/5aef7833-d0fb-4c04-8aec-d99784165f15';
+      const WEBHOOK_SEND_EMAIL = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/send-email-pdf';
+  
+      // Variabel global
+      let dataResi = {};
+      let chatId = '';
+  
+      // Fungsi untuk mengambil parameter dari URL
+      function getUrlParams() {
+        console.log('🔗 Mengambil parameter dari URL...');
+        const params = new URLSearchParams(window.location.search);
+        const result = {
+          chatId: params.get('chat_id'),
+          tanggal: params.get('tanggal'),
+          shift: params.get('shift')
+        };
+        console.log('📋 Parameter URL:', result);
+        return result;
       }
-      
-      // Set nilai form dari URL parameters jika ada
-      if (params.tanggal) {
-        document.getElementById('tanggalClosing').value = params.tanggal;
-        console.log('📅 Tanggal dari URL:', params.tanggal);
+  
+      // Inisialisasi saat halaman dimuat
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('✅ DOM fully loaded and parsed');
+        
+        const params = getUrlParams();
+        
+        // Ambil chat_id dari URL parameter (otomatis dari Telegram)
+        if (params.chatId) {
+          chatId = params.chatId;
+          console.log('💬 Chat ID dari URL:', chatId);
+        } else {
+          console.warn('⚠️ Chat ID tidak ditemukan di URL');
+        }
+        
+        // Set nilai form dari URL parameters jika ada
+        if (params.tanggal) {
+          document.getElementById('tanggalClosing').value = params.tanggal;
+          console.log('📅 Tanggal dari URL:', params.tanggal);
+        }
+        
+        if (params.shift) {
+          document.getElementById('shift').value = params.shift;
+          console.log('🕒 Shift dari URL:', params.shift);
+        }
+        
+        // Set tanggal default ke hari ini jika tidak ada parameter
+        if (!params.tanggal) {
+          const today = new Date();
+          const todayStr = today.toISOString().split('T')[0];
+          document.getElementById('tanggalClosing').value = todayStr;
+          console.log('📅 Tanggal default di-set ke:', todayStr);
+        }
+        
+        console.log('🎉 Form siap digunakan');
+      });
+  
+      // Fungsi untuk menampilkan/menyembunyikan loading
+      function setLoading(buttonId, isLoading) {
+        console.log('🔄 Set loading:', buttonId, isLoading);
+        const btn = document.getElementById(buttonId);
+        const text = document.getElementById(buttonId === 'btnProses' ? 'btnText' : 'submitText');
+        const loading = document.getElementById(buttonId === 'btnProses' ? 'btnLoading' : 'submitLoading');
+        
+        if (isLoading) {
+          btn.disabled = true;
+          text.classList.add('hidden');
+          loading.classList.remove('hidden');
+          console.log('⏳ Loading ditampilkan untuk', buttonId);
+        } else {
+          btn.disabled = false;
+          text.classList.remove('hidden');
+          loading.classList.add('hidden');
+          console.log('✅ Loading disembunyikan untuk', buttonId);
+        }
       }
-      
-      if (params.shift) {
-        document.getElementById('shift').value = params.shift;
-        console.log('🕒 Shift dari URL:', params.shift);
+  
+      // Helper function untuk variasi penulisan metode pembayaran
+      function getPaymentVariations(kode) {
+          const variations = {
+              'cash': ['tunai', 'cash', 'uang_tunai', 'uang tunai'],
+              'mandiri': ['mandiri', 'bank_mandiri', 'bank mandiri', 'transfer_mandiri'],
+              'qrMandiri': ['qrmandiri', 'qr_mandiri', 'qris_mandiri', 'qris mandiri'],
+              'grabfood': ['grab', 'grabfood', 'grab_food', 'grab food'],
+              'gofood': ['gojek', 'gofood', 'go_food', 'go food'],
+              'shopeefood': ['shopee', 'shopeefood', 'shopee_food', 'shopee food']
+          };
+          
+          return variations[kode] || [kode];
       }
-      
-      // Set tanggal default ke hari ini jika tidak ada parameter
-      if (!params.tanggal) {
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        document.getElementById('tanggalClosing').value = todayStr;
-        console.log('📅 Tanggal default di-set ke:', todayStr);
+  
+      // Fungsi untuk konversi metode_pembayaran object ke array dengan template tetap
+      function convertPaymentMethods(paymentObject) {
+          console.log('💳 Konversi metode pembayaran:', paymentObject);
+          
+          // Template metode pembayaran tetap
+          const templatePayments = [
+              { kode: 'cash', nama: 'Cash' },
+              { kode: 'mandiri', nama: 'Mandiri' },
+              { kode: 'qrMandiri', nama: 'QR Mandiri' },
+              { kode: 'grabfood', nama: 'GrabFood' },
+              { kode: 'gofood', nama: 'GoFood' },
+              { kode: 'shopeefood', nama: 'ShopeeFood' }
+          ];
+          
+          const paymentArray = templatePayments.map(template => {
+              // Cari nilai dari response API
+              let nilai = 0;
+              
+              // Cek berbagai variasi penulisan key
+              if (paymentObject && typeof paymentObject === 'object') {
+                  // Exact match
+                  if (paymentObject[template.kode] !== undefined) {
+                      nilai = paymentObject[template.kode];
+                  }
+                  // Case insensitive match
+                  else {
+                      const lowerKey = template.kode.toLowerCase();
+                      for (const [key, value] of Object.entries(paymentObject)) {
+                          if (key.toLowerCase() === lowerKey) {
+                              nilai = value;
+                              break;
+                          }
+                      }
+                  }
+                  
+                  // Fallback untuk variasi penulisan
+                  if (nilai === 0) {
+                      const variations = getPaymentVariations(template.kode);
+                      for (const variation of variations) {
+                          if (paymentObject[variation] !== undefined) {
+                              nilai = paymentObject[variation];
+                              break;
+                          }
+                      }
+                  }
+              }
+              
+              return {
+                  kode: template.kode,
+                  nama: template.nama,
+                  penjualan: nilai || 0
+              };
+          });
+          
+          console.log('✅ Metode pembayaran dikonversi:', paymentArray);
+          return paymentArray;
       }
-      
-      console.log('🎉 Form siap digunakan');
-    });
-
-    // Fungsi untuk menampilkan/menyembunyikan loading
-    function setLoading(buttonId, isLoading) {
-      console.log('🔄 Set loading:', buttonId, isLoading);
-      const btn = document.getElementById(buttonId);
-      const text = document.getElementById(buttonId === 'btnProses' ? 'btnText' : 'submitText');
-      const loading = document.getElementById(buttonId === 'btnProses' ? 'btnLoading' : 'submitLoading');
-      
-      if (isLoading) {
-        btn.disabled = true;
-        text.classList.add('hidden');
-        loading.classList.remove('hidden');
-        console.log('⏳ Loading ditampilkan untuk', buttonId);
-      } else {
-        btn.disabled = false;
-        text.classList.remove('hidden');
-        loading.classList.add('hidden');
-        console.log('✅ Loading disembunyikan untuk', buttonId);
+  
+      // Fungsi untuk memproses data resi - DIPERBAIKI untuk format array
+      function processResiData(data) {
+        console.log('🔧 Processing data:', data);
+        
+        // ✅ PERBAIKAN: Handle array response [{}] dan extract data dari property 'data'
+        if (Array.isArray(data) && data.length > 0) {
+          console.log('📦 Data adalah array, mengambil elemen pertama');
+          const firstItem = data[0];
+          
+          // ✅ EKSTRAK DATA DARI PROPERTY 'data'
+          if (firstItem.success && firstItem.data) {
+            console.log('✅ Format response benar: {success: true, data: {...}} - extracting data');
+            return firstItem.data;
+          } else if (firstItem.outlet || firstItem.total_penjualan) {
+            console.log('⚠️ Data langsung di array, tanpa wrapper');
+            return firstItem;
+          } else {
+            throw new Error('Format array tidak dikenali');
+          }
+        }
+        
+        // ✅ Handle object langsung {success, data}
+        if (typeof data === 'object' && data !== null) {
+          if (data.success && data.data) {
+            console.log('✅ Format response: {success: true, data: {...}} - extracting data');
+            return data.data;
+          }
+          
+          // ✅ Handle data langsung tanpa wrapper
+          if (data.outlet || data.total_penjualan) {
+            console.log('✅ Data langsung berisi informasi resi');
+            return data;
+          }
+          
+          // ❌ Error handling
+          if (data.error || data.message) {
+            throw new Error(data.message || data.error || 'Terjadi kesalahan pada server');
+          }
+        }
+        
+        throw new Error('Format data tidak dikenali: ' + JSON.stringify(data).substring(0, 200));
       }
-    }
-
-    // Helper function untuk variasi penulisan metode pembayaran
-    function getPaymentVariations(kode) {
-        const variations = {
-            'cash': ['tunai', 'cash', 'uang_tunai', 'uang tunai'],
-            'mandiri': ['mandiri', 'bank_mandiri', 'bank mandiri', 'transfer_mandiri'],
-            'qrMandiri': ['qrmandiri', 'qr_mandiri', 'qris_mandiri', 'qris mandiri'],
-            'grabfood': ['grab', 'grabfood', 'grab_food', 'grab food'],
-            'gofood': ['gojek', 'gofood', 'go_food', 'go food'],
-            'shopeefood': ['shopee', 'shopeefood', 'shopee_food', 'shopee food']
+  
+      // Fungsi utama untuk mengambil data resi - VERSI FINAL
+      async function ambilDataResi() {
+        console.log('🚀 Memulai fungsi ambilDataResi...');
+        
+        const tanggal = document.getElementById('tanggalClosing').value;
+        const shift = document.getElementById('shift').value;
+        const karyawan = document.getElementById('karyawan').value;
+        
+        console.log('📋 Data input:', { tanggal, shift, karyawan, chatId });
+        
+        if (!tanggal || !karyawan) {
+          console.error('❌ Validasi gagal: tanggal atau karyawan kosong');
+          alert('Harap isi tanggal dan nama karyawan!');
+          return;
+        }
+        
+        // Tampilkan loading state
+        setLoading('btnProses', true);
+        document.getElementById('statusInfo').innerHTML = 
+          '<div class="status-warning status-card">Mengambil data resi dari sistem...</div>';
+        
+        try {
+          console.log('📤 Mengirim request ke webhook...');
+          
+          const requestBody = {
+            chat_id: chatId,
+            tanggal: tanggal,
+            shift: shift,
+            karyawan: karyawan
+          };
+          
+          console.log('📦 Request body:', requestBody);
+          console.log('🔗 URL webhook:', WEBHOOK_GET_DATA);
+          
+          const response = await fetch(WEBHOOK_GET_DATA, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+          });
+          
+          console.log('📥 Response received.');
+          console.log('📊 Status:', response.status);
+          console.log('✅ OK:', response.ok);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          console.log('✅ Response data dari n8n:', result);
+          
+          // 🔍 PROSES DATA DENGAN FUNGSI YANG SUDAH DIPERBAIKI
+          dataResi = processResiData(result);
+          console.log('💾 Data resi yang diproses:', dataResi);
+          
+          // ✅ KONVERSI METODE PEMBAYARAN DARI OBJECT KE ARRAY DENGAN TEMPLATE
+          if (dataResi.metode_pembayaran && typeof dataResi.metode_pembayaran === 'object') {
+            dataResi.metode_pembayaran = convertPaymentMethods(dataResi.metode_pembayaran);
+          } else if (!dataResi.metode_pembayaran) {
+            // Jika tidak ada data metode_pembayaran, buat template kosong
+            dataResi.metode_pembayaran = convertPaymentMethods({});
+          }
+          
+          // 🎨 Render data ke UI
+          renderDataResi();
+          
+          // 🔄 Pindah ke step berikutnya
+          console.log('🔄 Pindah ke step 2...');
+          document.getElementById('step1').classList.add('hidden');
+          document.getElementById('step2').classList.remove('hidden');
+          
+          document.getElementById('statusInfo').innerHTML = 
+            '<div class="status-success status-card">Data resi berhasil diambil!</div>';
+          
+          console.log('🎉 Proses selesai dengan sukses!');
+          
+        } catch (error) {
+          // ❌ Handle error
+          console.error('💥 Error terjadi:');
+          console.error('🔤 Error name:', error.name);
+          console.error('💬 Error message:', error.message);
+          
+          document.getElementById('statusInfo').innerHTML = 
+            `<div class="status-error status-card">Error: ${error.message}</div>`;
+            
+          alert(`Gagal mengambil data: ${error.message}`);
+        } finally {
+          setLoading('btnProses', false);
+          console.log('🏁 Fungsi ambilDataResi selesai dijalankan');
+        }
+      }
+  
+      // Fungsi untuk render data resi ke form - DIPERBAIKI dengan template tetap
+      function renderDataResi() {
+          console.log('🎨 Memulai renderDataResi...');
+          console.log('📊 Data yang akan di-render:', dataResi);
+          
+          try {
+              // Isi informasi header
+              document.getElementById('outlet').value = dataResi.outlet || 'Masakluda';
+              document.getElementById('tanggalTransaksi').value = dataResi.tanggal_transaksi || '-';
+              document.getElementById('jumlahTamu').value = dataResi.jumlah_tamu || 0;
+              document.getElementById('totalResi').value = dataResi.total_resi || 0;
+              
+              console.log('📝 Informasi header diisi');
+              
+              // Render ringkasan penjualan
+              const ringkasanBody = document.getElementById('bodyTabelRingkasan');
+              ringkasanBody.innerHTML = `
+                  <tr>
+                      <td>Total Penjualan</td>
+                      <td>${formatRupiah(dataResi.total_penjualan || 0)}</td>
+                      <td><input type="number" id="aktualTotalPenjualan" value="${dataResi.total_penjualan || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+                      <td id="selisihTotalPenjualan">${formatRupiah(0)}</td>
+                      <td id="statusTotalPenjualan" class="match">Match</td>
+                  </tr>
+                  <tr>
+                      <td>Subtotal</td>
+                      <td>${formatRupiah(dataResi.subtotal || 0)}</td>
+                      <td><input type="number" id="aktualSubtotal" value="${dataResi.subtotal || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+                      <td id="selisihSubtotal">${formatRupiah(0)}</td>
+                      <td id="statusSubtotal" class="match">Match</td>
+                  </tr>
+                  <tr>
+                      <td>Diskon Bill</td>
+                      <td>${formatRupiah(dataResi.diskon_bill || 0)}</td>
+                      <td><input type="number" id="aktualDiskon" value="${dataResi.diskon_bill || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+                      <td id="selisihDiskon">${formatRupiah(0)}</td>
+                      <td id="statusDiskon" class="match">Match</td>
+                  </tr>
+              `;
+              
+              console.log('📊 Tabel ringkasan di-render');
+              
+              // Render detail pembayaran dengan template tetap
+              const pembayaranBody = document.getElementById('bodyTabelPembayaran');
+              pembayaranBody.innerHTML = '';
+              
+              // Pastikan metode_pembayaran sudah dikonversi ke array dengan template
+              if (!dataResi.metode_pembayaran || !Array.isArray(dataResi.metode_pembayaran)) {
+                  dataResi.metode_pembayaran = convertPaymentMethods(dataResi.metode_pembayaran || {});
+              }
+              
+              console.log('💳 Metode pembayaran untuk render:', dataResi.metode_pembayaran);
+              
+              // Render semua metode pembayaran dari template
+              dataResi.metode_pembayaran.forEach((metode, index) => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                      <td>${metode.nama}</td>
+                      <td>${formatRupiah(metode.penjualan || 0)}</td>
+                      <td><input type="number" id="aktual-${index}" value="${metode.penjualan || 0}" onchange="updatePembayaran(${index})" style="width: 100%; padding: 5px;"></td>
+                      <td id="selisih-${index}">${formatRupiah(0)}</td>
+                      <td id="status-${index}" class="match">Match</td>
+                  `;
+                  pembayaranBody.appendChild(row);
+              });
+              
+              console.log('✅ Render data selesai');
+              
+          } catch (error) {
+              console.error('❌ Error saat render data:', error);
+              throw new Error('Gagal menampilkan data: ' + error.message);
+          }
+      }
+  
+      // Fungsi untuk update ringkasan
+      function updateRingkasan() {
+        console.log('🧮 Update ringkasan dipanggil');
+        
+        const totalPenjualanAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
+        const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
+        const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
+        
+        console.log('📊 Nilai aktual:', { totalPenjualanAktual, subtotalAktual, diskonAktual });
+        
+        // Hitung selisih
+        const selisihTotal = totalPenjualanAktual - (dataResi.total_penjualan || 0);
+        const selisihSubtotal = subtotalAktual - (dataResi.subtotal || 0);
+        const selisihDiskon = diskonAktual - (dataResi.diskon_bill || 0);
+        
+        console.log('📈 Selisih:', { selisihTotal, selisihSubtotal, selisihDiskon });
+        
+        // Update tampilan
+        document.getElementById('selisihTotalPenjualan').textContent = formatRupiah(selisihTotal);
+        document.getElementById('selisihSubtotal').textContent = formatRupiah(selisihSubtotal);
+        document.getElementById('selisihDiskon').textContent = formatRupiah(selisihDiskon);
+        
+        // Update status
+        document.getElementById('statusTotalPenjualan').textContent = getStatusText(selisihTotal);
+        document.getElementById('statusTotalPenjualan').className = getStatusClass(selisihTotal);
+        
+        document.getElementById('statusSubtotal').textContent = getStatusText(selisihSubtotal);
+        document.getElementById('statusSubtotal').className = getStatusClass(selisihSubtotal);
+        
+        document.getElementById('statusDiskon').textContent = getStatusText(selisihDiskon);
+        document.getElementById('statusDiskon').className = getStatusClass(selisihDiskon);
+        
+        console.log('✅ Update ringkasan selesai');
+      }
+  
+      // Fungsi untuk update pembayaran - DIPERBAIKI untuk template
+      function updatePembayaran(index) {
+          console.log('💳 Update pembayaran untuk index:', index);
+          
+          const nilaiAktual = parseInt(document.getElementById(`aktual-${index}`).value) || 0;
+          let nilaiResi = 0;
+          
+          if (dataResi.metode_pembayaran && dataResi.metode_pembayaran[index]) {
+              nilaiResi = dataResi.metode_pembayaran[index].penjualan || 0;
+          }
+          
+          const selisih = nilaiAktual - nilaiResi;
+          
+          console.log('💰 Pembayaran:', { 
+              index, 
+              metode: dataResi.metode_pembayaran[index]?.nama, 
+              nilaiAktual, 
+              nilaiResi, 
+              selisih 
+          });
+          
+          // Update tampilan
+          document.getElementById(`selisih-${index}`).textContent = formatRupiah(selisih);
+          document.getElementById(`status-${index}`).textContent = getStatusText(selisih);
+          document.getElementById(`status-${index}`).className = getStatusClass(selisih);
+          
+          console.log('✅ Update pembayaran selesai');
+      }
+  
+      // Helper functions
+      function getStatusText(selisih) {
+        if (selisih === 0) return 'Match';
+        if (Math.abs(selisih) <= 5000) return 'Perhatian';
+        return 'Mismatch';
+      }
+  
+      function getStatusClass(selisih) {
+        if (selisih === 0) return 'match';
+        if (Math.abs(selisih) <= 5000) return 'warning';
+        return 'mismatch';
+      }
+  
+      function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR',
+          minimumFractionDigits: 0
+        }).format(angka);
+      }
+  
+      // Fungsi untuk kembali ke step 1
+      function kembaliKeStep1() {
+        console.log('↩️ Kembali ke step 1');
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step1').classList.remove('hidden');
+      }
+  
+      // Helper function untuk mendapatkan data pembayaran aktual
+      function getPembayaranAktual() {
+          const pembayaranAktual = [];
+          
+          if (dataResi.metode_pembayaran && dataResi.metode_pembayaran.length > 0) {
+              dataResi.metode_pembayaran.forEach((metode, index) => {
+                  const input = document.getElementById(`aktual-${index}`);
+                  if (input) {
+                      pembayaranAktual.push({
+                          kode: metode.kode,
+                          nama: metode.nama,
+                          penjualan_aktual: parseInt(input.value) || 0,
+                          penjualan_resi: metode.penjualan || 0
+                      });
+                  }
+              });
+          }
+          
+          return pembayaranAktual;
+      }
+  
+      // Fungsi untuk proses closing
+      async function prosesClosing() {
+        console.log('🚀 Memulai prosesClosing...');
+        
+        const tanggal = document.getElementById('tanggalClosing').value;
+        const shift = document.getElementById('shift').value;
+        const karyawan = document.getElementById('karyawan').value;
+        const keterangan = document.getElementById('keteranganUmum').value;
+        
+        console.log('📋 Data closing:', { tanggal, shift, karyawan, keterangan });
+        
+        // Validasi data
+        const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
+        if (totalAktual === 0) {
+          console.error('❌ Validasi gagal: total aktual = 0');
+          alert('Harap isi semua nilai aktual sebelum melanjutkan!');
+          return;
+        }
+        
+        // Kumpulkan data aktual
+        const ringkasanAktual = {
+          total_penjualan: totalAktual,
+          subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
+          diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
         };
         
-        return variations[kode] || [kode];
-    }
-
-    // Fungsi untuk konversi metode_pembayaran object ke array dengan template tetap
-    function convertPaymentMethods(paymentObject) {
-        console.log('💳 Konversi metode pembayaran:', paymentObject);
+        // Kumpulkan data pembayaran aktual menggunakan helper function
+        const pembayaranAktual = getPembayaranAktual();
+        console.log('📊 Data pembayaran aktual:', pembayaranAktual);
         
-        // Template metode pembayaran tetap
-        const templatePayments = [
-            { kode: 'cash', nama: 'Cash' },
-            { kode: 'mandiri', nama: 'Mandiri' },
-            { kode: 'qrMandiri', nama: 'QR Mandiri' },
-            { kode: 'grabfood', nama: 'GrabFood' },
-            { kode: 'gofood', nama: 'GoFood' },
-            { kode: 'shopeefood', nama: 'ShopeeFood' }
-        ];
-        
-        const paymentArray = templatePayments.map(template => {
-            // Cari nilai dari response API
-            let nilai = 0;
-            
-            // Cek berbagai variasi penulisan key
-            if (paymentObject && typeof paymentObject === 'object') {
-                // Exact match
-                if (paymentObject[template.kode] !== undefined) {
-                    nilai = paymentObject[template.kode];
-                }
-                // Case insensitive match
-                else {
-                    const lowerKey = template.kode.toLowerCase();
-                    for (const [key, value] of Object.entries(paymentObject)) {
-                        if (key.toLowerCase() === lowerKey) {
-                            nilai = value;
-                            break;
-                        }
-                    }
-                }
-                
-                // Fallback untuk variasi penulisan
-                if (nilai === 0) {
-                    const variations = getPaymentVariations(template.kode);
-                    for (const variation of variations) {
-                        if (paymentObject[variation] !== undefined) {
-                            nilai = paymentObject[variation];
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            return {
-                kode: template.kode,
-                nama: template.nama,
-                penjualan: nilai || 0
-            };
-        });
-        
-        console.log('✅ Metode pembayaran dikonversi:', paymentArray);
-        return paymentArray;
-    }
-
-    // Fungsi untuk memproses data resi - DIPERBAIKI untuk format array
-    function processResiData(data) {
-      console.log('🔧 Processing data:', data);
-      
-      // ✅ PERBAIKAN: Handle array response [{}] dan extract data dari property 'data'
-      if (Array.isArray(data) && data.length > 0) {
-        console.log('📦 Data adalah array, mengambil elemen pertama');
-        const firstItem = data[0];
-        
-        // ✅ EKSTRAK DATA DARI PROPERTY 'data'
-        if (firstItem.success && firstItem.data) {
-          console.log('✅ Format response benar: {success: true, data: {...}} - extracting data');
-          return firstItem.data;
-        } else if (firstItem.outlet || firstItem.total_penjualan) {
-          console.log('⚠️ Data langsung di array, tanpa wrapper');
-          return firstItem;
-        } else {
-          throw new Error('Format array tidak dikenali');
-        }
-      }
-      
-      // ✅ Handle object langsung {success, data}
-      if (typeof data === 'object' && data !== null) {
-        if (data.success && data.data) {
-          console.log('✅ Format response: {success: true, data: {...}} - extracting data');
-          return data.data;
-        }
-        
-        // ✅ Handle data langsung tanpa wrapper
-        if (data.outlet || data.total_penjualan) {
-          console.log('✅ Data langsung berisi informasi resi');
-          return data;
-        }
-        
-        // ❌ Error handling
-        if (data.error || data.message) {
-          throw new Error(data.message || data.error || 'Terjadi kesalahan pada server');
-        }
-      }
-      
-      throw new Error('Format data tidak dikenali: ' + JSON.stringify(data).substring(0, 200));
-    }
-
-    // Fungsi utama untuk mengambil data resi - VERSI FINAL
-    async function ambilDataResi() {
-      console.log('🚀 Memulai fungsi ambilDataResi...');
-      
-      const tanggal = document.getElementById('tanggalClosing').value;
-      const shift = document.getElementById('shift').value;
-      const karyawan = document.getElementById('karyawan').value;
-      
-      console.log('📋 Data input:', { tanggal, shift, karyawan, chatId });
-      
-      if (!tanggal || !karyawan) {
-        console.error('❌ Validasi gagal: tanggal atau karyawan kosong');
-        alert('Harap isi tanggal dan nama karyawan!');
-        return;
-      }
-      
-      // Tampilkan loading state
-      setLoading('btnProses', true);
-      document.getElementById('statusInfo').innerHTML = 
-        '<div class="status-warning status-card">Mengambil data resi dari sistem...</div>';
-      
-      try {
-        console.log('📤 Mengirim request ke webhook...');
-        
-        const requestBody = {
+        // Data yang akan dikirim ke n8n
+        const dataKirim = {
           chat_id: chatId,
           tanggal: tanggal,
           shift: shift,
-          karyawan: karyawan
+          karyawan: karyawan,
+          data_resi: dataResi,
+          ringkasan_aktual: ringkasanAktual,
+          pembayaran_aktual: pembayaranAktual,
+          keterangan: keterangan,
+          timestamp: new Date().toISOString()
         };
         
-        console.log('📦 Request body:', requestBody);
-        console.log('🔗 URL webhook:', WEBHOOK_GET_DATA);
+        console.log('📦 Data yang akan dikirim ke webhook 2:', dataKirim);
         
-        const response = await fetch(WEBHOOK_GET_DATA, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody)
-        });
-        
-        console.log('📥 Response received.');
-        console.log('📊 Status:', response.status);
-        console.log('✅ OK:', response.ok);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('✅ Response data dari n8n:', result);
-        
-        // 🔍 PROSES DATA DENGAN FUNGSI YANG SUDAH DIPERBAIKI
-        dataResi = processResiData(result);
-        console.log('💾 Data resi yang diproses:', dataResi);
-        
-        // ✅ KONVERSI METODE PEMBAYARAN DARI OBJECT KE ARRAY DENGAN TEMPLATE
-        if (dataResi.metode_pembayaran && typeof dataResi.metode_pembayaran === 'object') {
-          dataResi.metode_pembayaran = convertPaymentMethods(dataResi.metode_pembayaran);
-        } else if (!dataResi.metode_pembayaran) {
-          // Jika tidak ada data metode_pembayaran, buat template kosong
-          dataResi.metode_pembayaran = convertPaymentMethods({});
-        }
-        
-        // 🎨 Render data ke UI
-        renderDataResi();
-        
-        // 🔄 Pindah ke step berikutnya
-        console.log('🔄 Pindah ke step 2...');
-        document.getElementById('step1').classList.add('hidden');
-        document.getElementById('step2').classList.remove('hidden');
-        
-        document.getElementById('statusInfo').innerHTML = 
-          '<div class="status-success status-card">Data resi berhasil diambil!</div>';
-        
-        console.log('🎉 Proses selesai dengan sukses!');
-        
-      } catch (error) {
-        // ❌ Handle error
-        console.error('💥 Error terjadi:');
-        console.error('🔤 Error name:', error.name);
-        console.error('💬 Error message:', error.message);
-        
-        document.getElementById('statusInfo').innerHTML = 
-          `<div class="status-error status-card">Error: ${error.message}</div>`;
-          
-        alert(`Gagal mengambil data: ${error.message}`);
-      } finally {
-        setLoading('btnProses', false);
-        console.log('🏁 Fungsi ambilDataResi selesai dijalankan');
-      }
-    }
-
-    // Fungsi untuk render data resi ke form - DIPERBAIKI dengan template tetap
-    function renderDataResi() {
-        console.log('🎨 Memulai renderDataResi...');
-        console.log('📊 Data yang akan di-render:', dataResi);
+        // Tampilkan loading
+        setLoading('btnSubmit', true);
         
         try {
-            // Isi informasi header
-            document.getElementById('outlet').value = dataResi.outlet || 'Masakluda';
-            document.getElementById('tanggalTransaksi').value = dataResi.tanggal_transaksi || '-';
-            document.getElementById('jumlahTamu').value = dataResi.jumlah_tamu || 0;
-            document.getElementById('totalResi').value = dataResi.total_resi || 0;
-            
-            console.log('📝 Informasi header diisi');
-            
-            // Render ringkasan penjualan
-            const ringkasanBody = document.getElementById('bodyTabelRingkasan');
-            ringkasanBody.innerHTML = `
-                <tr>
-                    <td>Total Penjualan</td>
-                    <td>${formatRupiah(dataResi.total_penjualan || 0)}</td>
-                    <td><input type="number" id="aktualTotalPenjualan" value="${dataResi.total_penjualan || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
-                    <td id="selisihTotalPenjualan">${formatRupiah(0)}</td>
-                    <td id="statusTotalPenjualan" class="match">Match</td>
-                </tr>
-                <tr>
-                    <td>Subtotal</td>
-                    <td>${formatRupiah(dataResi.subtotal || 0)}</td>
-                    <td><input type="number" id="aktualSubtotal" value="${dataResi.subtotal || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
-                    <td id="selisihSubtotal">${formatRupiah(0)}</td>
-                    <td id="statusSubtotal" class="match">Match</td>
-                </tr>
-                <tr>
-                    <td>Diskon Bill</td>
-                    <td>${formatRupiah(dataResi.diskon_bill || 0)}</td>
-                    <td><input type="number" id="aktualDiskon" value="${dataResi.diskon_bill || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
-                    <td id="selisihDiskon">${formatRupiah(0)}</td>
-                    <td id="statusDiskon" class="match">Match</td>
-                </tr>
-            `;
-            
-            console.log('📊 Tabel ringkasan di-render');
-            
-            // Render detail pembayaran dengan template tetap
-            const pembayaranBody = document.getElementById('bodyTabelPembayaran');
-            pembayaranBody.innerHTML = '';
-            
-            // Pastikan metode_pembayaran sudah dikonversi ke array dengan template
-            if (!dataResi.metode_pembayaran || !Array.isArray(dataResi.metode_pembayaran)) {
-                dataResi.metode_pembayaran = convertPaymentMethods(dataResi.metode_pembayaran || {});
-            }
-            
-            console.log('💳 Metode pembayaran untuk render:', dataResi.metode_pembayaran);
-            
-            // Render semua metode pembayaran dari template
-            dataResi.metode_pembayaran.forEach((metode, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${metode.nama}</td>
-                    <td>${formatRupiah(metode.penjualan || 0)}</td>
-                    <td><input type="number" id="aktual-${index}" value="${metode.penjualan || 0}" onchange="updatePembayaran(${index})" style="width: 100%; padding: 5px;"></td>
-                    <td id="selisih-${index}">${formatRupiah(0)}</td>
-                    <td id="status-${index}" class="match">Match</td>
-                `;
-                pembayaranBody.appendChild(row);
-            });
-            
-            console.log('✅ Render data selesai');
-            
-        } catch (error) {
-            console.error('❌ Error saat render data:', error);
-            throw new Error('Gagal menampilkan data: ' + error.message);
-        }
-    }
-
-    // Fungsi untuk update ringkasan
-    function updateRingkasan() {
-      console.log('🧮 Update ringkasan dipanggil');
-      
-      const totalPenjualanAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
-      const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
-      const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
-      
-      console.log('📊 Nilai aktual:', { totalPenjualanAktual, subtotalAktual, diskonAktual });
-      
-      // Hitung selisih
-      const selisihTotal = totalPenjualanAktual - (dataResi.total_penjualan || 0);
-      const selisihSubtotal = subtotalAktual - (dataResi.subtotal || 0);
-      const selisihDiskon = diskonAktual - (dataResi.diskon_bill || 0);
-      
-      console.log('📈 Selisih:', { selisihTotal, selisihSubtotal, selisihDiskon });
-      
-      // Update tampilan
-      document.getElementById('selisihTotalPenjualan').textContent = formatRupiah(selisihTotal);
-      document.getElementById('selisihSubtotal').textContent = formatRupiah(selisihSubtotal);
-      document.getElementById('selisihDiskon').textContent = formatRupiah(selisihDiskon);
-      
-      // Update status
-      document.getElementById('statusTotalPenjualan').textContent = getStatusText(selisihTotal);
-      document.getElementById('statusTotalPenjualan').className = getStatusClass(selisihTotal);
-      
-      document.getElementById('statusSubtotal').textContent = getStatusText(selisihSubtotal);
-      document.getElementById('statusSubtotal').className = getStatusClass(selisihSubtotal);
-      
-      document.getElementById('statusDiskon').textContent = getStatusText(selisihDiskon);
-      document.getElementById('statusDiskon').className = getStatusClass(selisihDiskon);
-      
-      console.log('✅ Update ringkasan selesai');
-    }
-
-    // Fungsi untuk update pembayaran - DIPERBAIKI untuk template
-    function updatePembayaran(index) {
-        console.log('💳 Update pembayaran untuk index:', index);
-        
-        const nilaiAktual = parseInt(document.getElementById(`aktual-${index}`).value) || 0;
-        let nilaiResi = 0;
-        
-        if (dataResi.metode_pembayaran && dataResi.metode_pembayaran[index]) {
-            nilaiResi = dataResi.metode_pembayaran[index].penjualan || 0;
-        }
-        
-        const selisih = nilaiAktual - nilaiResi;
-        
-        console.log('💰 Pembayaran:', { 
-            index, 
-            metode: dataResi.metode_pembayaran[index]?.nama, 
-            nilaiAktual, 
-            nilaiResi, 
-            selisih 
-        });
-        
-        // Update tampilan
-        document.getElementById(`selisih-${index}`).textContent = formatRupiah(selisih);
-        document.getElementById(`status-${index}`).textContent = getStatusText(selisih);
-        document.getElementById(`status-${index}`).className = getStatusClass(selisih);
-        
-        console.log('✅ Update pembayaran selesai');
-    }
-
-    // Helper functions
-    function getStatusText(selisih) {
-      if (selisih === 0) return 'Match';
-      if (Math.abs(selisih) <= 5000) return 'Perhatian';
-      return 'Mismatch';
-    }
-
-    function getStatusClass(selisih) {
-      if (selisih === 0) return 'match';
-      if (Math.abs(selisih) <= 5000) return 'warning';
-      return 'mismatch';
-    }
-
-    function formatRupiah(angka) {
-      return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-      }).format(angka);
-    }
-
-    // Fungsi untuk kembali ke step 1
-    function kembaliKeStep1() {
-      console.log('↩️ Kembali ke step 1');
-      document.getElementById('step2').classList.add('hidden');
-      document.getElementById('step1').classList.remove('hidden');
-    }
-
-    // Helper function untuk mendapatkan data pembayaran aktual
-    function getPembayaranAktual() {
-        const pembayaranAktual = [];
-        
-        if (dataResi.metode_pembayaran && dataResi.metode_pembayaran.length > 0) {
-            dataResi.metode_pembayaran.forEach((metode, index) => {
-                const input = document.getElementById(`aktual-${index}`);
-                if (input) {
-                    pembayaranAktual.push({
-                        kode: metode.kode,
-                        nama: metode.nama,
-                        penjualan_aktual: parseInt(input.value) || 0,
-                        penjualan_resi: metode.penjualan || 0
-                    });
-                }
-            });
-        }
-        
-        return pembayaranAktual;
-    }
-
-    // Fungsi untuk proses closing
-    async function prosesClosing() {
-      console.log('🚀 Memulai prosesClosing...');
-      
-      const tanggal = document.getElementById('tanggalClosing').value;
-      const shift = document.getElementById('shift').value;
-      const karyawan = document.getElementById('karyawan').value;
-      const keterangan = document.getElementById('keteranganUmum').value;
-      
-      console.log('📋 Data closing:', { tanggal, shift, karyawan, keterangan });
-      
-      // Validasi data
-      const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
-      if (totalAktual === 0) {
-        console.error('❌ Validasi gagal: total aktual = 0');
-        alert('Harap isi semua nilai aktual sebelum melanjutkan!');
-        return;
-      }
-      
-      // Kumpulkan data aktual
-      const ringkasanAktual = {
-        total_penjualan: totalAktual,
-        subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
-        diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
-      };
-      
-      // Kumpulkan data pembayaran aktual menggunakan helper function
-      const pembayaranAktual = getPembayaranAktual();
-      console.log('📊 Data pembayaran aktual:', pembayaranAktual);
-      
-      // Data yang akan dikirim ke n8n
-      const dataKirim = {
-        chat_id: chatId,
-        tanggal: tanggal,
-        shift: shift,
-        karyawan: karyawan,
-        data_resi: dataResi,
-        ringkasan_aktual: ringkasanAktual,
-        pembayaran_aktual: pembayaranAktual,
-        keterangan: keterangan,
-        timestamp: new Date().toISOString()
-      };
-      
-      console.log('📦 Data yang akan dikirim ke webhook 2:', dataKirim);
-      
-      // Tampilkan loading
-      setLoading('btnSubmit', true);
-      
-      try {
-        // Kirim data ke webhook n8n
-        const response = await fetch(WEBHOOK_SUBMIT_DATA, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(dataKirim)
-        });
-        
-        console.log('📥 Response dari webhook 2:', response.status, response.ok);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('✅ Response submit:', result);
-        
-        // Tampilkan hasil
-        document.getElementById('step2').classList.add('hidden');
-        document.getElementById('step3').classList.remove('hidden');
-        
-        // Render hasil closing
-        renderHasilClosing(dataKirim);
-        
-        document.getElementById('summaryInfo').innerHTML = 
-          '<div class="status-success status-card">Data closing berhasil dikirim!</div>';
+          // Kirim data ke webhook n8n
+          const response = await fetch(WEBHOOK_SUBMIT_DATA, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dataKirim)
+          });
           
-        console.log('🎉 Proses closing selesai');
-          
-      } catch (error) {
-        console.error('💥 Error saat submit:', error);
-        alert(`Error: ${error.message}`);
-      } finally {
-        setLoading('btnSubmit', false);
-        console.log('🏁 Fungsi prosesClosing selesai');
-      }
-    }
-
-    // Fungsi untuk render hasil closing
-    function renderHasilClosing(data) {
-      console.log('🎨 Render hasil closing...');
-      
-      const totalSelisih = data.ringkasan_aktual.total_penjualan - (dataResi.total_penjualan || 0);
-      
-      const tbody = document.getElementById('bodyTabelHasil');
-      tbody.innerHTML = `
-        <tr><td>Outlet</td><td>${dataResi.outlet || 'Masakluda'}</td></tr>
-        <tr><td>Tanggal Closing</td><td>${data.tanggal}</td></tr>
-        <tr><td>Shift</td><td>${data.shift}</td></tr>
-        <tr><td>Karyawan</td><td>${data.karyawan}</td></tr>
-        <tr><td>Total Penjualan (Resi)</td><td>${formatRupiah(dataResi.total_penjualan || 0)}</td></tr>
-        <tr><td>Total Penjualan (Aktual)</td><td>${formatRupiah(data.ringkasan_aktual.total_penjualan)}</td></tr>
-        <tr><td>Total Selisih</td><td>${formatRupiah(totalSelisih)}</td></tr>
-        <tr><td>Keterangan</td><td>${data.keterangan || '-'}</td></tr>
-        <tr><td>Waktu Submit</td><td>${new Date().toLocaleString('id-ID')}</td></tr>
-      `;
-      
-      console.log('✅ Hasil closing di-render');
-    }
-
-    // Fungsi untuk kirim PDF via email - menggantikan cetakLaporan()
-    async function kirimEmailLaporan() {
-        console.log('📧 Memulai kirimEmailLaporan...');
-        
-        // Tampilkan loading state untuk tombol kirim email
-        const btnKirim = document.getElementById('btnKirimEmail');
-        const btnText = document.getElementById('btnKirimText');
-        const btnLoading = document.getElementById('btnKirimLoading');
-        
-        if (btnKirim) {
-            btnKirim.disabled = true;
-            btnText.textContent = 'Mengirim...';
-            if (btnLoading) btnLoading.classList.remove('hidden');
-        }
-        
-        try {
-            // Siapkan data untuk PDF
-            const dataPDF = {
-                chat_id: chatId,
-                tanggal: document.getElementById('tanggalClosing').value,
-                shift: document.getElementById('shift').value,
-                karyawan: document.getElementById('karyawan').value,
-                data_resi: dataResi,
-                ringkasan_aktual: {
-                    total_penjualan: parseInt(document.getElementById('aktualTotalPenjualan').value) || 0,
-                    subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
-                    diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
-                },
-                pembayaran_aktual: getPembayaranAktual(),
-                keterangan: document.getElementById('keteranganUmum').value,
-                timestamp: new Date().toISOString()
-            };
-            
-            console.log('📦 Data untuk PDF:', dataPDF);
-            
-            // Kirim request ke webhook untuk generate dan kirim PDF
-            const response = await fetch(WEBHOOK_SEND_EMAIL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(dataPDF)
-            });
-            
-            console.log('📥 Response dari webhook email:', response.status);
-            
-            if (!response.ok) {
-                throw new Error(`Gagal mengirim email: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            console.log('✅ Response kirim email:', result);
-            
-            // Tampilkan notifikasi sukses
-            document.getElementById('summaryInfo').innerHTML = 
-                '<div class="status-success status-card">✓ Laporan PDF berhasil dikirim via email!</div>';
-            
-            alert('Laporan PDF berhasil dikirim via email!');
-            
-        } catch (error) {
-            console.error('💥 Error kirim email:', error);
-            
-            document.getElementById('summaryInfo').innerHTML = 
-                `<div class="status-error status-card">❌ Gagal mengirim email: ${error.message}</div>`;
-            
-            alert(`Gagal mengirim email: ${error.message}`);
-        } finally {
-            // Reset tombol
-            if (btnKirim) {
-                btnKirim.disabled = false;
-                btnText.textContent = 'Kirim PDF via Email';
-                if (btnLoading) btnLoading.classList.add('hidden');
-            }
-        }
-    }
-
-    // Fungsi tambahan
-    function cetakLaporan() {
-      console.log('🖨️ Cetak laporan');
-      window.print();
-    }
-
-    function simpanDanTutup() {
-      console.log('💾 Simpan dan tutup');
-      alert('Terima kasih! Form closing telah selesai.');
-    }
-    
-    console.log('✅ Semua fungsi JavaScript berhasil di-load');
-  
           console.log('📥 Response dari webhook 2:', response.status, response.ok);
           
           if (!response.ok) {
@@ -1120,99 +979,87 @@
         console.log('✅ Hasil closing di-render');
       }
   
-          // Fungsi untuk kirim PDF via email - menggantikan cetakLaporan()
-          async function kirimEmailLaporan() {
-              console.log('📧 Memulai kirimEmailLaporan...');
-              
-              // Tampilkan loading state untuk tombol kirim email
-              const btnKirim = document.getElementById('btnKirimEmail');
-              const btnText = document.getElementById('btnKirimText');
-              const btnLoading = document.getElementById('btnKirimLoading');
-              
-              if (btnKirim) {
-                  btnKirim.disabled = true;
-                  btnText.textContent = 'Mengirim...';
-                  if (btnLoading) btnLoading.classList.remove('hidden');
-              }
-              
-              try {
-                  // Siapkan data untuk PDF
-                  const dataPDF = {
-                      chat_id: chatId,
-                      tanggal: document.getElementById('tanggalClosing').value,
-                      shift: document.getElementById('shift').value,
-                      karyawan: document.getElementById('karyawan').value,
-                      data_resi: dataResi,
-                      ringkasan_aktual: {
-                          total_penjualan: parseInt(document.getElementById('aktualTotalPenjualan').value) || 0,
-                          subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
-                          diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
-                      },
-                      pembayaran_aktual: getPembayaranAktual(),
-                      keterangan: document.getElementById('keteranganUmum').value,
-                      timestamp: new Date().toISOString()
-                  };
-                  
-                  console.log('📦 Data untuk PDF:', dataPDF);
-                  
-                  // Kirim request ke webhook untuk generate dan kirim PDF
-                  const response = await fetch(WEBHOOK_SEND_EMAIL, {
-                      method: 'POST',
-                      headers: {
-                          'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify(dataPDF)
-                  });
-                  
-                  console.log('📥 Response dari webhook email:', response.status);
-                  
-                  if (!response.ok) {
-                      throw new Error(`Gagal mengirim email: ${response.status}`);
-                  }
-                  
-                  const result = await response.json();
-                  console.log('✅ Response kirim email:', result);
-                  
-                  // Tampilkan notifikasi sukses
-                  document.getElementById('summaryInfo').innerHTML = 
-                      '<div class="status-success status-card">✓ Laporan PDF berhasil dikirim via email!</div>';
-                  
-                  alert('Laporan PDF berhasil dikirim via email!');
-                  
-              } catch (error) {
-                  console.error('💥 Error kirim email:', error);
-                  
-                  document.getElementById('summaryInfo').innerHTML = 
-                      `<div class="status-error status-card">❌ Gagal mengirim email: ${error.message}</div>`;
-                  
-                  alert(`Gagal mengirim email: ${error.message}`);
-              } finally {
-                  // Reset tombol
-                  if (btnKirim) {
-                      btnKirim.disabled = false;
-                      btnText.textContent = 'Kirim PDF via Email';
-                      if (btnLoading) btnLoading.classList.add('hidden');
-                  }
-              }
+      // Fungsi untuk kirim PDF via email - menggantikan cetakLaporan()
+      async function kirimEmailLaporan() {
+          console.log('📧 Memulai kirimEmailLaporan...');
+          
+          // Tampilkan loading state untuk tombol kirim email
+          const btnKirim = document.getElementById('btnKirimEmail');
+          const btnText = document.getElementById('btnKirimText');
+          const btnLoading = document.getElementById('btnKirimLoading');
+          
+          if (btnKirim) {
+              btnKirim.disabled = true;
+              btnText.textContent = 'Mengirim...';
+              if (btnLoading) btnLoading.classList.remove('hidden');
           }
           
-          // Helper function untuk mendapatkan data pembayaran aktual
-          function getPembayaranAktual() {
-              const pembayaranAktual = [];
-              const jumlahInput = dataResi.metode_pembayaran ? dataResi.metode_pembayaran.length : 1;
+          try {
+              // Siapkan data untuk PDF
+              const dataPDF = {
+                  chat_id: chatId,
+                  tanggal: document.getElementById('tanggalClosing').value,
+                  shift: document.getElementById('shift').value,
+                  karyawan: document.getElementById('karyawan').value,
+                  data_resi: dataResi,
+                  ringkasan_aktual: {
+                      total_penjualan: parseInt(document.getElementById('aktualTotalPenjualan').value) || 0,
+                      subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
+                      diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
+                  },
+                  pembayaran_aktual: getPembayaranAktual(),
+                  keterangan: document.getElementById('keteranganUmum').value,
+                  timestamp: new Date().toISOString()
+              };
               
-              for (let i = 0; i < jumlahInput; i++) {
-                  const input = document.getElementById(`aktual-${i}`);
-                  if (input) {
-                      pembayaranAktual.push({
-                          nama: dataResi.metode_pembayaran ? dataResi.metode_pembayaran[i]?.nama || `Metode ${i+1}` : 'QR-MANDIRI',
-                          penjualan_aktual: parseInt(input.value) || 0
-                      });
-                  }
+              console.log('📦 Data untuk PDF:', dataPDF);
+              
+              // Kirim request ke webhook untuk generate dan kirim PDF
+              const response = await fetch(WEBHOOK_SEND_EMAIL, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(dataPDF)
+              });
+              
+              console.log('📥 Response dari webhook email:', response.status);
+              
+              if (!response.ok) {
+                  throw new Error(`Gagal mengirim email: ${response.status}`);
               }
               
-              return pembayaranAktual;
+              const result = await response.json();
+              console.log('✅ Response kirim email:', result);
+              
+              // Tampilkan notifikasi sukses
+              document.getElementById('summaryInfo').innerHTML = 
+                  '<div class="status-success status-card">✓ Laporan PDF berhasil dikirim via email!</div>';
+              
+              alert('Laporan PDF berhasil dikirim via email!');
+              
+          } catch (error) {
+              console.error('💥 Error kirim email:', error);
+              
+              document.getElementById('summaryInfo').innerHTML = 
+                  `<div class="status-error status-card">❌ Gagal mengirim email: ${error.message}</div>`;
+              
+              alert(`Gagal mengirim email: ${error.message}`);
+          } finally {
+              // Reset tombol
+              if (btnKirim) {
+                  btnKirim.disabled = false;
+                  btnText.textContent = 'Kirim PDF via Email';
+                  if (btnLoading) btnLoading.classList.add('hidden');
+              }
           }
+      }
+  
+      // Fungsi tambahan
+      function cetakLaporan() {
+        console.log('🖨️ Cetak laporan');
+        window.print();
+      }
   
       function simpanDanTutup() {
         console.log('💾 Simpan dan tutup');
