@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Form Closing Penjualan - Masakluda</title>
+  <title>Form Closing Penjualan - MasaMuda</title> 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -245,11 +245,11 @@
           display: none;
       }
     }
-  </style>
-</head>
+    </style>
+    </head>
 <body>
 
-  <h2>Form Closing Penjualan - Masakluda</h2>
+  <h2>Form Closing Penjualan - MasaMuda</h2>
   
   <!-- Step 1: Input Data Dasar -->
   <div class="card" id="step1">
@@ -683,113 +683,137 @@
       }
   
       // Fungsi untuk render data resi ke form - DIPERBAIKI dengan template tetap
-      function renderDataResi() {
-          console.log('🎨 Memulai renderDataResi...');
-          console.log('📊 Data yang akan di-render:', dataResi);
-          
-          try {
-              // Isi informasi header
-              document.getElementById('outlet').value = dataResi.outlet || 'Masakluda';
-              document.getElementById('tanggalTransaksi').value = dataResi.tanggal_transaksi || '-';
-              document.getElementById('jumlahTamu').value = dataResi.jumlah_tamu || 0;
-              document.getElementById('totalResi').value = dataResi.total_resi || 0;
-              
-              console.log('📝 Informasi header diisi');
-              
-              // Render ringkasan penjualan
-              const ringkasanBody = document.getElementById('bodyTabelRingkasan');
-              ringkasanBody.innerHTML = `
-                  <tr>
-                      <td>Total Penjualan</td>
-                      <td>${formatRupiah(dataResi.total_penjualan || 0)}</td>
-                      <td><input type="number" id="aktualTotalPenjualan" value="${dataResi.total_penjualan || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
-                      <td id="selisihTotalPenjualan">${formatRupiah(0)}</td>
-                      <td id="statusTotalPenjualan" class="match">Match</td>
-                  </tr>
-                  <tr>
-                      <td>Subtotal</td>
-                      <td>${formatRupiah(dataResi.subtotal || 0)}</td>
-                      <td><input type="number" id="aktualSubtotal" value="${dataResi.subtotal || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
-                      <td id="selisihSubtotal">${formatRupiah(0)}</td>
-                      <td id="statusSubtotal" class="match">Match</td>
-                  </tr>
-                  <tr>
-                      <td>Diskon Bill</td>
-                      <td>${formatRupiah(dataResi.diskon_bill || 0)}</td>
-                      <td><input type="number" id="aktualDiskon" value="${dataResi.diskon_bill || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
-                      <td id="selisihDiskon">${formatRupiah(0)}</td>
-                      <td id="statusDiskon" class="match">Match</td>
-                  </tr>
-              `;
-              
-              console.log('📊 Tabel ringkasan di-render');
-              
-              // Render detail pembayaran dengan template tetap
-              const pembayaranBody = document.getElementById('bodyTabelPembayaran');
-              pembayaranBody.innerHTML = '';
-              
-              // Pastikan metode_pembayaran sudah dikonversi ke array dengan template
-              if (!dataResi.metode_pembayaran || !Array.isArray(dataResi.metode_pembayaran)) {
-                  dataResi.metode_pembayaran = convertPaymentMethods(dataResi.metode_pembayaran || {});
-              }
-              
-              console.log('💳 Metode pembayaran untuk render:', dataResi.metode_pembayaran);
-              
-              // Render semua metode pembayaran dari template
-              dataResi.metode_pembayaran.forEach((metode, index) => {
-                  const row = document.createElement('tr');
-                  row.innerHTML = `
-                      <td>${metode.nama}</td>
-                      <td>${formatRupiah(metode.penjualan || 0)}</td>
-                      <td><input type="number" id="aktual-${index}" value="${metode.penjualan || 0}" onchange="updatePembayaran(${index})" style="width: 100%; padding: 5px;"></td>
-                      <td id="selisih-${index}">${formatRupiah(0)}</td>
-                      <td id="status-${index}" class="match">Match</td>
-                  `;
-                  pembayaranBody.appendChild(row);
-              });
-              
-              console.log('✅ Render data selesai');
-              
-          } catch (error) {
-              console.error('❌ Error saat render data:', error);
-              throw new Error('Gagal menampilkan data: ' + error.message);
-          }
-      }
+    // Fungsi untuk render data resi ke form - DITAMBAH TOTAL DIHARAPKAN
+    function renderDataResi() {
+        console.log('🎨 Memulai renderDataResi...');
+        console.log('📊 Data yang akan di-render:', dataResi);
+        
+        try {
+            // Isi informasi header
+            document.getElementById('outlet').value = dataResi.outlet || 'MasaMuda';
+            document.getElementById('tanggalTransaksi').value = dataResi.tanggal_transaksi || '-';
+            document.getElementById('jumlahTamu').value = dataResi.jumlah_tamu || 0;
+            document.getElementById('totalResi').value = dataResi.total_resi || 0;
+            
+            console.log('📝 Informasi header diisi');
+            
+            // Hitung Total Diharapkan (Subtotal - Diskon Bill)
+            const subtotal = dataResi.subtotal || 0;
+            const diskonBill = dataResi.diskon_bill || 0;
+            const totalDiharapkan = subtotal - Math.abs(diskonBill); // Diskon biasanya negatif
+            
+            // Render ringkasan penjualan - DITAMBAH TOTAL DIHARAPKAN
+            const ringkasanBody = document.getElementById('bodyTabelRingkasan');
+            ringkasanBody.innerHTML = `
+                <tr>
+                    <td>Total Penjualan</td>
+                    <td>${formatRupiah(dataResi.total_penjualan || 0)}</td>
+                    <td><input type="number" id="aktualTotalPenjualan" value="${dataResi.total_penjualan || 0}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+                    <td id="selisihTotalPenjualan">${formatRupiah(0)}</td>
+                    <td id="statusTotalPenjualan" class="match">Match</td>
+                </tr>
+                <tr>
+                    <td>Subtotal</td>
+                    <td>${formatRupiah(subtotal)}</td>
+                    <td><input type="number" id="aktualSubtotal" value="${subtotal}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+                    <td id="selisihSubtotal">${formatRupiah(0)}</td>
+                    <td id="statusSubtotal" class="match">Match</td>
+                </tr>
+                <tr>
+                    <td>Diskon Bill</td>
+                    <td>${formatRupiah(diskonBill)}</td>
+                    <td><input type="number" id="aktualDiskon" value="${diskonBill}" onchange="updateRingkasan()" style="width: 100%; padding: 5px;"></td>
+                    <td id="selisihDiskon">${formatRupiah(0)}</td>
+                    <td id="statusDiskon" class="match">Match</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Diharapkan</strong></td>
+                    <td><strong>${formatRupiah(totalDiharapkan)}</strong></td>
+                    <td><input type="number" id="aktualTotalDiharapkan" value="${totalDiharapkan}" onchange="updateRingkasan()" style="width: 100%; padding: 5px; font-weight: bold;"></td>
+                    <td id="selisihTotalDiharapkan">${formatRupiah(0)}</td>
+                    <td id="statusTotalDiharapkan" class="match">Match</td>
+                </tr>
+            `;
+            
+            console.log('📊 Tabel ringkasan di-render dengan Total Diharapkan:', totalDiharapkan);
+            
+            // Render detail pembayaran dengan template tetap
+            const pembayaranBody = document.getElementById('bodyTabelPembayaran');
+            pembayaranBody.innerHTML = '';
+            
+            // Pastikan metode_pembayaran sudah dikonversi ke array dengan template
+            if (!dataResi.metode_pembayaran || !Array.isArray(dataResi.metode_pembayaran)) {
+                dataResi.metode_pembayaran = convertPaymentMethods(dataResi.metode_pembayaran || {});
+            }
+            
+            console.log('💳 Metode pembayaran untuk render:', dataResi.metode_pembayaran);
+            
+            // Render semua metode pembayaran dari template
+            dataResi.metode_pembayaran.forEach((metode, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${metode.nama}</td>
+                    <td>${formatRupiah(metode.penjualan || 0)}</td>
+                    <td><input type="number" id="aktual-${index}" value="${metode.penjualan || 0}" onchange="updatePembayaran(${index})" style="width: 100%; padding: 5px;"></td>
+                    <td id="selisih-${index}">${formatRupiah(0)}</td>
+                    <td id="status-${index}" class="match">Match</td>
+                `;
+                pembayaranBody.appendChild(row);
+            });
+            
+            console.log('✅ Render data selesai');
+            
+        } catch (error) {
+            console.error('❌ Error saat render data:', error);
+            throw new Error('Gagal menampilkan data: ' + error.message);
+        }
+    }
   
-      // Fungsi untuk update ringkasan
-      function updateRingkasan() {
-        console.log('🧮 Update ringkasan dipanggil');
-        
-        const totalPenjualanAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
-        const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
-        const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
-        
-        console.log('📊 Nilai aktual:', { totalPenjualanAktual, subtotalAktual, diskonAktual });
-        
-        // Hitung selisih
-        const selisihTotal = totalPenjualanAktual - (dataResi.total_penjualan || 0);
-        const selisihSubtotal = subtotalAktual - (dataResi.subtotal || 0);
-        const selisihDiskon = diskonAktual - (dataResi.diskon_bill || 0);
-        
-        console.log('📈 Selisih:', { selisihTotal, selisihSubtotal, selisihDiskon });
-        
-        // Update tampilan
-        document.getElementById('selisihTotalPenjualan').textContent = formatRupiah(selisihTotal);
-        document.getElementById('selisihSubtotal').textContent = formatRupiah(selisihSubtotal);
-        document.getElementById('selisihDiskon').textContent = formatRupiah(selisihDiskon);
-        
-        // Update status
-        document.getElementById('statusTotalPenjualan').textContent = getStatusText(selisihTotal);
-        document.getElementById('statusTotalPenjualan').className = getStatusClass(selisihTotal);
-        
-        document.getElementById('statusSubtotal').textContent = getStatusText(selisihSubtotal);
-        document.getElementById('statusSubtotal').className = getStatusClass(selisihSubtotal);
-        
-        document.getElementById('statusDiskon').textContent = getStatusText(selisihDiskon);
-        document.getElementById('statusDiskon').className = getStatusClass(selisihDiskon);
-        
-        console.log('✅ Update ringkasan selesai');
-      }
+        // Fungsi untuk update ringkasan - DITAMBAH TOTAL DIHARAPKAN
+        function updateRingkasan() {
+            console.log('🧮 Update ringkasan dipanggil');
+            
+            const totalPenjualanAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
+            const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
+            const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
+            const totalDiharapkanAktual = parseInt(document.getElementById('aktualTotalDiharapkan').value) || 0;
+            
+            console.log('📊 Nilai aktual:', { totalPenjualanAktual, subtotalAktual, diskonAktual, totalDiharapkanAktual });
+            
+            // Hitung nilai dari resi untuk Total Diharapkan
+            const subtotalResi = dataResi.subtotal || 0;
+            const diskonResi = dataResi.diskon_bill || 0;
+            const totalDiharapkanResi = subtotalResi - Math.abs(diskonResi);
+            
+            // Hitung selisih
+            const selisihTotal = totalPenjualanAktual - (dataResi.total_penjualan || 0);
+            const selisihSubtotal = subtotalAktual - subtotalResi;
+            const selisihDiskon = diskonAktual - diskonResi;
+            const selisihTotalDiharapkan = totalDiharapkanAktual - totalDiharapkanResi;
+            
+            console.log('📈 Selisih:', { selisihTotal, selisihSubtotal, selisihDiskon, selisihTotalDiharapkan });
+            
+            // Update tampilan
+            document.getElementById('selisihTotalPenjualan').textContent = formatRupiah(selisihTotal);
+            document.getElementById('selisihSubtotal').textContent = formatRupiah(selisihSubtotal);
+            document.getElementById('selisihDiskon').textContent = formatRupiah(selisihDiskon);
+            document.getElementById('selisihTotalDiharapkan').textContent = formatRupiah(selisihTotalDiharapkan);
+            
+            // Update status
+            document.getElementById('statusTotalPenjualan').textContent = getStatusText(selisihTotal);
+            document.getElementById('statusTotalPenjualan').className = getStatusClass(selisihTotal);
+            
+            document.getElementById('statusSubtotal').textContent = getStatusText(selisihSubtotal);
+            document.getElementById('statusSubtotal').className = getStatusClass(selisihSubtotal);
+            
+            document.getElementById('statusDiskon').textContent = getStatusText(selisihDiskon);
+            document.getElementById('statusDiskon').className = getStatusClass(selisihDiskon);
+            
+            document.getElementById('statusTotalDiharapkan').textContent = getStatusText(selisihTotalDiharapkan);
+            document.getElementById('statusTotalDiharapkan').className = getStatusClass(selisihTotalDiharapkan);
+            
+            console.log('✅ Update ringkasan selesai');
+        }
   
       // Fungsi untuk update pembayaran - DIPERBAIKI untuk template
       function updatePembayaran(index) {
@@ -869,135 +893,155 @@
           return pembayaranAktual;
       }
     // Fungsi untuk generate kesimpulan matching
-          function generateKesimpulan() {
-              console.log('📊 Generate kesimpulan matching...');
-              
-              const kesimpulan = {
-                  totalMatch: true,
-                  detailMatch: {},
-                  totalSelisih: 0,
-                  rekomendasi: []
-              };
-          
-              // 1. Check Total Penjualan
-              const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
-              const totalResi = dataResi.total_penjualan || 0;
-              const selisihTotal = totalAktual - totalResi;
-              
-              kesimpulan.detailMatch.total_penjualan = {
-                  match: selisihTotal === 0,
-                  selisih: selisihTotal,
-                  status: getStatusText(selisihTotal)
-              };
-              
-              if (selisihTotal !== 0) {
-                  kesimpulan.totalMatch = false;
-                  kesimpulan.totalSelisih += Math.abs(selisihTotal);
-              }
-          
-              // 2. Check Subtotal
-              const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
-              const subtotalResi = dataResi.subtotal || 0;
-              const selisihSubtotal = subtotalAktual - subtotalResi;
-              
-              kesimpulan.detailMatch.subtotal = {
-                  match: selisihSubtotal === 0,
-                  selisih: selisihSubtotal,
-                  status: getStatusText(selisihSubtotal)
-              };
-              
-              if (selisihSubtotal !== 0) {
-                  kesimpulan.totalMatch = false;
-                  kesimpulan.totalSelisih += Math.abs(selisihSubtotal);
-              }
-          
-              // 3. Check Diskon
-              const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
-              const diskonResi = dataResi.diskon_bill || 0;
-              const selisihDiskon = diskonAktual - diskonResi;
-              
-              kesimpulan.detailMatch.diskon_bill = {
-                  match: selisihDiskon === 0,
-                  selisih: selisihDiskon,
-                  status: getStatusText(selisihDiskon)
-              };
-              
-              if (selisihDiskon !== 0) {
-                  kesimpulan.totalMatch = false;
-                  kesimpulan.totalSelisih += Math.abs(selisihDiskon);
-              }
-          
-              // 4. Check Metode Pembayaran
-              kesimpulan.detailMatch.metode_pembayaran = [];
-              let semuaPembayaranMatch = true;
-              let totalSelisihPembayaran = 0;
-          
-              if (dataResi.metode_pembayaran && dataResi.metode_pembayaran.length > 0) {
-                  dataResi.metode_pembayaran.forEach((metode, index) => {
-                      const input = document.getElementById(`aktual-${index}`);
-                      if (input) {
-                          const nilaiAktual = parseInt(input.value) || 0;
-                          const nilaiResi = metode.penjualan || 0;
-                          const selisih = nilaiAktual - nilaiResi;
-                          
-                          const matchPembayaran = {
-                              metode: metode.nama,
-                              match: selisih === 0,
-                              selisih: selisih,
-                              status: getStatusText(selisih)
-                          };
-                          
-                          kesimpulan.detailMatch.metode_pembayaran.push(matchPembayaran);
-                          
-                          if (selisih !== 0) {
-                              semuaPembayaranMatch = false;
-                              totalSelisihPembayaran += Math.abs(selisih);
-                          }
-                      }
-                  });
-              }
-              
-              kesimpulan.totalMatch = kesimpulan.totalMatch && semuaPembayaranMatch;
-              kesimpulan.totalSelisih += totalSelisihPembayaran;
-          
-              // 5. Generate Rekomendasi
-              if (kesimpulan.totalMatch) {
-                  kesimpulan.rekomendasi.push("✅ Semua data matching sempurna");
-                  kesimpulan.rekomendasi.push("✅ Tidak perlu tindakan lebih lanjut");
-              } else {
-                  if (Math.abs(selisihTotal) > 0) {
-                      kesimpulan.rekomendasi.push(`⚠️ Periksa total penjualan (selisih: ${formatRupiah(selisihTotal)})`);
-                  }
-                  if (Math.abs(selisihSubtotal) > 0) {
-                      kesimpulan.rekomendasi.push(`⚠️ Periksa subtotal (selisih: ${formatRupiah(selisihSubtotal)})`);
-                  }
-                  if (Math.abs(selisihDiskon) > 0) {
-                      kesimpulan.rekomendasi.push(`⚠️ Periksa diskon bill (selisih: ${formatRupiah(selisihDiskon)})`);
-                  }
-                  
-                  kesimpulan.detailMatch.metode_pembayaran.forEach(pembayaran => {
-                      if (!pembayaran.match) {
-                          kesimpulan.rekomendasi.push(`⚠️ Periksa ${pembayaran.metode} (selisih: ${formatRupiah(pembayaran.selisih)})`);
-                      }
-                  });
-                  
-                  if (kesimpulan.totalSelisih > 100000) {
-                      kesimpulan.rekomendasi.push("🚨 Selisih signifikan, perlu investigasi mendalam");
-                  } else if (kesimpulan.totalSelisih > 50000) {
-                      kesimpulan.rekomendasi.push("⚠️ Selisih cukup besar, perlu pengecekan ulang");
-                  } else {
-                      kesimpulan.rekomendasi.push("💡 Selisih kecil, mungkin karena pembulatan");
-                  }
-              }
-          
-              // 6. Status Overall
-              kesimpulan.statusOverall = kesimpulan.totalMatch ? "MATCH SEMPURNA" : 
-                                        kesimpulan.totalSelisih <= 5000 ? "HAMPIR MATCH" : 
-                                        "PERLU PERBAIKAN";
-          
-              console.log('✅ Kesimpulan generated:', kesimpulan);
-              return kesimpulan;
-          }
+    // Fungsi untuk generate kesimpulan matching - DITAMBAH TOTAL DIHARAPKAN
+    function generateKesimpulan() {
+        console.log('📊 Generate kesimpulan matching...');
+        
+        const kesimpulan = {
+            totalMatch: true,
+            detailMatch: {},
+            totalSelisih: 0,
+            rekomendasi: []
+        };
+    
+        // 1. Check Total Penjualan
+        const totalAktual = parseInt(document.getElementById('aktualTotalPenjualan').value) || 0;
+        const totalResi = dataResi.total_penjualan || 0;
+        const selisihTotal = totalAktual - totalResi;
+        
+        kesimpulan.detailMatch.total_penjualan = {
+            match: selisihTotal === 0,
+            selisih: selisihTotal,
+            status: getStatusText(selisihTotal)
+        };
+        
+        if (selisihTotal !== 0) {
+            kesimpulan.totalMatch = false;
+            kesimpulan.totalSelisih += Math.abs(selisihTotal);
+        }
+    
+        // 2. Check Subtotal
+        const subtotalAktual = parseInt(document.getElementById('aktualSubtotal').value) || 0;
+        const subtotalResi = dataResi.subtotal || 0;
+        const selisihSubtotal = subtotalAktual - subtotalResi;
+        
+        kesimpulan.detailMatch.subtotal = {
+            match: selisihSubtotal === 0,
+            selisih: selisihSubtotal,
+            status: getStatusText(selisihSubtotal)
+        };
+        
+        if (selisihSubtotal !== 0) {
+            kesimpulan.totalMatch = false;
+            kesimpulan.totalSelisih += Math.abs(selisihSubtotal);
+        }
+    
+        // 3. Check Diskon
+        const diskonAktual = parseInt(document.getElementById('aktualDiskon').value) || 0;
+        const diskonResi = dataResi.diskon_bill || 0;
+        const selisihDiskon = diskonAktual - diskonResi;
+        
+        kesimpulan.detailMatch.diskon_bill = {
+            match: selisihDiskon === 0,
+            selisih: selisihDiskon,
+            status: getStatusText(selisihDiskon)
+        };
+        
+        if (selisihDiskon !== 0) {
+            kesimpulan.totalMatch = false;
+            kesimpulan.totalSelisih += Math.abs(selisihDiskon);
+        }
+    
+        // 4. Check Total Diharapkan (BARU)
+        const totalDiharapkanAktual = parseInt(document.getElementById('aktualTotalDiharapkan').value) || 0;
+        const totalDiharapkanResi = (dataResi.subtotal || 0) - Math.abs(dataResi.diskon_bill || 0);
+        const selisihTotalDiharapkan = totalDiharapkanAktual - totalDiharapkanResi;
+        
+        kesimpulan.detailMatch.total_diharapkan = {
+            match: selisihTotalDiharapkan === 0,
+            selisih: selisihTotalDiharapkan,
+            status: getStatusText(selisihTotalDiharapkan)
+        };
+        
+        if (selisihTotalDiharapkan !== 0) {
+            kesimpulan.totalMatch = false;
+            kesimpulan.totalSelisih += Math.abs(selisihTotalDiharapkan);
+        }
+    
+        // 5. Check Metode Pembayaran
+        kesimpulan.detailMatch.metode_pembayaran = [];
+        let semuaPembayaranMatch = true;
+        let totalSelisihPembayaran = 0;
+    
+        if (dataResi.metode_pembayaran && dataResi.metode_pembayaran.length > 0) {
+            dataResi.metode_pembayaran.forEach((metode, index) => {
+                const input = document.getElementById(`aktual-${index}`);
+                if (input) {
+                    const nilaiAktual = parseInt(input.value) || 0;
+                    const nilaiResi = metode.penjualan || 0;
+                    const selisih = nilaiAktual - nilaiResi;
+                    
+                    const matchPembayaran = {
+                        metode: metode.nama,
+                        match: selisih === 0,
+                        selisih: selisih,
+                        status: getStatusText(selisih)
+                    };
+                    
+                    kesimpulan.detailMatch.metode_pembayaran.push(matchPembayaran);
+                    
+                    if (selisih !== 0) {
+                        semuaPembayaranMatch = false;
+                        totalSelisihPembayaran += Math.abs(selisih);
+                    }
+                }
+            });
+        }
+        
+        kesimpulan.totalMatch = kesimpulan.totalMatch && semuaPembayaranMatch;
+        kesimpulan.totalSelisih += totalSelisihPembayaran;
+    
+        // 6. Generate Rekomendasi - DITAMBAH TOTAL DIHARAPKAN
+        if (kesimpulan.totalMatch) {
+            kesimpulan.rekomendasi.push("✅ Semua data matching sempurna");
+            kesimpulan.rekomendasi.push("✅ Tidak perlu tindakan lebih lanjut");
+        } else {
+            if (Math.abs(selisihTotal) > 0) {
+                kesimpulan.rekomendasi.push(`⚠️ Periksa total penjualan (selisih: ${formatRupiah(selisihTotal)})`);
+            }
+            if (Math.abs(selisihSubtotal) > 0) {
+                kesimpulan.rekomendasi.push(`⚠️ Periksa subtotal (selisih: ${formatRupiah(selisihSubtotal)})`);
+            }
+            if (Math.abs(selisihDiskon) > 0) {
+                kesimpulan.rekomendasi.push(`⚠️ Periksa diskon bill (selisih: ${formatRupiah(selisihDiskon)})`);
+            }
+            if (Math.abs(selisihTotalDiharapkan) > 0) {
+                kesimpulan.rekomendasi.push(`⚠️ Periksa total diharapkan (selisih: ${formatRupiah(selisihTotalDiharapkan)})`);
+            }
+            
+            kesimpulan.detailMatch.metode_pembayaran.forEach(pembayaran => {
+                if (!pembayaran.match) {
+                    kesimpulan.rekomendasi.push(`⚠️ Periksa ${pembayaran.metode} (selisih: ${formatRupiah(pembayaran.selisih)})`);
+                }
+            });
+            
+            if (kesimpulan.totalSelisih > 100000) {
+                kesimpulan.rekomendasi.push("🚨 Selisih signifikan, perlu investigasi mendalam");
+            } else if (kesimpulan.totalSelisih > 50000) {
+                kesimpulan.rekomendasi.push("⚠️ Selisih cukup besar, perlu pengecekan ulang");
+            } else {
+                kesimpulan.rekomendasi.push("💡 Selisih kecil, mungkin karena pembulatan");
+            }
+        }
+    
+        // 7. Status Overall
+        kesimpulan.statusOverall = kesimpulan.totalMatch ? "MATCH SEMPURNA" : 
+                                  kesimpulan.totalSelisih <= 5000 ? "HAMPIR MATCH" : 
+                                  "PERLU PERBAIKAN";
+    
+        console.log('✅ Kesimpulan generated:', kesimpulan);
+        return kesimpulan;
+    }
           
           // Fungsi untuk mendapatkan teks kesimpulan yang lebih readable
           function getKesimpulanText(kesimpulan) {
@@ -1059,11 +1103,13 @@
           const kesimpulan = generateKesimpulan();
           
           // Kumpulkan data aktual
-          const ringkasanAktual = {
-              total_penjualan: totalAktual,
-              subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
-              diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
-          };
+            // Dalam fungsi prosesClosing() dan kirimEmailLaporan(), update data ringkasan_aktual
+            const ringkasanAktual = {
+                total_penjualan: parseInt(document.getElementById('aktualTotalPenjualan').value) || 0,
+                subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
+                diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0,
+                total_diharapkan: parseInt(document.getElementById('aktualTotalDiharapkan').value) || 0  // ⬅️ BARU
+            };
           
           // Kumpulkan data pembayaran aktual menggunakan helper function
           const pembayaranAktual = getPembayaranAktual();
@@ -1138,7 +1184,7 @@
           
           const tbody = document.getElementById('bodyTabelHasil');
           tbody.innerHTML = `
-              <tr><td>Outlet</td><td>${dataResi.outlet || 'Masakluda'}</td></tr>
+              <tr><td>Outlet</td><td>${dataResi.outlet || 'MasaMuda'}</td></tr>
               <tr><td>Tanggal Closing</td><td>${data.tanggal}</td></tr>
               <tr><td>Shift</td><td>${data.shift}</td></tr>
               <tr><td>Karyawan</td><td>${data.karyawan}</td></tr>
@@ -1197,7 +1243,8 @@
                   ringkasan_aktual: {
                       total_penjualan: parseInt(document.getElementById('aktualTotalPenjualan').value) || 0,
                       subtotal: parseInt(document.getElementById('aktualSubtotal').value) || 0,
-                      diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0
+                      diskon_bill: parseInt(document.getElementById('aktualDiskon').value) || 0,
+                      total_diharapkan: parseInt(document.getElementById('aktualTotalDiharapkan').value) || 0  // ⬅️ BARU
                   },
                   pembayaran_aktual: getPembayaranAktual(),
                   keterangan: document.getElementById('keteranganUmum').value,
