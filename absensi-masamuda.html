@@ -88,47 +88,39 @@
       }
     };
 
-    function prepareAbsensi(status) {
-      const now = new Date().toISOString();
-      absensiData = {
-        nama: "Crew1", // bisa auto dari Telegram username di n8n
-        shift: "Pagi",
-        tipe: status,
-        datetime: now,
-        latitude: latitude,
-        longitude: longitude
-      };
+function prepareAbsensi(status) {
+  const now = new Date();
 
-      // tampilkan di popup
-      document.getElementById("reviewNama").innerText = absensiData.nama;
-      document.getElementById("reviewShift").innerText = absensiData.shift;
-      document.getElementById("reviewStatus").innerText = absensiData.tipe;
-      document.getElementById("reviewDatetime").innerText = absensiData.datetime;
-      document.getElementById("reviewLokasi").innerText = latitude + ", " + longitude;
+  // Format ke WIB (Asia/Jakarta)
+  const options = {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  };
+  const datetimeWIB = new Intl.DateTimeFormat("id-ID", options).format(now);
 
-      document.getElementById("reviewPopup").style.display = "flex";
-    }
+  absensiData = {
+    nama: "Crew1", // bisa auto dari Telegram username di n8n
+    shift: "Pagi",
+    tipe: status,
+    datetime: datetimeWIB, // kirim WIB
+    latitude: latitude,
+    longitude: longitude
+  };
 
-    function closePopup() {
-      document.getElementById("reviewPopup").style.display = "none";
-    }
+  // tampilkan di popup
+  document.getElementById("reviewNama").innerText = absensiData.nama;
+  document.getElementById("reviewShift").innerText = absensiData.shift;
+  document.getElementById("reviewStatus").innerText = absensiData.tipe;
+  document.getElementById("reviewDatetime").innerText = absensiData.datetime + " WIB";
+  document.getElementById("reviewLokasi").innerText = latitude + ", " + longitude;
 
-    function submitAbsensi() {
-      fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(absensiData)
-      })
-      .then(res => {
-        if (res.ok) {
-          alert("Absensi berhasil dikirim ✅");
-          closePopup();
-        } else {
-          alert("Gagal mengirim absensi ❌");
-        }
-      })
-      .catch(() => alert("Error saat mengirim data"));
-    }
+  document.getElementById("reviewPopup").style.display = "flex";
+}
   </script>
 </body>
 </html>
