@@ -1,177 +1,134 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Absensi Karyawan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      margin: 0; padding: 0;
-      font-family: sans-serif;
-      background: #f0f2f5;
-      display: flex; justify-content: center; align-items: center;
-      min-height: 100vh;
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; padding: 20px; 
+      background: #f8f9fa;
     }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 90%; max-width: 400px;
-    }
-    .card h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    label {
-      display: block;
-      margin-top: 12px;
-      font-size: 14px;
-      color: #555;
-    }
-    select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
+    h2 { text-align: center; color: #333; }
+    .container { max-width: 400px; margin: auto; text-align: center; }
     button {
-      width: 100%; padding: 12px; margin-top: 15px;
-      border: none; border-radius: 8px;
-      font-size: 16px; font-weight: bold; color: white;
-      cursor: pointer; transition: background 0.3s;
+      margin: 10px; padding: 12px 20px; font-size: 16px;
+      border: none; border-radius: 8px; cursor: pointer;
+      transition: 0.2s;
     }
-    .btn-masuk { background: #3498db; }
-    .btn-masuk:hover { background: #2980b9; }
-    .btn-selesai { background: #2ecc71; }
-    .btn-selesai:hover { background: #27ae60; }
-    .msg {
-      margin-top: 15px; text-align: center;
-      font-weight: bold;
+    .btn-masuk { background: #28a745; color: white; }
+    .btn-selesai { background: #dc3545; color: white; }
+    button:hover { opacity: 0.9; }
+
+    /* Popup */
+    .popup {
+      display: none; position: fixed; top: 0; left: 0; 
+      width: 100%; height: 100%; 
+      background: rgba(0,0,0,0.5);
+      justify-content: center; align-items: center;
+    }
+    .popup-content {
+      background: white; padding: 20px; border-radius: 10px;
+      width: 90%; max-width: 400px; text-align: left;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .popup h3 { margin-top: 0; }
+    .popup-buttons {
+      text-align: right; margin-top: 20px;
+    }
+    .popup-buttons button {
+      margin-left: 10px; padding: 10px 15px;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Absensi Shift</h2>
-
-    <label for="shift">Pilih Shift</label>
-    <select id="shift">
-      <option value="">-- Pilih Shift --</option>
-      <option value="Pagi">Pagi</option>
-      <option value="Siang">Siang</option>
-    </select>
-
-    <label for="crew">Nama Karyawan</label>
-    <select id="crew">
-      <option value="">-- Pilih Karyawan --</option>
-      <option value="Crew1">Crew1</option>
-      <option value="Crew2">Crew2</option>
-      <option value="Crew3">Crew3</option>
-    </select>
-
-    <button class="btn-masuk" id="btnMasuk">Masuk Shift</button>
-    <button class="btn-selesai" id="btnSelesai">Selesai Shift</button>
-
-    <div class="msg" id="msg"></div>
+  <h2>Absensi Karyawan</h2>
+  <div class="container">
+    <p id="status">Mengambil lokasi...</p>
+    <button class="btn-masuk" onclick="prepareAbsensi('Masuk')">Masuk</button>
+    <button class="btn-selesai" onclick="prepareAbsensi('Selesai')">Selesai Shift</button>
   </div>
 
-<script>
-const officeLat = -6.604950281449473;   // titik kantor
-const officeLon = 106.77332736980102;
-const radiusMeters = 100;
+  <!-- Popup Review -->
+  <div class="popup" id="reviewPopup">
+    <div class="popup-content">
+      <h3>Review Absensi</h3>
+      <p><b>Nama:</b> <span id="reviewNama"></span></p>
+      <p><b>Shift:</b> <span id="reviewShift"></span></p>
+      <p><b>Status:</b> <span id="reviewStatus"></span></p>
+      <p><b>Waktu:</b> <span id="reviewDatetime"></span></p>
+      <p><b>Lokasi:</b> <span id="reviewLokasi"></span></p>
+      <div class="popup-buttons">
+        <button onclick="closePopup()">Batal</button>
+        <button class="btn-masuk" onclick="submitAbsensi()">Kirim</button>
+      </div>
+    </div>
+  </div>
 
-const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver";
-const msgEl = document.getElementById("msg");
+  <script>
+    let latitude = null, longitude = null;
+    let absensiData = {};
 
-function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371e3;
-  const toRad = x => x * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat/2)**2 +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon/2)**2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
+    // ambil lokasi ketika halaman dibuka
+    window.onload = function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            latitude = pos.coords.latitude;
+            longitude = pos.coords.longitude;
+            document.getElementById("status").innerText = "Lokasi berhasil didapat ✅";
+          },
+          err => {
+            document.getElementById("status").innerText = "Gagal mengambil lokasi ❌";
+          }
+        );
+      } else {
+        document.getElementById("status").innerText = "Geolocation tidak didukung browser";
+      }
+    };
 
-function sendAttendance(type, shift, crew, lat, lon, distance){
-  const data = {
-    shift,
-    crew,
-    type,
-    timestamp: new Date().toISOString(),
-    latitude: lat,
-    longitude: lon,
-    distance: Math.round(distance)
-  };
+    function prepareAbsensi(status) {
+      const now = new Date().toISOString();
+      absensiData = {
+        nama: "Crew1", // bisa auto dari Telegram username di n8n
+        shift: "Pagi",
+        tipe: status,
+        datetime: now,
+        latitude: latitude,
+        longitude: longitude
+      };
 
-  msgEl.style.color = "#444";
-  msgEl.innerText = "📤 Mengirim data...";
+      // tampilkan di popup
+      document.getElementById("reviewNama").innerText = absensiData.nama;
+      document.getElementById("reviewShift").innerText = absensiData.shift;
+      document.getElementById("reviewStatus").innerText = absensiData.tipe;
+      document.getElementById("reviewDatetime").innerText = absensiData.datetime;
+      document.getElementById("reviewLokasi").innerText = latitude + ", " + longitude;
 
-  fetch(WEBHOOK_URL, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(data)
-  })
-  .then(r => {
-    if(r.ok){
-      msgEl.style.color = "green";
-      msgEl.innerText = "✅ Absensi berhasil dikirim!";
-      setTimeout(()=> window.close(), 2000); // otomatis tutup
-    } else {
-      msgEl.style.color = "red";
-      msgEl.innerText = "❌ Gagal kirim absensi.";
-    }
-  })
-  .catch(err => {
-    msgEl.style.color = "red";
-    msgEl.innerText = "❌ Error: " + err.message;
-  });
-}
-
-function handleClick(type){
-  const shift = document.getElementById("shift").value;
-  const crew = document.getElementById("crew").value;
-  if(!shift || !crew){
-    msgEl.style.color = "red";
-    msgEl.innerText = "Pilih shift & nama karyawan dulu.";
-    return;
-  }
-
-  msgEl.style.color = "#444";
-  msgEl.innerText = "📍 Mengambil lokasi...";
-
-  if(!navigator.geolocation){
-    msgEl.style.color = "red";
-    msgEl.innerText = "Browser tidak mendukung geolokasi.";
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    const dist = getDistance(officeLat, officeLon, lat, lon);
-
-    if(dist > radiusMeters && type === "Masuk"){
-      msgEl.style.color = "red";
-      msgEl.innerText = `🚫 Anda di luar area absensi (${Math.round(dist)} m).`;
-      return;
+      document.getElementById("reviewPopup").style.display = "flex";
     }
 
-    sendAttendance(type, shift, crew, lat, lon, dist);
-  }, err=>{
-    msgEl.style.color = "red";
-    msgEl.innerText = "❌ Gagal ambil lokasi: " + err.message;
-  }, { enableHighAccuracy:true, timeout:15000 });
-}
+    function closePopup() {
+      document.getElementById("reviewPopup").style.display = "none";
+    }
 
-document.getElementById("btnMasuk").onclick = ()=> handleClick("Masuk");
-document.getElementById("btnSelesai").onclick = ()=> handleClick("Selesai");
-</script>
+    function submitAbsensi() {
+      fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(absensiData)
+      })
+      .then(res => {
+        if (res.ok) {
+          alert("Absensi berhasil dikirim ✅");
+          closePopup();
+        } else {
+          alert("Gagal mengirim absensi ❌");
+        }
+      })
+      .catch(() => alert("Error saat mengirim data"));
+    }
+  </script>
 </body>
 </html>
