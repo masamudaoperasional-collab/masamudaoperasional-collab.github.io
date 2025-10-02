@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi Karyawan</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f8f9fa;
+      color: #333;
+    }
+    .card {
+      max-width: 400px;
+      margin: auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; }
+    select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #0056b3; }
+    .status {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Form Absensi</h2>
+    <label>Nama Karyawan</label>
+    <select id="nama">
+      <option value="Crew1">Crew1</option>
+      <option value="Crew2">Crew2</option>
+      <option value="Crew3">Crew3</option>
+    </select>
+
+    <label>Pilih Shift</label>
+    <select id="shift">
+      <option value="Pagi">Pagi</option>
+      <option value="Siang">Siang</option>
+    </select>
+
+    <button onclick="absen('masuk')">Masuk Shift</button>
+    <button onclick="absen('selesai')">Selesai Shift</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    async function absen(tipe) {
+      const nama = document.getElementById("nama").value;
+      const shift = document.getElementById("shift").value;
+      const datetime = new Date().toISOString();
+
+      let latitude = null;
+      let longitude = null;
+
+      // Hanya ambil lokasi untuk "masuk"
+      if (tipe === "masuk") {
+        try {
+          const pos = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+          });
+          latitude = pos.coords.latitude;
+          longitude = pos.coords.longitude;
+        } catch (err) {
+          document.getElementById("status").innerText = "Gagal ambil lokasi!";
+          return;
+        }
+      }
+
+      const data = {
+        nama: nama,
+        shift: shift,
+        tipe: tipe,
+        datetime: datetime,
+        latitude: latitude,
+        longitude: longitude
+      };
+
+      try {
+        const res = await fetch("https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          document.getElementById("status").innerText = "Absensi berhasil dikirim!";
+        } else {
+          document.getElementById("status").innerText = "Gagal kirim absensi.";
+        }
+      } catch (err) {
+        document.getElementById("status").innerText = "Error koneksi: " + err;
+      }
+    }
+  </script>
+</body>
+</html>
