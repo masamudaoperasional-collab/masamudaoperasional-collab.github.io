@@ -731,6 +731,8 @@
         shift: selectedShift,
         tipe: "selesai", // Default, bisa disesuaikan dengan logika bisnis
         datetime: new Date().toISOString(),
+        distance: Math.round(currentDistance), // <-- Jarak meter
+        statusLokasi: statusLokasi,           // <-- Status lokasi
         lokasi: {
           latitude: userLocation.lat,
           longitude: userLocation.lng
