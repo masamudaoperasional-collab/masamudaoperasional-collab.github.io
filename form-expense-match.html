@@ -1501,53 +1501,68 @@
                 const responseText = await response.text();
                 logDebug(`Response raw dari bank: ${responseText}`);
                 
-                const transactions = JSON.parse(responseText);
+                let transactionsData = JSON.parse(responseText);
                 
-                if (!transactions || transactions.length === 0) {
+                // FIX: Handle both array and object responses
+                let transactionsArray = [];
+                
+                if (Array.isArray(transactionsData)) {
+                    transactionsArray = transactionsData;
+                } else if (typeof transactionsData === 'object' && transactionsData !== null) {
+                    // Jika response adalah single object, jadikan array
+                    transactionsArray = [transactionsData];
+                }
+                
+                logDebug(`Processed transactions: ${JSON.stringify(transactionsArray)}`);
+                
+                if (!transactionsArray || transactionsArray.length === 0) {
                     bankList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada transaksi bank yang menunggu</p></div>';
                     return;
                 }
                 
-                bankList.innerHTML = transactions.map((transaction, index) => {
-                    // Clean up the data - remove trailing commas
+                bankList.innerHTML = transactionsArray.map((transaction, index) => {
+                    // Clean up the data - remove trailing commas and fix property names
                     const cleanTransaction = {};
                     Object.keys(transaction).forEach(key => {
                         let value = transaction[key];
                         if (typeof value === 'string') {
                             value = value.replace(/,$/, '').trim();
+                            // Fix property names based on your log
+                            value = value.replace(/""/g, '"'); // Remove double quotes
                         }
                         cleanTransaction[key] = value;
                     });
-
-                    const nominal = parseCurrency(cleanTransaction.nominal_transfer);
+        
+                    // FIX: Use correct property names from your log
+                    const nominal = parseCurrency(cleanTransaction.bombial_longfer || cleanTransaction.nominal_transfer || '0');
+                    const bankInfo = cleanTransaction.bank_dan_rekening || 'Bank tidak tersedia';
+                    const referensi = cleanTransaction.no_referensi || 'Tidak ada referensi';
+                    const penerima = cleanTransaction.tujuan_transass || 'Tidak ada nama';
+                    const tanggal = cleanTransaction.tanggal || 'Tanggal tidak tersedia';
                     
                     return `
                         <div class="data-card" data-bank-index="${index}" onclick="selectBankTransaction(${index})">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
                                 <div>
                                     <strong>Rp ${nominal.toLocaleString('id-ID')}</strong>
-                                    <div style="font-size: 14px; color: #6b7280;">${cleanTransaction.penerima || 'Tidak ada nama'}</div>
+                                    <div style="font-size: 14px; color: #6b7280;">${penerima}</div>
                                 </div>
                                 <div style="text-align: right;">
                                     <span class="status-badge status-pending">Pending</span>
-                                    <div style="font-size: 14px; color: #6b7280;">${cleanTransaction.tanggal || 'Tanggal tidak tersedia'}</div>
+                                    <div style="font-size: 14px; color: #6b7280;">${tanggal}</div>
                                 </div>
                             </div>
                             <div style="font-size: 14px; color: #6b7280;">
-                                ${cleanTransaction.bank_dan_rekening || 'Bank tidak tersedia'} • Ref: ${cleanTransaction.no_referensi || 'Tidak ada referensi'}
+                                ${bankInfo} • Ref: ${referensi}
                             </div>
                         </div>
                     `;
                 }).join('');
                 
-                // Store transactions in state
-                currentState.bankTransactions = transactions;
-                logDebug(`Berhasil memuat ${transactions.length} transaksi bank`);
-                
             } catch (error) {
                 console.error('Error loading bank data:', error);
+                logDebug(`Error loading bank data: ${error}`);
                 bankList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data transaksi bank</p></div>';
-                showNotification('Gagal memuat data transaksi bank: ' + error.message, 'error');
             }
         }
 
@@ -1846,6 +1861,17 @@
             document.querySelector(`[data-po-number="${poNumber}"]`).classList.add('selected');
             
             updateMatchingSummary();
+        }
+
+        function parseCurrency(currencyString) {
+            if (!currencyString) return 0;
+            
+            // Handle format seperti "Rp 60.000,00" dari log Anda
+            const numericString = currencyString.toString()
+                .replace(/[^\d,]/g, '') // Hapus non-digit kecuali koma
+                .replace(',', '.'); // Ganti koma dengan titik untuk parsing
+            
+            return parseFloat(numericString) || 0;
         }
 
         // Manual Input Handlers
