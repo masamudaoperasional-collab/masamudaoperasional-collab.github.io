@@ -1567,90 +1567,108 @@
         }
 
         async function loadPOData() {
-            const poList = document.getElementById('poList');
-            poList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data PO...</p></div>';
+        const poList = document.getElementById('poList');
+        poList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data PO...</p></div>';
+        
+        try {
+            logDebug("Memulai pengambilan data PO...");
             
-            try {
-                logDebug("Memulai pengambilan data PO...");
+            const response = await fetch(WEBHOOK_URLS.purchaseOrders, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors'
+            });
+            
+            logDebug(`Status response PO: ${response.status}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const responseText = await response.text();
+            logDebug(`Response raw dari PO: ${responseText}`);
+            
+            const purchaseOrdersData = JSON.parse(responseText);
+            
+            // FIX: Handle both array and object responses
+            let purchaseOrdersArray = [];
+            
+            if (Array.isArray(purchaseOrdersData)) {
+                purchaseOrdersArray = purchaseOrdersData;
+            } else if (typeof purchaseOrdersData === 'object' && purchaseOrdersData !== null) {
+                // Jika response adalah single object, jadikan array
+                purchaseOrdersArray = [purchaseOrdersData];
+            }
+            
+            logDebug(`Processed POs: ${JSON.stringify(purchaseOrdersArray)}`);
+            
+            if (!purchaseOrdersArray || purchaseOrdersArray.length === 0) {
+                poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada PO yang belum lunas</p></div>';
+                return;
+            }
+            
+            // Filter unpaid POs and calculate totals
+            const unpaidPOs = purchaseOrdersArray.filter(po => {
+                const status = getPaymentStatus(po);
+                return status === 'unpaid' || status === 'partial';
+            });
+            
+            if (unpaidPOs.length === 0) {
+                poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada PO yang belum lunas</p></div>';
+                return;
+            }
+            
+            poList.innerHTML = unpaidPOs.map(po => {
+                const totalAmount = getTotalAmount(po);
+                const paidAmount = po.paidAmount || 0;
+                const status = getPaymentStatus(po);
+                const items = parseItems(po.items);
                 
-                const response = await fetch(WEBHOOK_URLS.purchaseOrders, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    mode: 'cors'
-                });
+                // FIX: Handle potential missing properties
+                const poNumber = po.poNumber || po.no_po || 'No PO';
+                const supplier = po.supplier || po.nama_supplier || 'Supplier tidak tersedia';
+                const itemCount = items ? items.length : 0;
                 
-                logDebug(`Status response PO: ${response.status}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const responseText = await response.text();
-                logDebug(`Response raw dari PO: ${responseText}`);
-                
-                const purchaseOrders = JSON.parse(responseText);
-                
-                if (!purchaseOrders || purchaseOrders.length === 0) {
-                    poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada PO yang belum lunas</p></div>';
-                    return;
-                }
-                
-                // Filter unpaid POs and calculate totals
-                const unpaidPOs = purchaseOrders.filter(po => {
-                    const status = getPaymentStatus(po);
-                    return status === 'unpaid' || status === 'partial';
-                });
-                
-                if (unpaidPOs.length === 0) {
-                    poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada PO yang belum lunas</p></div>';
-                    return;
-                }
-                
-                poList.innerHTML = unpaidPOs.map(po => {
-                    const totalAmount = getTotalAmount(po);
-                    const paidAmount = po.paidAmount || 0;
-                    const status = getPaymentStatus(po);
-                    const items = parseItems(po.items);
-                    
-                    return `
-                        <div class="data-card" data-po-number="${po.poNumber}" onclick="selectPO('${po.poNumber}')">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                                <div>
-                                    <strong>${po.poNumber}</strong>
-                                    <div style="font-size: 14px; color: #6b7280;">${po.supplier}</div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span class="status-badge ${status === 'partial' ? 'status-partial' : 'status-unpaid'}">
-                                        ${status === 'partial' ? 'Partial Paid' : 'Unpaid'}
-                                    </span>
-                                    <div style="font-size: 14px; color: #6b7280;">Total: Rp ${totalAmount.toLocaleString('id-ID')}</div>
-                                </div>
+                return `
+                    <div class="data-card" data-po-number="${poNumber}" onclick="selectPO('${poNumber}')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div>
+                                <strong>${poNumber}</strong>
+                                <div style="font-size: 14px; color: #6b7280;">${supplier}</div>
                             </div>
-                            <div style="font-size: 14px; color: #6b7280;">
-                                ${items.length} item • Paid: Rp ${paidAmount.toLocaleString('id-ID')}
+                            <div style="text-align: right;">
+                                <span class="status-badge ${status === 'partial' ? 'status-partial' : 'status-unpaid'}">
+                                    ${status === 'partial' ? 'Partial Paid' : 'Unpaid'}
+                                </span>
+                                <div style="font-size: 14px; color: #6b7280;">Total: Rp ${totalAmount.toLocaleString('id-ID')}</div>
                             </div>
                         </div>
-                    `;
-                }).join('');
-                
-                // Store POs in state with calculated totals
-                currentState.purchaseOrders = purchaseOrders.map(po => ({
-                    ...po,
-                    totalAmount: getTotalAmount(po),
-                    items: parseItems(po.items)
-                }));
-                
-                logDebug(`Berhasil memuat ${purchaseOrders.length} purchase orders`);
-                
-            } catch (error) {
-                console.error('Error loading PO data:', error);
-                poList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data PO</p></div>';
-                showNotification('Gagal memuat data PO: ' + error.message, 'error');
-            }
+                        <div style="font-size: 14px; color: #6b7280;">
+                            ${itemCount} item • Paid: Rp ${paidAmount.toLocaleString('id-ID')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Store POs in state with calculated totals
+            currentState.purchaseOrders = purchaseOrdersArray.map(po => ({
+                ...po,
+                totalAmount: getTotalAmount(po),
+                items: parseItems(po.items)
+            }));
+            
+            logDebug(`Berhasil memuat ${purchaseOrdersArray.length} purchase orders`);
+            
+        } catch (error) {
+            console.error('Error loading PO data:', error);
+            logDebug(`Error loading PO data: ${error}`);
+            poList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data PO</p></div>';
+            showNotification('Gagal memuat data PO: ' + error.message, 'error');
         }
+    }
 
         // Load History Data from Webhook - FUNGSI BARU
         async function loadHistoryData() {
