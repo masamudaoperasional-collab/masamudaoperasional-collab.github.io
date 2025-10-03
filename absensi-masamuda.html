@@ -12,6 +12,13 @@
       box-sizing: border-box;
     }
     
+    @font-face {
+      font-family: 'Bristol';
+      src: url('https://fonts.cdnfonts.com/s/85309/Bristol.woff') format('woff');
+      font-weight: normal;
+      font-style: italic;
+    }
+    
     body {
       font-family: 'Poppins', sans-serif;
       background-color: #f8f9fa;
@@ -35,6 +42,7 @@
     }
     
     .logo {
+        font-family: 'Bristol', cursive;
       font-size: 36px;
       color: #7c895d;
       margin-bottom: 5px;
@@ -350,7 +358,6 @@
   <div class="container">
     <div class="header">
       <div class="logo">masa.muda</div>
-      <div class="subtitle">Sistem Absensi Digital</div>
     </div>
     
     <div class="card">
@@ -407,180 +414,347 @@
   </div>
 
   <script>
-  // Koordinat kantor
-  const officeLat = -6.6049869170401125;
-  const officeLon = 106.77342191765905;
-  const radiusMeters = 100;
+    // Koordinat kantor
+    const officeLat = -6.6049869170401125;
+    const officeLon = 106.77342191765905;
+    const radiusMeters = 100;
 
-  const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver";
+    const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver";
 
-  // Elemen DOM
-  const msgEl = document.getElementById("msg");
-  const locationStatus = document.getElementById("locationStatus");
-  const distanceInfo = document.getElementById("distanceInfo");
-  const userName = document.getElementById("userName");
-  const btnRecord = document.getElementById("btnRecord");
-  const dwToggle = document.getElementById("dwToggle");
-  const dwSection = document.getElementById("dwSection");
-  const paymentSudah = document.getElementById("paymentSudah");
-  const paymentBelum = document.getElementById("paymentBelum");
+    // Elemen DOM
+    const msgEl = document.getElementById("msg");
+    const locationStatus = document.getElementById("locationStatus");
+    const distanceInfo = document.getElementById("distanceInfo");
+    const userName = document.getElementById("userName");
+    const btnRecord = document.getElementById("btnRecord");
+    const dwToggle = document.getElementById("dwToggle");
+    const dwSection = document.getElementById("dwSection");
+    const paymentSudah = document.getElementById("paymentSudah");
+    const paymentBelum = document.getElementById("paymentBelum");
 
-  let userLocation = null;
-  let selectedShift = "";
-  let currentDistance = 0;
-  let paymentStatus = "";
-  let userId = "";
-  let userUsername = "";
+    let userLocation = null;
+    let selectedShift = "";
+    let currentDistance = 0;
+    let paymentStatus = "";
+    let userId = "";
 
-  // Fungsi untuk mendapatkan parameter URL
-  function getUrlParams() {
-    const params = new URLSearchParams(window.location.search);
-    return {
-      id: params.get('id'),
-      username: params.get('username')
-    };
-  }
-
-  // Fungsi untuk mendapatkan lokasi pengguna
-  function getLocation() {
-    if (!navigator.geolocation) {
-      locationStatus.textContent = "Browser tidak mendukung geolokasi.";
-      return;
+    // Fungsi untuk mendapatkan parameter URL
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        id: params.get('id'),
+        username: params.get('username')
+      };
     }
 
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        userLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
+    // Fungsi untuk menghitung jarak (Haversine formula)
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const toRad = x => x * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
 
-        localStorage.setItem('userLocation', JSON.stringify(userLocation));
+    // Fungsi untuk mendapatkan lokasi pengguna
+    function getLocation() {
+      if (!navigator.geolocation) {
+        locationStatus.textContent = "Browser tidak mendukung geolokasi.";
+        return;
+      }
 
-        // Hitung jarak dari kantor
-        currentDistance = getDistance(officeLat, officeLon, userLocation.lat, userLocation.lng);
-
-        // Update UI
-        locationStatus.textContent = `Lokasi berhasil didapatkan`;
-        distanceInfo.textContent = `Jarak dari kantor: ${Math.round(currentDistance)} meter`;
-
-        distanceInfo.style.color = currentDistance <= radiusMeters ? '#2e7d32' : '#c62828';
-
-        if (selectedShift) {
-          btnRecord.disabled = false;
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          
+          // Simpan lokasi ke localStorage
+          localStorage.setItem('userLocation', JSON.stringify(userLocation));
+          
+          // Hitung jarak dari kantor
+          currentDistance = getDistance(officeLat, officeLon, userLocation.lat, userLocation.lng);
+          
+          // Update UI
+          locationStatus.textContent = `Lokasi berhasil didapatkan`;
+          distanceInfo.textContent = `Jarak dari kantor: ${Math.round(currentDistance)} meter`;
+          
+          // Periksa apakah dalam radius yang diizinkan
+          if (currentDistance <= radiusMeters) {
+            distanceInfo.style.color = '#2e7d32';
+          } else {
+            distanceInfo.style.color = '#c62828';
+          }
+          
+          // Aktifkan tombol rekam jika shift sudah dipilih
+          if (selectedShift) {
+            btnRecord.disabled = false;
+          }
+        },
+        error => {
+          console.error('Error getting location:', error);
+          locationStatus.textContent = 'Gagal mendapatkan lokasi. Pastikan izin lokasi telah diberikan.';
+          
+          // Coba gunakan lokasi yang tersimpan
+          const savedLocation = localStorage.getItem('userLocation');
+          if (savedLocation) {
+            userLocation = JSON.parse(savedLocation);
+            locationStatus.textContent = 'Menggunakan lokasi yang tersimpan.';
+            
+            // Hitung jarak dari kantor
+            currentDistance = getDistance(officeLat, officeLon, userLocation.lat, userLocation.lng);
+            
+            distanceInfo.textContent = `Jarak dari kantor: ${Math.round(currentDistance)} meter`;
+            
+            // Periksa apakah dalam radius yang diizinkan
+            if (currentDistance <= radiusMeters) {
+              distanceInfo.style.color = '#2e7d32';
+            } else {
+              distanceInfo.style.color = '#c62828';
+            }
+            
+            // Aktifkan tombol rekam jika shift sudah dipilih
+            if (selectedShift) {
+              btnRecord.disabled = false;
+            }
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 60000
         }
-      },
-      error => {
-        locationStatus.textContent = 'Gagal mendapatkan lokasi.';
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
-    );
-  }
-
-  // Haversine formula
-  function getDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3;
-    const toRad = x => x * Math.PI / 180;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a = Math.sin(dLat/2)**2 +
-              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-              Math.sin(dLon/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  }
-
-  // Kirim absensi
-  function sendAttendance(data) {
-    showMessage("Mengirim data absensi...", "info");
-    fetch(WEBHOOK_URL, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(data)
-    })
-    .then(r => {
-      if(r.ok) showMessage("Absensi berhasil dikirim!", "success");
-      else showMessage("Gagal mengirim absensi.", "error");
-    })
-    .catch(() => showMessage("Error koneksi. Data gagal dikirim.", "error"));
-  }
-
-  function showMessage(message, type) {
-    msgEl.textContent = message;
-    msgEl.className = "msg " + type;
-  }
-
-  // Review popup
-  function showReview() {
-    const reviewText = document.getElementById("reviewText");
-    const locationStatusReview = document.getElementById("locationStatusReview");
-
-    let locationStatusText = currentDistance <= radiusMeters 
-      ? "Lokasi sesuai untuk absensi" 
-      : "Lokasi tidak sesuai";
-    let locationStatusClass = currentDistance <= radiusMeters 
-      ? "location-status-review location-valid" 
-      : "location-status-review location-invalid";
-
-    reviewText.innerHTML = `
-      <div class="review-item"><div class="review-label">Nama:</div><div class="review-value">${userUsername}</div></div>
-      <div class="review-item"><div class="review-label">Shift:</div><div class="review-value">${selectedShift}</div></div>
-      <div class="review-item"><div class="review-label">Waktu:</div><div class="review-value">${new Date().toLocaleString("id-ID", {timeZone: "Asia/Jakarta"})}</div></div>
-      <div class="review-item"><div class="review-label">Jarak:</div><div class="review-value">${Math.round(currentDistance)} meter</div></div>
-    `;
-    locationStatusReview.innerHTML = `<div class="${locationStatusClass}">${locationStatusText}</div>`;
-    document.getElementById("reviewModal").style.display = "flex";
-  }
-
-  // Shift
-  function selectShift(shift) {
-    selectedShift = shift;
-    document.getElementById("shiftPagi").classList.remove("active");
-    document.getElementById("shiftClosing").classList.remove("active");
-    document.getElementById(shift === "Pagi" ? "shiftPagi" : "shiftClosing").classList.add("active");
-    if (userLocation) btnRecord.disabled = false;
-  }
-
-  // Init
-  window.addEventListener('load', function() {
-    const urlParams = getUrlParams();
-    if (urlParams.username) {
-      userUsername = urlParams.username;
-      userId = urlParams.id;
-      userName.textContent = userUsername;
-    } else {
-      userUsername = "Tidak Dikenal";
-      userId = "-";
-      userName.textContent = userUsername;
+      );
     }
-    getLocation();
-  });
 
-  document.getElementById("shiftPagi").onclick = () => selectShift("Pagi");
-  document.getElementById("shiftClosing").onclick = () => selectShift("Closing");
+    // Fungsi untuk mengirim data ke webhook
+    function sendAttendance(data) {
+      showMessage("Mengirim data absensi...", "info");
+      
+      // Simpan data sementara untuk menghindari null
+      localStorage.setItem('lastAttendanceData', JSON.stringify(data));
 
-  document.getElementById("btnRecord").onclick = () => {
-    if (!selectedShift) return showMessage("Pilih shift terlebih dahulu", "error");
-    if (!userLocation) return showMessage("Lokasi tidak tersedia", "error");
-    showReview();
-  };
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      })
+      .then(r => {
+        if(r.ok) {
+          showMessage("Absensi berhasil dikirim!", "success");
+          
+          // Simpan data yang berhasil dikirim untuk referensi
+          const sentData = JSON.parse(localStorage.getItem('sentAttendance') || '[]');
+          sentData.push(data);
+          localStorage.setItem('sentAttendance', JSON.stringify(sentData));
+        } else {
+          showMessage("Gagal mengirim absensi. Data disimpan sementara.", "error");
+          
+          // Simpan data ke localStorage untuk pengiriman ulang nanti
+          const pendingSubmissions = JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+          pendingSubmissions.push(data);
+          localStorage.setItem('pendingAttendance', JSON.stringify(pendingSubmissions));
+        }
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        showMessage("Error koneksi. Data disimpan sementara.", "error");
+        
+        // Simpan data ke localStorage untuk pengiriman ulang nanti
+        const pendingSubmissions = JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+        pendingSubmissions.push(data);
+        localStorage.setItem('pendingAttendance', JSON.stringify(pendingSubmissions));
+      });
+    }
 
-  document.getElementById("cancelBtn").onclick = () => {
-    document.getElementById("reviewModal").style.display = "none";
-  };
+    // Fungsi untuk menampilkan pesan
+    function showMessage(message, type) {
+      msgEl.textContent = message;
+      msgEl.className = "msg " + type;
+    }
 
-  document.getElementById("confirmBtn").onclick = () => {
-    const data = {
-      id: userId,
-      nama: userUsername,
-      shift: selectedShift,
-      datetime: new Date().toLocaleString("sv-SE", { timeZone: "Asia/Jakarta" }),
-      lokasi: userLocation
+    // Fungsi untuk menampilkan popup review
+    function showReview() {
+      const reviewText = document.getElementById("reviewText");
+      const locationStatusReview = document.getElementById("locationStatusReview");
+      
+      // Tentukan status lokasi
+      let locationStatusText = "";
+      let locationStatusClass = "";
+      
+      if (currentDistance <= radiusMeters) {
+        locationStatusText = "Lokasi sesuai untuk absensi";
+        locationStatusClass = "location-status-review location-valid";
+      } else {
+        locationStatusText = "Lokasi tidak sesuai untuk absensi masuk";
+        locationStatusClass = "location-status-review location-invalid";
+      }
+      
+      reviewText.innerHTML = `
+        <div class="review-item">
+          <div class="review-label">ID:</div>
+          <div class="review-value">${userId}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Nama:</div>
+          <div class="review-value">${userName.textContent}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Shift:</div>
+          <div class="review-value">${selectedShift}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Waktu:</div>
+          <div class="review-value">${new Date().toLocaleString()}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Jarak:</div>
+          <div class="review-value">${Math.round(currentDistance)} meter</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Pembayaran:</div>
+          <div class="review-value">${paymentStatus || "Belum dipilih"}</div>
+        </div>
+      `;
+      
+      locationStatusReview.innerHTML = `<div class="${locationStatusClass}">${locationStatusText}</div>`;
+      
+      document.getElementById("reviewModal").style.display = "flex";
+    }
+
+    // Fungsi untuk menangani pemilihan shift
+    function selectShift(shift) {
+      selectedShift = shift;
+      
+      // Update tampilan tombol
+      document.getElementById("shiftPagi").classList.remove("active");
+      document.getElementById("shiftClosing").classList.remove("active");
+      
+      if (shift === "Pagi") {
+        document.getElementById("shiftPagi").classList.add("active");
+      } else {
+        document.getElementById("shiftClosing").classList.add("active");
+      }
+      
+      // Aktifkan tombol rekam jika lokasi sudah didapatkan
+      if (userLocation) {
+        btnRecord.disabled = false;
+      }
+    }
+
+    // Fungsi untuk menangani pemilihan status pembayaran
+    function selectPaymentStatus(status) {
+      paymentStatus = status;
+      
+      // Update tampilan tombol
+      paymentSudah.classList.remove("active");
+      paymentBelum.classList.remove("active");
+      
+      if (status === "Sudah") {
+        paymentSudah.classList.add("active");
+      } else if (status === "Belum") {
+        paymentBelum.classList.add("active");
+      }
+    }
+
+    // Inisialisasi saat halaman dimuat
+    window.addEventListener('load', function() {
+      // Ambil parameter URL
+      const urlParams = getUrlParams();
+      
+      // Tampilkan nama pengguna dan simpan ID
+      if (urlParams.username) {
+        userName.textContent = urlParams.username;
+      } else {
+        userName.textContent = "Tidak Dikenal";
+      }
+      
+      if (urlParams.id) {
+        userId = urlParams.id;
+      }
+      
+      // Coba kirim ulang data yang tertunda
+      const pendingSubmissions = JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+      if (pendingSubmissions.length > 0) {
+        showMessage(`Mengirim ulang ${pendingSubmissions.length} absensi tertunda...`, "info");
+        
+        // Kirim ulang data tertunda satu per satu
+        pendingSubmissions.forEach((data, index) => {
+          setTimeout(() => {
+            sendAttendance(data);
+          }, index * 2000);
+        });
+        
+        // Kosongkan data tertunda setelah dikirim
+        localStorage.removeItem('pendingAttendance');
+      }
+      
+      // Mulai mendapatkan lokasi
+      getLocation();
+    });
+
+    // Event listeners untuk tombol shift
+    document.getElementById("shiftPagi").onclick = () => selectShift("Pagi");
+    document.getElementById("shiftClosing").onclick = () => selectShift("Closing");
+
+    // Event listener untuk tombol rekam
+    document.getElementById("btnRecord").onclick = () => {
+      if (!selectedShift) {
+        showMessage("Pilih shift terlebih dahulu", "error");
+        return;
+      }
+
+      if (!userLocation) {
+        showMessage("Lokasi tidak tersedia", "error");
+        return;
+      }
+
+      // Tampilkan popup review
+      showReview();
     };
-    sendAttendance(data);
-    document.getElementById("reviewModal").style.display = "none";
-  };
-</script>
 
+    // Event listeners untuk tombol di popup
+    document.getElementById("cancelBtn").onclick = () => {
+      document.getElementById("reviewModal").style.display = "none";
+    };
+
+    document.getElementById("confirmBtn").onclick = () => {
+      // Buat objek data absensi sesuai format yang diminta
+      const data = {
+        id: userId,
+        nama: userName.textContent,
+        shift: selectedShift,
+        tipe: "selesai", // Default, bisa disesuaikan dengan logika bisnis
+        datetime: new Date().toISOString(),
+        lokasi: {
+          latitude: userLocation.lat,
+          longitude: userLocation.lng
+        },
+        pembayaran: paymentStatus || "Belum dipilih"
+      };
+
+      // Kirim data
+      sendAttendance(data);
+      document.getElementById("reviewModal").style.display = "none";
+    };
+
+    // Event listener untuk toggle DW
+    dwToggle.addEventListener('click', () => {
+      if (dwSection.style.display === 'block') {
+        dwSection.style.display = 'none';
+      } else {
+        dwSection.style.display = 'block';
+      }
+    });
+
+    // Event listeners untuk tombol pembayaran
+    paymentSudah.addEventListener('click', () => selectPaymentStatus("Sudah"));
+    paymentBelum.addEventListener('click', () => selectPaymentStatus("Belum"));
+  </script>
 </body>
 </html>
