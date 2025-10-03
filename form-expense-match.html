@@ -1446,11 +1446,22 @@
     <script>
         // Webhook URLs
         const WEBHOOK_URLS = {
-            bankTransactions: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hookbanktransaction',
-            purchaseOrders: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hook-po',
-            submitMatching: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/output-formexpense-match'
+            bankTransactions: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/hookbanktransaction',
+            purchaseOrders: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/hook-po',
+            submitMatching: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/output-formexpense-match'
+            readMatchingHistory: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/read-output-formexpense-match'
         }; 
 
+        // Function to get URL parameters
+        function getUrlParams() {
+            const p = new URLSearchParams(window.location.search);
+            return { id: p.get('id') };
+        }
+        
+        // Get ID from URL
+        const urlParams = getUrlParams();
+        const currentId = urlParams.id;
+        
         // State Management
         let currentState = {
             transactionType: 'bank',
@@ -1461,7 +1472,8 @@
             manualExpense: null,
             matchingHistory: [],
             bankTransactions: [],
-            purchaseOrders: []
+            purchaseOrders: [],
+            currentId: currentId // Simpan ID di state
         };
 
         // Helper functions untuk parsing data
@@ -1572,6 +1584,7 @@
         }
 
         // Navigation
+        // Navigation
         function switchPage(pageId) {
             document.querySelectorAll('.page').forEach(page => {
                 page.classList.remove('active');
@@ -1584,7 +1597,7 @@
             document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
             
             if (pageId === 'review-page') {
-                loadReviewData();
+                loadReviewData(); // Ini akan memuat data dari webhook
             }
         }
 
@@ -1940,6 +1953,43 @@
         showNotification('Menggunakan data contoh transaksi bank', 'info');
     }
 }
+
+        // Load Review Data from Webhook
+        async function loadReviewDataFromWebhook() {
+            try {
+                console.log("Memulai pengambilan data review dari webhook...");
+                
+                const response = await fetch(WEBHOOK_URLS.readMatchingHistory, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+        
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+        
+                const data = await response.json();
+                console.log("Data review dari webhook:", data);
+                
+                // Simpan data ke state
+                if (data && Array.isArray(data)) {
+                    currentState.matchingHistory = data;
+                    showNotification(`Berhasil memuat ${data.length} data riwayat pengeluaran`, 'success');
+                } else {
+                    console.warn('Format data tidak sesuai:', data);
+                    showNotification('Format data riwayat tidak sesuai', 'warning');
+                }
+                
+            } catch (error) {
+                console.error("Error loading review data:", error);
+                showNotification('Gagal memuat data riwayat: ' + error.message, 'error');
+                
+                // Fallback ke data lokal jika webhook gagal
+                console.log("Menggunakan data lokal sebagai fallback");
+            }
+        }
         
         // Fungsi loadPOData dengan data contoh
         async function loadPOData() {
@@ -2534,6 +2584,7 @@
         }
 
         // Submit Matching to Webhook
+        // Submit Matching to Webhook
         async function submitMatching() {
             // Validation
             if ((currentState.transactionType === 'bank' && !currentState.selectedBankTransaction) &&
@@ -2548,8 +2599,9 @@
                 return;
             }
             
+            // Sertakan ID dari URL dalam data yang dikirim
             const matchingData = {
-                id: 'MATCH-' + Date.now(),
+                id: currentId || 'MATCH-' + Date.now(), // Gunakan ID dari URL atau buat baru
                 timestamp: new Date().toISOString(),
                 
                 transaction: {
@@ -2566,7 +2618,9 @@
                 
                 notes: document.getElementById('matchingNotes').value,
                 status: 'completed',
-                submittedAt: new Date().toISOString()
+                submittedAt: new Date().toISOString(),
+                // Tambahkan URL ID jika ada
+                urlId: currentId
             };
             
             // Show loading state
@@ -2578,6 +2632,7 @@
             try {
                 logDebug("Memulai proses pengiriman data matching...");
                 logDebug("Data yang akan dikirim:", matchingData);
+                logDebug("ID dari URL:", currentId);
                 
                 // Kirim data ke webhook
                 const response = await fetch(WEBHOOK_URLS.submitMatching, {
@@ -2605,7 +2660,7 @@
                 console.log('Matching Data Submitted:', matchingData);
                 console.log('Webhook Response:', responseText);
                 
-                showNotification('Matching pengeluaran berhasil disimpan!', 'success');
+                showNotification('Matching pengeluaran berhasil disimpan! ID: ' + (currentId || matchingData.id), 'success');
                 
                 resetMatching();
                 setTimeout(() => {
@@ -2624,7 +2679,46 @@
         }
 
         // Review Page Functions
-        function loadReviewData() {
+        // Review Page Functions
+        async function loadReviewData() {
+            // Tampilkan loading state
+            const tableBody = document.getElementById('reviewTableBody');
+            const mobileView = document.getElementById('reviewMobileView');
+            
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state" style="padding: 20px;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Memuat data riwayat...</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            mobileView.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Memuat data riwayat...</p>
+                </div>
+            `;
+        
+            try {
+                // Load data dari webhook
+                await loadReviewDataFromWebhook();
+                
+                // Update UI dengan data yang sudah dimuat
+                updateReviewUI();
+                
+            } catch (error) {
+                console.error('Error in loadReviewData:', error);
+                // Fallback ke data lokal jika ada
+                updateReviewUI();
+            }
+        }
+        
+        // Helper function untuk update UI review
+        function updateReviewUI() {
             const tableBody = document.getElementById('reviewTableBody');
             const mobileView = document.getElementById('reviewMobileView');
             
@@ -2645,27 +2739,33 @@
             
             // Update table view
             tableBody.innerHTML = currentState.matchingHistory.map(match => {
-                const date = new Date(match.timestamp).toLocaleDateString('id-ID');
+                const date = new Date(match.timestamp || match.submittedAt).toLocaleDateString('id-ID');
                 let amount = 0;
                 let from = '';
                 let to = '';
                 let type = '';
                 
-                if (match.transaction.type === 'bank') {
+                if (match.transaction && match.transaction.type === 'bank') {
                     const data = match.transaction.data;
                     amount = parseCurrency(data.nominal_transfer);
                     from = `Bank: ${data.bank_dan_rekening || 'Tidak tersedia'}`;
                     type = 'Bank Matching';
-                } else {
+                } else if (match.transaction && match.transaction.type === 'manual') {
                     amount = match.transaction.data.amount;
                     from = `Manual: ${match.transaction.data.method}`;
                     type = 'Manual Input';
+                } else {
+                    amount = match.amount || 0;
+                    from = 'Tidak tersedia';
+                    type = 'Unknown';
                 }
                 
-                if (match.expense.type === 'po') {
-                    to = `PO: ${match.expense.data.pownumber || match.expense.data.poNumber}`;
+                if (match.expense && match.expense.type === 'po') {
+                    to = `PO: ${match.expense.data.pownumber || match.expense.data.poNumber || 'Tidak tersedia'}`;
+                } else if (match.expense && match.expense.type === 'manual') {
+                    to = `Manual: ${match.expense.data.categoryText || match.expense.data.category || 'Tidak tersedia'}`;
                 } else {
-                    to = `Manual: ${match.expense.data.categoryText}`;
+                    to = 'Tidak tersedia';
                 }
                 
                 return `
@@ -2687,27 +2787,33 @@
             
             // Update mobile view
             mobileView.innerHTML = currentState.matchingHistory.map(match => {
-                const date = new Date(match.timestamp).toLocaleDateString('id-ID');
+                const date = new Date(match.timestamp || match.submittedAt).toLocaleDateString('id-ID');
                 let amount = 0;
                 let from = '';
                 let to = '';
                 let type = '';
                 
-                if (match.transaction.type === 'bank') {
+                if (match.transaction && match.transaction.type === 'bank') {
                     const data = match.transaction.data;
                     amount = parseCurrency(data.nominal_transfer);
                     from = `Bank: ${data.bank_dan_rekening || 'Tidak tersedia'}`;
                     type = 'Bank Matching';
-                } else {
+                } else if (match.transaction && match.transaction.type === 'manual') {
                     amount = match.transaction.data.amount;
                     from = `Manual: ${match.transaction.data.method}`;
                     type = 'Manual Input';
+                } else {
+                    amount = match.amount || 0;
+                    from = 'Tidak tersedia';
+                    type = 'Unknown';
                 }
                 
-                if (match.expense.type === 'po') {
-                    to = `PO: ${match.expense.data.pownumber || match.expense.data.poNumber}`;
+                if (match.expense && match.expense.type === 'po') {
+                    to = `PO: ${match.expense.data.pownumber || match.expense.data.poNumber || 'Tidak tersedia'}`;
+                } else if (match.expense && match.expense.type === 'manual') {
+                    to = `Manual: ${match.expense.data.categoryText || match.expense.data.category || 'Tidak tersedia'}`;
                 } else {
-                    to = `Manual: ${match.expense.data.categoryText}`;
+                    to = 'Tidak tersedia';
                 }
                 
                 return `
@@ -2851,8 +2957,20 @@
         }
 
         // Initialize
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM loaded, initializing...");
+            console.log("URL Parameters:", urlParams);
+            console.log("Current ID:", currentId);
+            
+            // Tampilkan ID di console untuk debugging
+            if (currentId) {
+                console.log("Menggunakan ID dari URL:", currentId);
+                showNotification(`Sistem siap - ID: ${currentId}`, 'info');
+            } else {
+                console.log("Tidak ada ID di URL, menggunakan ID otomatis");
+                showNotification('Sistem pengeluaran siap digunakan!', 'success');
+            }
             
             // Setup manual input handlers
             setupManualInputHandlers();
@@ -2866,8 +2984,6 @@
                 console.log("Loading PO data..."); 
                 loadPOData();
             }, 500);
-            
-            showNotification('Sistem pengeluaran siap digunakan!', 'success');
         });
     </script>
 </body>
