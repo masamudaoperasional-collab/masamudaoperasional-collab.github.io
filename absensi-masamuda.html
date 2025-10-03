@@ -1,126 +1,744 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Absensi Karyawan</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Absensi - masa.muda</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      margin: 0; padding: 20px; 
-      background: #f8f9fa;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    h2 { text-align: center; color: #333; }
-    .container { max-width: 400px; margin: auto; text-align: center; }
-    button {
-      margin: 10px; padding: 12px 20px; font-size: 16px;
-      border: none; border-radius: 8px; cursor: pointer;
-      transition: 0.2s;
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+      line-height: 1.5;
     }
-    .btn-masuk { background: #28a745; color: white; }
-    .btn-selesai { background: #dc3545; color: white; }
-    button:hover { opacity: 0.9; }
-
-    /* Popup */
-    .popup {
-      display: none; position: fixed; top: 0; left: 0; 
-      width: 100%; height: 100%; 
-      background: rgba(0,0,0,0.5);
-      justify-content: center; align-items: center;
+    
+    .container {
+      width: 100%;
+      max-width: 450px;
     }
-    .popup-content {
-      background: white; padding: 20px; border-radius: 10px;
-      width: 90%; max-width: 400px; text-align: left;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
     }
-    .popup h3 { margin-top: 0; }
-    .popup-buttons {
-      text-align: right; margin-top: 20px;
+    
+    .logo {
+      font-size: 36px;
+      color: #7c895d;
+      margin-bottom: 5px;
+      font-weight: 500;
+      letter-spacing: 1px;
     }
-    .popup-buttons button {
-      margin-left: 10px; padding: 10px 15px;
+    
+    .subtitle {
+      color: #6c757d;
+      font-size: 15px;
+      font-weight: 400;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+    
+    .dw-toggle {
+      position: absolute;
+      width: 15%;
+      top: 20px;
+      right: 20px;
+      border: none;
+      border-radius: 9px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      font-size: 17px;
+      color: #ffff;
+      cursor: pointer;
+      padding: 5px;
+      background-color: #A8A4A0;
+    }
+    
+    .card-title {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .user-info {
+      background-color: #f0f3f5;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .user-name {
+      font-size: 18px;
+      font-weight: 500;
+      color: #7c895d;
+    }
+    
+    .shift-buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .shift-btn {
+      flex: 1;
+      padding: 14px;
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      font-size: 15px;
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 400;
+    }
+    
+    .shift-btn.active {
+      background-color: #7c895d;
+      color: white;
+      border-color: #7c895d;
+    }
+    
+    .location-info {
+      background-color: #f0f7f0;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .location-status {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .location-icon {
+      margin-right: 10px;
+      font-size: 16px;
+      color: #7c895d;
+    }
+    
+    .distance-info {
+      font-weight: 500;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #ccc;
+    }
+    
+    .btn-record {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      background-color: #7c895d;
+      color: white;
+      margin-top: 10px;
+    }
+    
+    .btn-record:hover {
+      background-color: #6a7850;
+    }
+    
+    .btn-record:disabled {
+      background-color: #a8b4a0;
+      cursor: not-allowed;
+    }
+    
+    .msg {
+      margin-top: 20px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .msg.success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+      display: block;
+    }
+    
+    .msg.error {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+      display: block;
+    }
+    
+    .msg.info {
+      background-color: #e3f2fd;
+      color: #1565c0;
+      border: 1px solid #bbdefb;
+      display: block;
+    }
+    
+    /* Modal Review */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .review-item {
+      margin-bottom: 12px;
+      display: flex;
+    }
+    
+    .review-label {
+      font-weight: 500;
+      width: 100px;
+      color: #6c757d;
+    }
+    
+    .review-value {
+      flex: 1;
+      color: #333;
+    }
+    
+    .location-status-review {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .location-valid {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .location-invalid {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 25px;
+    }
+    
+    .modal-buttons button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn-cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+    
+    .btn-cancel:hover {
+      background: #e0e0e0;
+    }
+    
+    .btn-confirm {
+      background: #7c895d;
+      color: white;
+    }
+    
+    .btn-confirm:hover {
+      background: #6a7850;
+    }
+    
+    /* DW Section */
+    .dw-section {
+      margin-top: 25px;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      display: none;
+    }
+    
+    .dw-title {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 15px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .payment-buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    
+    .payment-btn {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 14px;
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 400;
+    }
+    
+    .payment-btn.active {
+      background-color: #7c895d;
+      color: white;
+      border-color: #7c895d;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      color: #6c757d;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <h2>Absensi Karyawan</h2>
   <div class="container">
-    <p id="status">Mengambil lokasi...</p>
-    <button class="btn-masuk" onclick="prepareAbsensi('Masuk')">Masuk</button>
-    <button class="btn-selesai" onclick="prepareAbsensi('Selesai')">Selesai Shift</button>
+    <div class="header">
+      <div class="logo">masa.muda</div>
+      <div class="subtitle">Sistem Absensi Digital</div>
+    </div>
+    
+    <div class="card">
+      <button class="dw-toggle" id="dwToggle">DW</button>
+      
+      <h2 class="card-title">Absensi Karyawan</h2>
+      
+      <div class="user-info">
+        <div class="user-name" id="userName">-</div>
+      </div>
+      
+      <div class="shift-buttons">
+        <button class="shift-btn" id="shiftPagi">Shift Pagi</button>
+        <button class="shift-btn" id="shiftClosing">Shift Closing</button>
+      </div>
+      
+      <div class="location-info">
+        <div class="location-status">
+          <span class="location-icon">📍</span>
+          <span id="locationStatus">Mendapatkan lokasi...</span>
+        </div>
+        <div class="distance-info" id="distanceInfo"></div>
+      </div>
+      
+      <button class="btn-record" id="btnRecord" disabled>Rekam Absen</button>
+      
+      <div class="msg" id="msg"></div>
+      
+      <div class="dw-section" id="dwSection">
+        <h3 class="dw-title">Keterangan Terima Pembayaran</h3>
+        <div class="payment-buttons">
+          <button class="payment-btn" id="paymentSudah">Sudah</button>
+          <button class="payment-btn" id="paymentBelum">Belum</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      &copy; 2023 masa.muda - All rights reserved
+    </div>
   </div>
 
-  <!-- Popup Review -->
-  <div class="popup" id="reviewPopup">
-    <div class="popup-content">
-      <h3>Review Absensi</h3>
-      <p><b>Nama:</b> <span id="reviewNama"></span></p>
-      <p><b>Shift:</b> <span id="reviewShift"></span></p>
-      <p><b>Status:</b> <span id="reviewStatus"></span></p>
-      <p><b>Waktu:</b> <span id="reviewDatetime"></span></p>
-      <p><b>Lokasi:</b> <span id="reviewLokasi"></span></p>
-      <div class="popup-buttons">
-        <button onclick="closePopup()">Batal</button>
-        <button class="btn-masuk" onclick="submitAbsensi()">Kirim</button>
+  <!-- Modal Review -->
+  <div class="modal" id="reviewModal">
+    <div class="modal-content">
+      <h3 class="modal-title">Konfirmasi Absensi</h3>
+      <div id="reviewText"></div>
+      <div id="locationStatusReview"></div>
+      <div class="modal-buttons">
+        <button class="btn-cancel" id="cancelBtn">Batal</button>
+        <button class="btn-confirm" id="confirmBtn">Rekam Absen</button>
       </div>
     </div>
   </div>
 
   <script>
-    let latitude = null, longitude = null;
-    let absensiData = {};
+    // Koordinat kantor
+    const officeLat = -6.6049869170401125;
+    const officeLon = 106.77342191765905;
+    const radiusMeters = 100;
 
-    // ambil lokasi ketika halaman dibuka
-    window.onload = function() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => {
-            latitude = pos.coords.latitude;
-            longitude = pos.coords.longitude;
-            document.getElementById("status").innerText = "Lokasi berhasil didapat ✅";
-          },
-          err => {
-            document.getElementById("status").innerText = "Gagal mengambil lokasi ❌";
-          }
-        );
-      } else {
-        document.getElementById("status").innerText = "Geolocation tidak didukung browser";
+    const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver";
+
+    // Elemen DOM
+    const msgEl = document.getElementById("msg");
+    const locationStatus = document.getElementById("locationStatus");
+    const distanceInfo = document.getElementById("distanceInfo");
+    const userName = document.getElementById("userName");
+    const btnRecord = document.getElementById("btnRecord");
+    const dwToggle = document.getElementById("dwToggle");
+    const dwSection = document.getElementById("dwSection");
+    const paymentSudah = document.getElementById("paymentSudah");
+    const paymentBelum = document.getElementById("paymentBelum");
+
+    let userLocation = null;
+    let selectedShift = "";
+    let currentDistance = 0;
+    let paymentStatus = "";
+
+    // Fungsi untuk mendapatkan parameter URL
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        id: params.get('id'),
+        username: params.get('username')
+      };
+    }
+
+    // Fungsi untuk menghitung jarak (Haversine formula)
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const toRad = x => x * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    // Fungsi untuk mendapatkan lokasi pengguna
+    function getLocation() {
+      if (!navigator.geolocation) {
+        locationStatus.textContent = "Browser tidak mendukung geolokasi.";
+        return;
       }
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          
+          // Simpan lokasi ke localStorage
+          localStorage.setItem('userLocation', JSON.stringify(userLocation));
+          
+          // Hitung jarak dari kantor
+          currentDistance = getDistance(officeLat, officeLon, userLocation.lat, userLocation.lng);
+          
+          // Update UI
+          locationStatus.textContent = `Lokasi berhasil didapatkan`;
+          distanceInfo.textContent = `Jarak dari kantor: ${Math.round(currentDistance)} meter`;
+          
+          // Periksa apakah dalam radius yang diizinkan
+          if (currentDistance <= radiusMeters) {
+            distanceInfo.style.color = '#2e7d32';
+          } else {
+            distanceInfo.style.color = '#c62828';
+          }
+          
+          // Aktifkan tombol rekam jika shift sudah dipilih
+          if (selectedShift) {
+            btnRecord.disabled = false;
+          }
+        },
+        error => {
+          console.error('Error getting location:', error);
+          locationStatus.textContent = 'Gagal mendapatkan lokasi. Pastikan izin lokasi telah diberikan.';
+          
+          // Coba gunakan lokasi yang tersimpan
+          const savedLocation = localStorage.getItem('userLocation');
+          if (savedLocation) {
+            userLocation = JSON.parse(savedLocation);
+            locationStatus.textContent = 'Menggunakan lokasi yang tersimpan.';
+            
+            // Hitung jarak dari kantor
+            currentDistance = getDistance(officeLat, officeLon, userLocation.lat, userLocation.lng);
+            
+            distanceInfo.textContent = `Jarak dari kantor: ${Math.round(currentDistance)} meter`;
+            
+            // Periksa apakah dalam radius yang diizinkan
+            if (currentDistance <= radiusMeters) {
+              distanceInfo.style.color = '#2e7d32';
+            } else {
+              distanceInfo.style.color = '#c62828';
+            }
+            
+            // Aktifkan tombol rekam jika shift sudah dipilih
+            if (selectedShift) {
+              btnRecord.disabled = false;
+            }
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 60000
+        }
+      );
+    }
+
+    // Fungsi untuk mengirim data ke webhook
+    function sendAttendance(data) {
+      showMessage("Mengirim data absensi...", "info");
+      
+      // Simpan data sementara untuk menghindari null
+      localStorage.setItem('lastAttendanceData', JSON.stringify(data));
+
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      })
+      .then(r => {
+        if(r.ok) {
+          showMessage("Absensi berhasil dikirim!", "success");
+          
+          // Simpan data yang berhasil dikirim untuk referensi
+          const sentData = JSON.parse(localStorage.getItem('sentAttendance') || '[]');
+          sentData.push(data);
+          localStorage.setItem('sentAttendance', JSON.stringify(sentData));
+        } else {
+          showMessage("Gagal mengirim absensi. Data disimpan sementara.", "error");
+          
+          // Simpan data ke localStorage untuk pengiriman ulang nanti
+          const pendingSubmissions = JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+          pendingSubmissions.push(data);
+          localStorage.setItem('pendingAttendance', JSON.stringify(pendingSubmissions));
+        }
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        showMessage("Error koneksi. Data disimpan sementara.", "error");
+        
+        // Simpan data ke localStorage untuk pengiriman ulang nanti
+        const pendingSubmissions = JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+        pendingSubmissions.push(data);
+        localStorage.setItem('pendingAttendance', JSON.stringify(pendingSubmissions));
+      });
+    }
+
+    // Fungsi untuk menampilkan pesan
+    function showMessage(message, type) {
+      msgEl.textContent = message;
+      msgEl.className = "msg " + type;
+    }
+
+    // Fungsi untuk menampilkan popup review
+    function showReview() {
+      const reviewText = document.getElementById("reviewText");
+      const locationStatusReview = document.getElementById("locationStatusReview");
+      
+      // Tentukan status lokasi
+      let locationStatusText = "";
+      let locationStatusClass = "";
+      
+      if (currentDistance <= radiusMeters) {
+        locationStatusText = "Lokasi sesuai untuk absensi";
+        locationStatusClass = "location-status-review location-valid";
+      } else {
+        locationStatusText = "Lokasi tidak sesuai untuk absensi masuk";
+        locationStatusClass = "location-status-review location-invalid";
+      }
+      
+      reviewText.innerHTML = `
+        <div class="review-item">
+          <div class="review-label">Nama:</div>
+          <div class="review-value">${userName.textContent}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Shift:</div>
+          <div class="review-value">${selectedShift}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Waktu:</div>
+          <div class="review-value">${new Date().toLocaleString()}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Jarak:</div>
+          <div class="review-value">${Math.round(currentDistance)} meter</div>
+        </div>
+        ${paymentStatus ? `
+        <div class="review-item">
+          <div class="review-label">Pembayaran:</div>
+          <div class="review-value">${paymentStatus}</div>
+        </div>
+        ` : ''}
+      `;
+      
+      locationStatusReview.innerHTML = `<div class="${locationStatusClass}">${locationStatusText}</div>`;
+      
+      document.getElementById("reviewModal").style.display = "flex";
+    }
+
+    // Fungsi untuk menangani pemilihan shift
+    function selectShift(shift) {
+      selectedShift = shift;
+      
+      // Update tampilan tombol
+      document.getElementById("shiftPagi").classList.remove("active");
+      document.getElementById("shiftClosing").classList.remove("active");
+      
+      if (shift === "Pagi") {
+        document.getElementById("shiftPagi").classList.add("active");
+      } else {
+        document.getElementById("shiftClosing").classList.add("active");
+      }
+      
+      // Aktifkan tombol rekam jika lokasi sudah didapatkan
+      if (userLocation) {
+        btnRecord.disabled = false;
+      }
+    }
+
+    // Fungsi untuk menangani pemilihan status pembayaran
+    function selectPaymentStatus(status) {
+      paymentStatus = status;
+      
+      // Update tampilan tombol
+      paymentSudah.classList.remove("active");
+      paymentBelum.classList.remove("active");
+      
+      if (status === "Sudah") {
+        paymentSudah.classList.add("active");
+      } else if (status === "Belum") {
+        paymentBelum.classList.add("active");
+      }
+    }
+
+    // Inisialisasi saat halaman dimuat
+    window.addEventListener('load', function() {
+      // Ambil parameter URL
+      const urlParams = getUrlParams();
+      
+      // Tampilkan nama pengguna
+      if (urlParams.username) {
+        userName.textContent = urlParams.username;
+      } else {
+        userName.textContent = "Tidak Dikenal";
+      }
+      
+      // Coba kirim ulang data yang tertunda
+      const pendingSubmissions = JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+      if (pendingSubmissions.length > 0) {
+        showMessage(`Mengirim ulang ${pendingSubmissions.length} absensi tertunda...`, "info");
+        
+        // Kirim ulang data tertunda satu per satu
+        pendingSubmissions.forEach((data, index) => {
+          setTimeout(() => {
+            sendAttendance(data);
+          }, index * 2000);
+        });
+        
+        // Kosongkan data tertunda setelah dikirim
+        localStorage.removeItem('pendingAttendance');
+      }
+      
+      // Mulai mendapatkan lokasi
+      getLocation();
+    });
+
+    // Event listeners untuk tombol shift
+    document.getElementById("shiftPagi").onclick = () => selectShift("Pagi");
+    document.getElementById("shiftClosing").onclick = () => selectShift("Closing");
+
+    // Event listener untuk tombol rekam
+    document.getElementById("btnRecord").onclick = () => {
+      if (!selectedShift) {
+        showMessage("Pilih shift terlebih dahulu", "error");
+        return;
+      }
+
+      if (!userLocation) {
+        showMessage("Lokasi tidak tersedia", "error");
+        return;
+      }
+
+      // Tampilkan popup review
+      showReview();
     };
 
-function prepareAbsensi(status) {
-  const now = new Date();
+    // Event listeners untuk tombol di popup
+    document.getElementById("cancelBtn").onclick = () => {
+      document.getElementById("reviewModal").style.display = "none";
+    };
 
-  // Format ke WIB (Asia/Jakarta)
-  const options = {
-    timeZone: "Asia/Jakarta",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  };
-  const datetimeWIB = new Intl.DateTimeFormat("id-ID", options).format(now);
+    document.getElementById("confirmBtn").onclick = () => {
+      // Buat objek data absensi sesuai format yang diminta
+      const data = {
+        nama: userName.textContent,
+        shift: selectedShift,
+        tipe: "selesai", // Default, bisa disesuaikan dengan logika bisnis
+        datetime: new Date().toISOString(),
+        lokasi: {
+          latitude: userLocation.lat,
+          longitude: userLocation.lng
+        }
+      };
 
-  absensiData = {
-    nama: "Crew1", // bisa auto dari Telegram username di n8n
-    shift: "Pagi",
-    tipe: status,
-    datetime: datetimeWIB, // kirim WIB
-    latitude: latitude,
-    longitude: longitude
-  };
+      // Kirim data
+      sendAttendance(data);
+      document.getElementById("reviewModal").style.display = "none";
+    };
 
-  // tampilkan di popup
-  document.getElementById("reviewNama").innerText = absensiData.nama;
-  document.getElementById("reviewShift").innerText = absensiData.shift;
-  document.getElementById("reviewStatus").innerText = absensiData.tipe;
-  document.getElementById("reviewDatetime").innerText = absensiData.datetime + " WIB";
-  document.getElementById("reviewLokasi").innerText = latitude + ", " + longitude;
+    // Event listener untuk toggle DW
+    dwToggle.addEventListener('click', () => {
+      if (dwSection.style.display === 'block') {
+        dwSection.style.display = 'none';
+      } else {
+        dwSection.style.display = 'block';
+      }
+    });
 
-  document.getElementById("reviewPopup").style.display = "flex";
-}
+    // Event listeners untuk tombol pembayaran
+    paymentSudah.addEventListener('click', () => selectPaymentStatus("Sudah"));
+    paymentBelum.addEventListener('click', () => selectPaymentStatus("Belum"));
   </script>
 </body>
 </html>
