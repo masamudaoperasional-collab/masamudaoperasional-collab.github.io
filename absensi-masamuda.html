@@ -731,10 +731,10 @@
         shift: selectedShift,
         tipe: "selesai", // Default, bisa disesuaikan dengan logika bisnis
         datetime: new Date().toISOString(),
+        keterangan: distanceInfo,
         lokasi: {
           latitude: userLocation.lat,
           longitude: userLocation.lng
-        keterangan: distanceInfo.textContent = `Jarak dari masa.muda: ${Math.round(currentDistance)} meter`;
         },
         pembayaran: paymentStatus || "-x-"
       };
