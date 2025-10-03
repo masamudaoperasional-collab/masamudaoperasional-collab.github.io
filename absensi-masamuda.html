@@ -618,7 +618,7 @@
         </div>
         <div class="review-item">
           <div class="review-label">Pembayaran:</div>
-          <div class="review-value">${paymentStatus || "Belum dipilih"}</div>
+          <div class="review-value">${paymentStatus || "-x-"}</div>
         </div>
       `;
       
@@ -734,8 +734,9 @@
         lokasi: {
           latitude: userLocation.lat,
           longitude: userLocation.lng
+        keterangan: distanceInfo.textContent = `Jarak dari masa.muda: ${Math.round(currentDistance)} meter`;
         },
-        pembayaran: paymentStatus || "Belum dipilih"
+        pembayaran: paymentStatus || "-x-"
       };
 
       // Kirim data
