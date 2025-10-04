@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pengeluaran - MasaMuda Coffee</title>
+    <title>Sistem Pengeluaran - Coffee Shop</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -1515,240 +1515,320 @@
         });
 
         // Load Data from Webhooks - VERSI DIPERBAIKI
+        // Ganti function loadBankData dengan yang ini
         async function loadBankData() {
-        const bankList = document.getElementById('bankList');
-        bankList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data transaksi bank...</p></div>';
-        
-        try {
-            logDebug("Memulai pengambilan data bank...");
+            const bankList = document.getElementById('bankList');
+            bankList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data transaksi bank...</p></div>';
             
-            const response = await fetch(WEBHOOK_URLS.bankTransactions, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                mode: 'cors'
-            });
-            
-            logDebug(`Status response bank: ${response.status}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const responseText = await response.text();
-            logDebug(`Response raw dari bank: ${responseText}`);
-            
-            let transactionsData = JSON.parse(responseText);
-            
-            // FIX: Handle both array and object responses
-            let transactionsArray = [];
-            
-            if (Array.isArray(transactionsData)) {
-                transactionsArray = transactionsData;
-            } else if (typeof transactionsData === 'object' && transactionsData !== null) {
-                transactionsArray = [transactionsData];
-            }
-            
-            logDebug(`Processed transactions: ${JSON.stringify(transactionsArray)}`);
-            
-            // Store in global state
-            currentState.bankTransactions = transactionsArray;
-            
-            if (!transactionsArray || transactionsArray.length === 0) {
-                bankList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada transaksi bank</p></div>';
-                return;
-            }
-            
-            // Urutkan berdasarkan tanggal terbaru
-            transactionsArray.sort((a, b) => {
-                const dateA = new Date(a.tanggal || a.transaction_date || a.date || 0);
-                const dateB = new Date(b.tanggal || b.transaction_date || b.date || 0);
-                return dateB - dateA;
-            });
-            
-            bankList.innerHTML = transactionsArray.map((transaction, index) => {
-                // Clean up the data
-                const cleanTransaction = {};
-                Object.keys(transaction).forEach(key => {
-                    let value = transaction[key];
-                    if (typeof value === 'string') {
-                        value = value.replace(/,$/, '').trim();
-                        value = value.replace(/""/g, '"');
-                    }
-                    cleanTransaction[key] = value;
+            try {
+                logDebug("Memulai pengambilan data bank...");
+                
+                const response = await fetch(WEBHOOK_URLS.bankTransactions, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
                 });
-    
-                // Use correct property names
-                const nominal = parseCurrency(cleanTransaction.bombial_longfer || cleanTransaction.nominal_transfer || '0');
-                const bankInfo = cleanTransaction.bank_dan_rekening || 'Bank tidak tersedia';
-                const referensi = cleanTransaction.no_referensi || 'Tidak ada referensi';
-                const penerima = cleanTransaction.tujuan_transass || cleanTransaction.penerima || 'Tidak ada nama';
-                const tanggal = cleanTransaction.tanggal || cleanTransaction.transaction_date || 'Tanggal tidak tersedia';
                 
-                // Format tanggal untuk display
-                const displayDate = formatDateForDisplay(tanggal);
+                logDebug(`Status response bank: ${response.status}`);
                 
-                return `
-                    <div class="data-card" data-bank-index="${index}" data-transaction-date="${tanggal}" onclick="selectBankTransaction(${index})">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                            <div>
-                                <strong>Rp ${nominal.toLocaleString('id-ID')}</strong>
-                                <div style="font-size: 14px; color: #6b7280;">${penerima}</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="status-badge status-pending">Pending</span>
-                                <div style="font-size: 14px; color: #6b7280;">${displayDate}</div>
-                            </div>
-                        </div>
-                        <div style="font-size: 14px; color: #6b7280;">
-                            ${bankInfo} • Ref: ${referensi}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // Update filter options
-            updateBankDateFilter(transactionsArray);
-            
-        } catch (error) {
-            console.error('Error loading bank data:', error);
-            logDebug(`Error loading bank data: ${error}`);
-            bankList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data transaksi bank</p></div>';
-        }
-    }
-
-        async function loadPOData() {
-        const poList = document.getElementById('poList');
-        poList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data PO...</p></div>';
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const responseText = await response.text();
+                logDebug(`Response raw dari bank: ${responseText}`);
+                
+                let transactionsData;
+                try {
+                    transactionsData = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Error parsing JSON:', parseError);
+                    // Coba bersihkan response jika ada karakter tidak valid
+                    const cleanedResponse = responseText.replace(/[^\x20-\x7E\n\r]/g, '');
+                    transactionsData = JSON.parse(cleanedResponse);
+                }
+                
+                logDebug(`Parsed transactions data:`, transactionsData);
+                logDebug(`Type of transactions data: ${typeof transactionsData}`);
+                
+                // FIX: Handle berbagai format response
+                let transactionsArray = [];
+                
+                if (Array.isArray(transactionsData)) {
+                    // Case 1: Response adalah array langsung
+                    transactionsArray = transactionsData;
+                    logDebug(`Response adalah array dengan ${transactionsArray.length} items`);
+                } else if (typeof transactionsData === 'object' && transactionsData !== null) {
+                    // Case 2: Response adalah object
+                    if (transactionsData.data && Array.isArray(transactionsData.data)) {
+                        // Case 2a: Object dengan property data yang berisi array
+                        transactionsArray = transactionsData.data;
+                        logDebug(`Response adalah object dengan data array (${transactionsArray.length} items)`);
+                    } else if (transactionsData.transactions && Array.isArray(transactionsData.transactions)) {
+                        // Case 2b: Object dengan property transactions yang berisi array
+                        transactionsArray = transactionsData.transactions;
+                        logDebug(`Response adalah object dengan transactions array (${transactionsArray.length} items)`);
+                    } else if (transactionsData.records && Array.isArray(transactionsData.records)) {
+                        // Case 2c: Object dengan property records yang berisi array
+                        transactionsArray = transactionsData.records;
+                        logDebug(`Response adalah object dengan records array (${transactionsArray.length} items)`);
+                    } else {
+                        // Case 2d: Object tunggal, jadikan array
+                        transactionsArray = [transactionsData];
+                        logDebug(`Response adalah object tunggal, diubah menjadi array dengan 1 item`);
+                    }
+                } else {
+                    // Case 3: Format tidak dikenali
+                    logDebug(`Format response tidak dikenali: ${typeof transactionsData}`);
+                    transactionsArray = [];
+                }
+                
+                logDebug(`Final transactions array:`, transactionsArray);
+                logDebug(`Total transactions: ${transactionsArray.length}`);
+                
+                // Store in global state
+                currentState.bankTransactions = transactionsArray;
+                
+                if (!transactionsArray || transactionsArray.length === 0) {
+                    bankList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada transaksi bank</p></div>';
+                    return;
+                }
+                
+                // Urutkan berdasarkan tanggal terbaru
+                transactionsArray.sort((a, b) => {
+                    const dateA = new Date(a.tanggal || a.transaction_date || a.date || 0);
+                    const dateB = new Date(b.tanggal || b.transaction_date || b.date || 0);
+                    return dateB - dateA;
+                });
+                
+                bankList.innerHTML = transactionsArray.map((transaction, index) => {
+                    // Clean up the data
+                    const cleanTransaction = {};
+                    Object.keys(transaction).forEach(key => {
+                        let value = transaction[key];
+                        if (typeof value === 'string') {
+                            value = value.replace(/,$/, '').trim();
+                            value = value.replace(/""/g, '"');
+                        }
+                        cleanTransaction[key] = value;
+                    });
         
-        try {
-            logDebug("Memulai pengambilan data PO...");
-            
-            const response = await fetch(WEBHOOK_URLS.purchaseOrders, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                mode: 'cors'
-            });
-            
-            logDebug(`Status response PO: ${response.status}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const responseText = await response.text();
-            logDebug(`Response raw dari PO: ${responseText}`);
-            
-            const purchaseOrdersData = JSON.parse(responseText);
-            
-            // FIX: Handle both array and object responses
-            let purchaseOrdersArray = [];
-            
-            if (Array.isArray(purchaseOrdersData)) {
-                purchaseOrdersArray = purchaseOrdersData;
-            } else if (typeof purchaseOrdersData === 'object' && purchaseOrdersData !== null) {
-                purchaseOrdersArray = [purchaseOrdersData];
-            }
-            
-            logDebug(`Processed POs: ${JSON.stringify(purchaseOrdersArray)}`);
-            
-            if (!purchaseOrdersArray || purchaseOrdersArray.length === 0) {
-                poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada data PO</p></div>';
-                return;
-            }
-            
-            // Urutkan berdasarkan tanggal terbaru
-            purchaseOrdersArray.sort((a, b) => {
-                const dateA = new Date(a.purchaseDate || a.created_date || a.date || 0);
-                const dateB = new Date(b.purchaseDate || b.created_date || b.date || 0);
-                return dateB - dateA;
-            });
-            
-            // TAMPILKAN SEMUA DATA PO
-            poList.innerHTML = purchaseOrdersArray.map(po => {
-                const totalAmount = getTotalAmount(po);
-                const paidAmount = po.paidAmount || 0;
-                const status = getPaymentStatus(po);
-                const items = parseItems(po.items);
-                
-                // Handle potential missing properties
-                const poNumber = po.poNumber || po.no_po || 'No PO';
-                const supplier = po.supplier || po.nama_supplier || 'Supplier tidak tersedia';
-                const purchaseType = po.purchaseType || po.type || 'offline';
-                const purchaseDate = po.purchaseDate || po.created_date || po.date || 'Tanggal tidak tersedia';
-                const itemCount = items ? items.length : 0;
-                
-                // Format tanggal untuk display
-                const displayDate = formatDateForDisplay(purchaseDate);
-                
-                // Tampilkan ringkasan item
-                const itemsSummary = items.slice(0, 3).map(item => 
-                    `${item.name || item.item_name || 'Item'}: ${item.quantity || 0} x Rp ${(item.price || 0).toLocaleString('id-ID')}`
-                ).join('; ');
-                
-                const remainingItems = items.length > 3 ? `... dan ${items.length - 3} item lainnya` : '';
-                
-                return `
-                    <div class="data-card" data-po-number="${poNumber}" data-purchase-date="${purchaseDate}" onclick="selectPO('${poNumber}')">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                            <div>
-                                <strong>${poNumber}</strong>
-                                <div style="font-size: 14px; color: #6b7280;">
-                                    ${supplier} • ${purchaseType === 'offline' ? 'Offline' : 'Purchase Order'}
+                    // Use correct property names
+                    const nominal = parseCurrency(cleanTransaction.bombial_longfer || cleanTransaction.nominal_transfer || '0');
+                    const bankInfo = cleanTransaction.bank_dan_rekening || 'Bank tidak tersedia';
+                    const referensi = cleanTransaction.no_referensi || 'Tidak ada referensi';
+                    const penerima = cleanTransaction.tujuan_transass || cleanTransaction.penerima || 'Tidak ada nama';
+                    const tanggal = cleanTransaction.tanggal || cleanTransaction.transaction_date || 'Tanggal tidak tersedia';
+                    
+                    // Format tanggal untuk display
+                    const displayDate = formatDateForDisplay(tanggal);
+                    
+                    return `
+                        <div class="data-card" data-bank-index="${index}" data-transaction-date="${tanggal}" onclick="selectBankTransaction(${index})">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <strong>Rp ${nominal.toLocaleString('id-ID')}</strong>
+                                    <div style="font-size: 14px; color: #6b7280;">${penerima}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="status-badge status-pending">Pending</span>
+                                    <div style="font-size: 14px; color: #6b7280;">${displayDate}</div>
                                 </div>
                             </div>
-                            <div style="text-align: right;">
-                                <span class="status-badge ${status === 'paid' ? 'status-paid' : status === 'partial' ? 'status-partial' : 'status-unpaid'}">
-                                    ${status === 'paid' ? 'Paid' : status === 'partial' ? 'Partial Paid' : 'Unpaid'}
-                                </span>
-                                <div style="font-size: 14px; color: #6b7280;">${displayDate}</div>
+                            <div style="font-size: 14px; color: #6b7280;">
+                                ${bankInfo} • Ref: ${referensi}
                             </div>
                         </div>
-                        
-                        <!-- Tampilkan Ringkasan Item -->
-                        ${items.length > 0 ? `
-                        <div style="margin: 8px 0; padding: 8px; background: #f8fafc; border-radius: 4px;">
-                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">
-                                <strong>Item:</strong>
-                            </div>
-                            <div style="font-size: 12px; color: #4b5563;">
-                                ${itemsSummary} ${remainingItems}
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        <div style="font-size: 14px; color: #6b7280;">
-                            ${itemCount} item • Total: Rp ${totalAmount.toLocaleString('id-ID')} • Paid: Rp ${paidAmount.toLocaleString('id-ID')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // Store POs in state with calculated totals
-            currentState.purchaseOrders = purchaseOrdersArray.map(po => ({
-                ...po,
-                totalAmount: getTotalAmount(po),
-                items: parseItems(po.items),
-                purchaseType: po.purchaseType || po.type || 'offline'
-            }));
-            
-            // Update filter options
-            updatePODateFilter(purchaseOrdersArray);
-            
-            logDebug(`Berhasil memuat ${purchaseOrdersArray.length} purchase orders`);
-            
-        } catch (error) {
-            console.error('Error loading PO data:', error);
-            logDebug(`Error loading PO data: ${error}`);
-            poList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data PO</p></div>';
-            showNotification('Gagal memuat data PO: ' + error.message, 'error');
+                    `;
+                }).join('');
+                
+                // Update filter options
+                updateBankDateFilter(transactionsArray);
+                
+                showNotification(`Berhasil memuat ${transactionsArray.length} transaksi bank`, 'success');
+                
+            } catch (error) {
+                console.error('Error loading bank data:', error);
+                logDebug(`Error loading bank data: ${error}`);
+                bankList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data transaksi bank</p></div>';
+                showNotification('Gagal memuat data transaksi bank: ' + error.message, 'error');
+            }
         }
-    }
+        
+        // Ganti function loadPOData dengan yang ini
+        async function loadPOData() {
+            const poList = document.getElementById('poList');
+            poList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data PO...</p></div>';
+            
+            try {
+                logDebug("Memulai pengambilan data PO...");
+                
+                const response = await fetch(WEBHOOK_URLS.purchaseOrders, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
+                });
+                
+                logDebug(`Status response PO: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const responseText = await response.text();
+                logDebug(`Response raw dari PO: ${responseText}`);
+                
+                let purchaseOrdersData;
+                try {
+                    purchaseOrdersData = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Error parsing JSON:', parseError);
+                    // Coba bersihkan response jika ada karakter tidak valid
+                    const cleanedResponse = responseText.replace(/[^\x20-\x7E\n\r]/g, '');
+                    purchaseOrdersData = JSON.parse(cleanedResponse);
+                }
+                
+                logDebug(`Parsed PO data:`, purchaseOrdersData);
+                logDebug(`Type of PO data: ${typeof purchaseOrdersData}`);
+                
+                // FIX: Handle berbagai format response
+                let purchaseOrdersArray = [];
+                
+                if (Array.isArray(purchaseOrdersData)) {
+                    // Case 1: Response adalah array langsung
+                    purchaseOrdersArray = purchaseOrdersData;
+                    logDebug(`Response adalah array dengan ${purchaseOrdersArray.length} items`);
+                } else if (typeof purchaseOrdersData === 'object' && purchaseOrdersData !== null) {
+                    // Case 2: Response adalah object
+                    if (purchaseOrdersData.data && Array.isArray(purchaseOrdersData.data)) {
+                        // Case 2a: Object dengan property data yang berisi array
+                        purchaseOrdersArray = purchaseOrdersData.data;
+                        logDebug(`Response adalah object dengan data array (${purchaseOrdersArray.length} items)`);
+                    } else if (purchaseOrdersData.purchaseOrders && Array.isArray(purchaseOrdersData.purchaseOrders)) {
+                        // Case 2b: Object dengan property purchaseOrders yang berisi array
+                        purchaseOrdersArray = purchaseOrdersData.purchaseOrders;
+                        logDebug(`Response adalah object dengan purchaseOrders array (${purchaseOrdersArray.length} items)`);
+                    } else if (purchaseOrdersData.records && Array.isArray(purchaseOrdersData.records)) {
+                        // Case 2c: Object dengan property records yang berisi array
+                        purchaseOrdersArray = purchaseOrdersData.records;
+                        logDebug(`Response adalah object dengan records array (${purchaseOrdersArray.length} items)`);
+                    } else if (purchaseOrdersData.items && Array.isArray(purchaseOrdersData.items)) {
+                        // Case 2d: Object dengan property items yang berisi array
+                        purchaseOrdersArray = purchaseOrdersData.items;
+                        logDebug(`Response adalah object dengan items array (${purchaseOrdersArray.length} items)`);
+                    } else {
+                        // Case 2e: Object tunggal, jadikan array
+                        purchaseOrdersArray = [purchaseOrdersData];
+                        logDebug(`Response adalah object tunggal, diubah menjadi array dengan 1 item`);
+                    }
+                } else {
+                    // Case 3: Format tidak dikenali
+                    logDebug(`Format response tidak dikenali: ${typeof purchaseOrdersData}`);
+                    purchaseOrdersArray = [];
+                }
+                
+                logDebug(`Final PO array:`, purchaseOrdersArray);
+                logDebug(`Total POs: ${purchaseOrdersArray.length}`);
+                
+                if (!purchaseOrdersArray || purchaseOrdersArray.length === 0) {
+                    poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada data PO</p></div>';
+                    return;
+                }
+                
+                // Urutkan berdasarkan tanggal terbaru
+                purchaseOrdersArray.sort((a, b) => {
+                    const dateA = new Date(a.purchaseDate || a.created_date || a.date || 0);
+                    const dateB = new Date(b.purchaseDate || b.created_date || b.date || 0);
+                    return dateB - dateA;
+                });
+                
+                // TAMPILKAN SEMUA DATA PO
+                poList.innerHTML = purchaseOrdersArray.map(po => {
+                    const totalAmount = getTotalAmount(po);
+                    const paidAmount = po.paidAmount || 0;
+                    const status = getPaymentStatus(po);
+                    const items = parseItems(po.items);
+                    
+                    // Handle potential missing properties
+                    const poNumber = po.poNumber || po.no_po || 'No PO';
+                    const supplier = po.supplier || po.nama_supplier || 'Supplier tidak tersedia';
+                    const purchaseType = po.purchaseType || po.type || 'offline';
+                    const purchaseDate = po.purchaseDate || po.created_date || po.date || 'Tanggal tidak tersedia';
+                    const itemCount = items ? items.length : 0;
+                    
+                    // Format tanggal untuk display
+                    const displayDate = formatDateForDisplay(purchaseDate);
+                    
+                    // Tampilkan ringkasan item
+                    const itemsSummary = items.slice(0, 3).map(item => 
+                        `${item.name || item.item_name || 'Item'}: ${item.quantity || 0} x Rp ${(item.price || 0).toLocaleString('id-ID')}`
+                    ).join('; ');
+                    
+                    const remainingItems = items.length > 3 ? `... dan ${items.length - 3} item lainnya` : '';
+                    
+                    return `
+                        <div class="data-card" data-po-number="${poNumber}" data-purchase-date="${purchaseDate}" onclick="selectPO('${poNumber}')">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <strong>${poNumber}</strong>
+                                    <div style="font-size: 14px; color: #6b7280;">
+                                        ${supplier} • ${purchaseType === 'offline' ? 'Offline' : 'Purchase Order'}
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="status-badge ${status === 'paid' ? 'status-paid' : status === 'partial' ? 'status-partial' : 'status-unpaid'}">
+                                        ${status === 'paid' ? 'Paid' : status === 'partial' ? 'Partial Paid' : 'Unpaid'}
+                                    </span>
+                                    <div style="font-size: 14px; color: #6b7280;">${displayDate}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tampilkan Ringkasan Item -->
+                            ${items.length > 0 ? `
+                            <div style="margin: 8px 0; padding: 8px; background: #f8fafc; border-radius: 4px;">
+                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">
+                                    <strong>Item:</strong>
+                                </div>
+                                <div style="font-size: 12px; color: #4b5563;">
+                                    ${itemsSummary} ${remainingItems}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <div style="font-size: 14px; color: #6b7280;">
+                                ${itemCount} item • Total: Rp ${totalAmount.toLocaleString('id-ID')} • Paid: Rp ${paidAmount.toLocaleString('id-ID')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Store POs in state with calculated totals
+                currentState.purchaseOrders = purchaseOrdersArray.map(po => ({
+                    ...po,
+                    totalAmount: getTotalAmount(po),
+                    items: parseItems(po.items),
+                    purchaseType: po.purchaseType || po.type || 'offline'
+                }));
+                
+                // Update filter options
+                updatePODateFilter(purchaseOrdersArray);
+                
+                logDebug(`Berhasil memuat ${purchaseOrdersArray.length} purchase orders`);
+                showNotification(`Berhasil memuat ${purchaseOrdersArray.length} purchase orders`, 'success');
+                
+            } catch (error) {
+                console.error('Error loading PO data:', error);
+                logDebug(`Error loading PO data: ${error}`);
+                poList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data PO</p></div>';
+                showNotification('Gagal memuat data PO: ' + error.message, 'error');
+            }
+        }
 
         // Load History Data from Webhook - FUNGSI BARU
         async function loadHistoryData() {
@@ -2590,6 +2670,26 @@ function updateBankDateFilter(transactions) {
                 }
             });
         }
+        
+        // Function untuk inspect struktur data
+        function inspectDataStructure(data, name = 'Data') {
+            console.group(`🔍 Inspecting ${name}`);
+            console.log('Type:', typeof data);
+            console.log('Is Array:', Array.isArray(data));
+            console.log('Keys:', data ? Object.keys(data) : 'null');
+            console.log('Full data:', data);
+            console.groupEnd();
+        }
+        
+        // Perbaiki function logDebug untuk handle object
+        function logDebug(message, data = null) {
+            const timestamp = new Date().toISOString();
+            if (data !== null) {
+                console.log(`[DEBUG] ${timestamp}: ${message}`, data);
+            } else {
+                console.log(`[DEBUG] ${timestamp}: ${message}`);
+            }
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -2602,10 +2702,13 @@ function updateBankDateFilter(transactions) {
                 showNotification('Selamat datang! Silakan gunakan form pengeluaran.', 'info');
             }
             
-            loadBankData();
-            loadPOData();
-            setupManualInputHandlers();
-            updateMatchingSummary();
+            // Load data dengan timeout untuk memastikan DOM siap
+            setTimeout(() => {
+                loadBankData();
+                loadPOData();
+                setupManualInputHandlers();
+                updateMatchingSummary();
+            }, 100);
             
             // Debug: Log ketika DOM siap
             logDebug('DOM fully loaded and parsed');
@@ -2613,9 +2716,32 @@ function updateBankDateFilter(transactions) {
             // Test event listeners
             document.addEventListener('click', function(e) {
                 if (e.target.closest('.data-card')) {
-                    logDebug('Data card clicked:', e.target.closest('.data-card'));
+                    const card = e.target.closest('.data-card');
+                    logDebug('Data card clicked:', {
+                        text: card.textContent,
+                        dataset: card.dataset
+                    });
                 }
             });
+            
+            // Tambahkan button debug manual
+            const debugButton = document.createElement('button');
+            debugButton.innerHTML = '<i class="fas fa-bug"></i> Debug Data';
+            debugButton.style.position = 'fixed';
+            debugButton.style.bottom = '20px';
+            debugButton.style.right = '20px';
+            debugButton.style.zIndex = '1000';
+            debugButton.className = 'btn back-btn';
+            debugButton.onclick = function() {
+                console.group('🔍 DEBUG CURRENT STATE');
+                console.log('Bank Transactions:', currentState.bankTransactions);
+                console.log('Purchase Orders:', currentState.purchaseOrders);
+                console.log('Selected Bank:', currentState.selectedBankTransaction);
+                console.log('Selected PO:', currentState.selectedPO);
+                console.groupEnd();
+                showNotification('Data state telah di-log ke console', 'info');
+            };
+            document.body.appendChild(debugButton);
         });
     </script>
 </body>
