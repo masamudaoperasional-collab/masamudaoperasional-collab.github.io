@@ -1365,20 +1365,32 @@
             return parseFloat(numericString) || 0;
         }
 
+               // Helper functions untuk parsing data - VERSI DIPERBAIKI
         function parseItems(itemsString) {
             if (!itemsString) return [];
             if (Array.isArray(itemsString)) return itemsString;
+            if (typeof itemsString === 'object') return [itemsString];
+            
             if (typeof itemsString === 'string') {
                 try {
-                    // Handle different string formats
-                    if (itemsString.startsWith('[') && itemsString.endsWith(']')) {
-                        return JSON.parse(itemsString);
-                    } else {
-                        // Try to parse as single item
-                        return [JSON.parse(itemsString)];
+                    // Bersihkan string JSON jika perlu
+                    let cleanedString = itemsString.trim();
+                    
+                    // Handle kasus dimana string sudah valid JSON array
+                    if (cleanedString.startsWith('[') && cleanedString.endsWith(']')) {
+                        return JSON.parse(cleanedString);
+                    }
+                    // Handle kasus dimana string adalah JSON object tunggal
+                    else if (cleanedString.startsWith('{') && cleanedString.endsWith('}')) {
+                        return [JSON.parse(cleanedString)];
+                    }
+                    // Fallback: coba parse langsung
+                    else {
+                        return JSON.parse(cleanedString);
                     }
                 } catch (e) {
                     console.warn('Error parsing items:', e);
+                    console.warn('Raw items string:', itemsString);
                     return [];
                 }
             }
@@ -1832,6 +1844,7 @@
         
         
         // Load History Data from Webhook - FUNGSI BARU
+        // Fungsi yang diperbaiki untuk load history data
         async function loadHistoryData() {
             const tableBody = document.getElementById('reviewTableBody');
             const mobileView = document.getElementById('reviewMobileView');
@@ -1862,60 +1875,34 @@
                 
                 let historyData;
                 try {
-                    // Clean response sebelum parsing
-                    const cleanedResponse = responseText
-                        .replace(/,\s*}/g, '}')
-                        .replace(/,\s*]/g, ']')
-                        .replace(/\r?\n|\r/g, '')
-                        .trim();
-                    
-                    historyData = JSON.parse(cleanedResponse);
+                    historyData = JSON.parse(responseText);
+                    logDebug("Data history berhasil di-parse");
                 } catch (parseError) {
                     console.error('Error parsing history JSON:', parseError);
                     throw new Error(`Gagal parsing response history: ${parseError.message}`);
                 }
                 
                 logDebug(`Parsed history data:`, historyData);
-                logDebug(`Type of history data: ${typeof historyData}`);
                 
-                // FIX: Extract array dari berbagai format response
+                // PERBAIKAN: Handle format data dari webhook history
                 let historyArray = [];
                 
                 if (Array.isArray(historyData)) {
-                    // Case 1: Response adalah array langsung
+                    // Format: Array langsung
                     historyArray = historyData;
                     logDebug(`History response adalah array dengan ${historyArray.length} items`);
-                } else if (typeof historyData === 'object' && historyData !== null) {
-                    // Case 2: Response adalah object
-                    if (historyData.data && Array.isArray(historyData.data)) {
-                        // Case 2a: Object dengan property data yang berisi array
+                } else if (historyData && typeof historyData === 'object') {
+                    // Format: Object dengan property tertentu
+                    if (Array.isArray(historyData.data)) {
                         historyArray = historyData.data;
-                        logDebug(`History response adalah object dengan data array (${historyArray.length} items)`);
-                    } else if (historyData.records && Array.isArray(historyData.records)) {
-                        // Case 2b: Object dengan property records yang berisi array
+                    } else if (Array.isArray(historyData.records)) {
                         historyArray = historyData.records;
-                        logDebug(`History response adalah object dengan records array (${historyArray.length} items)`);
-                    } else if (historyData.items && Array.isArray(historyData.items)) {
-                        // Case 2c: Object dengan property items yang berisi array
+                    } else if (Array.isArray(historyData.items)) {
                         historyArray = historyData.items;
-                        logDebug(`History response adalah object dengan items array (${historyArray.length} items)`);
-                    } else if (historyData.history && Array.isArray(historyData.history)) {
-                        // Case 2d: Object dengan property history yang berisi array
-                        historyArray = historyData.history;
-                        logDebug(`History response adalah object dengan history array (${historyArray.length} items)`);
-                    } else if (historyData.transactions && Array.isArray(historyData.transactions)) {
-                        // Case 2e: Object dengan property transactions yang berisi array
-                        historyArray = historyData.transactions;
-                        logDebug(`History response adalah object dengan transactions array (${historyArray.length} items)`);
                     } else {
-                        // Case 2f: Object tunggal, jadikan array
+                        // Jika object tunggal, jadikan array
                         historyArray = [historyData];
-                        logDebug(`History response adalah object tunggal, diubah menjadi array dengan 1 item`);
                     }
-                } else {
-                    // Case 3: Format tidak dikenali
-                    logDebug(`Format history response tidak dikenali: ${typeof historyData}`);
-                    historyArray = [];
                 }
                 
                 logDebug(`Final history array:`, historyArray);
@@ -1928,60 +1915,37 @@
                     return;
                 }
                 
-                // Urutkan berdasarkan tanggal terbaru
+                // PERBAIKAN: Urutkan berdasarkan tanggal terbaru dengan property yang benar
                 historyArray.sort((a, b) => {
-                    const dateA = new Date(a.timestamp || a.submittedAt || a.date || a.createdAt || 0);
-                    const dateB = new Date(b.timestamp || b.submittedAt || b.date || b.createdAt || 0);
+                    const dateA = new Date(a.timestamp || a.date || 0);
+                    const dateB = new Date(b.timestamp || b.date || 0);
                     return dateB - dateA;
                 });
                 
-                // Update table view dengan data dari server
+                // PERBAIKAN: Render table dengan format data yang sesuai dari webhook
                 tableBody.innerHTML = historyArray.map(record => {
-                    const date = new Date(record.timestamp || record.submittedAt || record.date || record.createdAt).toLocaleDateString('id-ID');
-                    let amount = 0;
-                    let from = '';
-                    let to = '';
-                    let type = '';
+                    // PERBAIKAN: Gunakan property yang sesuai dengan output webhook
+                    const date = new Date(record.timestamp || record.date).toLocaleDateString('id-ID');
+                    const amount = parseCurrency(record.nominal_transfer || record.amount || 0);
                     
-                    // FIX: Handle berbagai format data history
-                    if (record.transaction && record.transaction.type === 'bank') {
-                        const data = record.transaction.data;
-                        // Clean up the data
-                        const cleanData = {};
-                        if (data && typeof data === 'object') {
-                            Object.keys(data).forEach(key => {
-                                let value = data[key];
-                                if (typeof value === 'string') {
-                                    value = value.replace(/,$/, '').trim();
-                                }
-                                cleanData[key] = value;
-                            });
-                        }
-                        amount = parseCurrency(cleanData.nominal_transfer || cleanData.amount || record.amount || 0);
-                        from = `Bank: ${cleanData.bank_dan_rekening || data?.bank_account || 'Tidak tersedia'}`;
+                    // PERBAIKAN: Tentukan jenis transaksi berdasarkan data yang ada
+                    let type = 'Unknown';
+                    if (record.trx_type === 'bank') {
                         type = 'Bank Matching';
-                    } else if (record.transaction && record.transaction.type === 'manual') {
-                        amount = record.transaction.data?.amount || record.amount || 0;
-                        from = `Manual: ${record.transaction.data?.method || 'Tidak tersedia'}`;
+                    } else if (record.trx_type === 'manual') {
                         type = 'Manual Input';
-                    } else {
-                        // Fallback untuk format data yang berbeda
-                        amount = parseCurrency(record.amount || record.total || record.nominal || 0);
-                        from = record.from || record.source || record.bank || 'Tidak tersedia';
-                        type = record.type || record.jenis || 'Unknown';
                     }
                     
-                    // FIX: Handle berbagai format expense data
-                    if (record.expense && record.expense.type === 'po') {
-                        to = `PO: ${record.expense.data?.poNumber || record.expense.data?.no_po || 'Tidak tersedia'}`;
-                    } else if (record.expense && record.expense.type === 'manual') {
-                        to = `Manual: ${record.expense.data?.categoryText || record.expense.data?.category || 'Tidak tersedia'}`;
-                    } else {
-                        // Fallback untuk format data yang berbeda
-                        to = record.to || record.destination || record.purpose || 'Tidak tersedia';
-                    }
+                    // PERBAIKAN: Format data "Dari" dan "Untuk" sesuai output webhook
+                    const from = record.trx_type === 'bank' 
+                        ? `Bank: ${record.bank_dan_rekening || 'Tidak tersedia'}` 
+                        : `Manual: ${record.payment_method || 'Tidak tersedia'}`;
                     
-                    const recordId = record.id || record._id || record.matchId || 'N/A';
+                    const to = record.po_type === 'purchase_order' 
+                        ? `PO: ${record.po_number || 'Tidak tersedia'}`
+                        : `Manual: ${record.tujuan_transaksi || 'Tidak tersedia'}`;
+                    
+                    const recordId = record.id || 'N/A';
                     
                     return `
                         <tr>
@@ -2000,53 +1964,27 @@
                     `;
                 }).join('');
                 
-                // Update mobile view
+                // PERBAIKAN: Update mobile view dengan format yang sama
                 mobileView.innerHTML = historyArray.map(record => {
-                    const date = new Date(record.timestamp || record.submittedAt || record.date || record.createdAt).toLocaleDateString('id-ID');
-                    let amount = 0;
-                    let from = '';
-                    let to = '';
-                    let type = '';
+                    const date = new Date(record.timestamp || record.date).toLocaleDateString('id-ID');
+                    const amount = parseCurrency(record.nominal_transfer || record.amount || 0);
                     
-                    // FIX: Handle berbagai format data history
-                    if (record.transaction && record.transaction.type === 'bank') {
-                        const data = record.transaction.data;
-                        // Clean up the data
-                        const cleanData = {};
-                        if (data && typeof data === 'object') {
-                            Object.keys(data).forEach(key => {
-                                let value = data[key];
-                                if (typeof value === 'string') {
-                                    value = value.replace(/,$/, '').trim();
-                                }
-                                cleanData[key] = value;
-                            });
-                        }
-                        amount = parseCurrency(cleanData.nominal_transfer || cleanData.amount || record.amount || 0);
-                        from = `Bank: ${cleanData.bank_dan_rekening || data?.bank_account || 'Tidak tersedia'}`;
+                    let type = 'Unknown';
+                    if (record.trx_type === 'bank') {
                         type = 'Bank Matching';
-                    } else if (record.transaction && record.transaction.type === 'manual') {
-                        amount = record.transaction.data?.amount || record.amount || 0;
-                        from = `Manual: ${record.transaction.data?.method || 'Tidak tersedia'}`;
+                    } else if (record.trx_type === 'manual') {
                         type = 'Manual Input';
-                    } else {
-                        // Fallback untuk format data yang berbeda
-                        amount = parseCurrency(record.amount || record.total || record.nominal || 0);
-                        from = record.from || record.source || record.bank || 'Tidak tersedia';
-                        type = record.type || record.jenis || 'Unknown';
                     }
                     
-                    // FIX: Handle berbagai format expense data
-                    if (record.expense && record.expense.type === 'po') {
-                        to = `PO: ${record.expense.data?.poNumber || record.expense.data?.no_po || 'Tidak tersedia'}`;
-                    } else if (record.expense && record.expense.type === 'manual') {
-                        to = `Manual: ${record.expense.data?.categoryText || record.expense.data?.category || 'Tidak tersedia'}`;
-                    } else {
-                        // Fallback untuk format data yang berbeda
-                        to = record.to || record.destination || record.purpose || 'Tidak tersedia';
-                    }
+                    const from = record.trx_type === 'bank' 
+                        ? `Bank: ${record.bank_dan_rekening || 'Tidak tersedia'}` 
+                        : `Manual: ${record.payment_method || 'Tidak tersedia'}`;
                     
-                    const recordId = record.id || record._id || record.matchId || 'N/A';
+                    const to = record.po_type === 'purchase_order' 
+                        ? `PO: ${record.po_number || 'Tidak tersedia'}`
+                        : `Manual: ${record.tujuan_transaksi || 'Tidak tersedia'}`;
+                    
+                    const recordId = record.id || 'N/A';
                     
                     return `
                         <div class="card-row">
@@ -2110,6 +2048,194 @@
                 showNotification('Gagal memuat data history: ' + error.message, 'error');
             }
         }
+        
+        // PERBAIKAN: Tambahkan fungsi viewMatchDetail yang lebih informatif
+        // PERBAIKAN: Fungsi viewMatchDetail dengan detail item PO
+        function viewMatchDetail(matchId) {
+            // Cari data dari state atau tampilkan info dasar
+            const matchData = currentState.matchingHistory.find(m => m.id === matchId);
+            
+            if (matchData) {
+                // Tampilkan data dari local state
+                const transactionType = matchData.transaction?.type || 'unknown';
+                const expenseType = matchData.expense?.type || 'unknown';
+                const amount = matchData.transaction?.data?.amount || 
+                              matchData.transaction?.data?.nominal_transfer || 
+                              0;
+                
+                let detailMessage = `Detail Matching:\n\nID: ${matchData.id}\nTanggal: ${new Date(matchData.timestamp).toLocaleString('id-ID')}\nTipe: ${transactionType} → ${expenseType}\nAmount: Rp ${parseCurrency(amount).toLocaleString('id-ID')}\nCatatan: ${matchData.notes || 'Tidak ada catatan'}\nUser ID: ${matchData.user_id || 'Tidak tersedia'}`;
+        
+                // Tambahkan detail item PO jika ada
+                if (matchData.expense?.type === 'po' && matchData.expense?.data) {
+                    const poData = matchData.expense.data;
+                    const items = parseItems(poData.items || poData.items_json);
+                    
+                    if (items && items.length > 0) {
+                        detailMessage += `\n\n📦 Detail Item PO:\n`;
+                        detailMessage += `PO Number: ${poData.poNumber || poData.no_po || 'Tidak tersedia'}\n`;
+                        detailMessage += `Supplier: ${poData.supplier || poData.nama_supplier || 'Tidak tersedia'}\n`;
+                        detailMessage += `Total Amount: Rp ${getTotalAmount(poData).toLocaleString('id-ID')}\n\n`;
+                        detailMessage += `Items:\n`;
+                        
+                        items.forEach((item, index) => {
+                            const itemName = item.name || item.item_name || 'Item';
+                            const quantity = item.quantity || 0;
+                            const price = item.price || 0;
+                            const subtotal = item.subtotal || (quantity * price);
+                            const unit = item.unit || 'pcs';
+                            const sku = item.sku || 'N/A';
+                            
+                            detailMessage += `${index + 1}. ${itemName} (${sku})\n`;
+                            detailMessage += `   📏 ${quantity} ${unit} x Rp ${price.toLocaleString('id-ID')}\n`;
+                            detailMessage += `   💰 Subtotal: Rp ${subtotal.toLocaleString('id-ID')}\n\n`;
+                        });
+                    }
+                } else if (matchData.expense?.type === 'manual' && matchData.expense?.data) {
+                    // Untuk expense manual
+                    const expenseData = matchData.expense.data;
+                    detailMessage += `\n\n📋 Detail Pengeluaran Manual:\n`;
+                    detailMessage += `Kategori: ${expenseData.categoryText || expenseData.category || 'Tidak tersedia'}\n`;
+                    if (expenseData.description) {
+                        detailMessage += `Keterangan: ${expenseData.description}\n`;
+                    }
+                }
+        
+                alert(detailMessage);
+            } else {
+                // Untuk data dari webhook history, kita perlu fetch detail lengkap
+                showMatchDetailFromHistory(matchId);
+            }
+        }
+        
+        // Fungsi tambahan untuk menampilkan detail dari data history webhook
+       // Fungsi tambahan untuk menampilkan detail dari data history webhook - VERSI DIPERBAIKI
+      // Fungsi tambahan untuk menampilkan detail dari data history webhook - VERSI FIXED
+// Fungsi tambahan untuk menampilkan detail dari data history webhook - VERSI SUPER ROBUST
+async function showMatchDetailFromHistory(matchId) {
+    try {
+        // Coba ambil data history lagi untuk mendapatkan detail lengkap
+        const response = await fetch(WEBHOOK_URLS.readHistory, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            mode: 'cors'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const historyData = await response.json();
+        let historyArray = [];
+        
+        // Extract array dari response
+        if (Array.isArray(historyData)) {
+            historyArray = historyData;
+        } else if (historyData && typeof historyData === 'object') {
+            if (Array.isArray(historyData.data)) {
+                historyArray = historyData.data;
+            } else if (Array.isArray(historyData.records)) {
+                historyArray = historyData.records;
+            } else {
+                historyArray = [historyData];
+            }
+        }
+        
+        // Cari record yang sesuai dengan matchId
+        const record = historyArray.find(r => r.id === matchId);
+        
+        if (record) {
+            let detailMessage = `Detail Matching:\n\nID: ${record.id}\nTanggal: ${new Date(record.timestamp || record.date).toLocaleString('id-ID')}\nTipe: ${record.trx_type === 'bank' ? 'Bank Matching' : 'Manual Input'}\nAmount: Rp ${parseCurrency(record.nominal_transfer || record.amount || 0).toLocaleString('id-ID')}\nStatus: ${record.status || 'completed'}`;
+            
+            // Tambahkan informasi bank/transfer
+            if (record.trx_type === 'bank') {
+                detailMessage += `\n\n🏦 Informasi Transfer:\n`;
+                detailMessage += `Bank: ${record.bank_dan_rekening || 'Tidak tersedia'}\n`;
+                detailMessage += `Penerima: ${record.penerima || 'Tidak tersedia'}\n`;
+                detailMessage += `Referensi: ${record.no_referensi || 'Tidak tersedia'}\n`;
+                detailMessage += `Keterangan: ${record.keterangan_transfer || 'Tidak ada keterangan'}`;
+            }
+            
+            // Tambahkan detail PO dan items jika ada
+            if (record.po_type === 'purchase_order') {
+                detailMessage += `\n\n📦 Detail Purchase Order:\n`;
+                detailMessage += `PO Number: ${record.po_number || 'Tidak tersedia'}\n`;
+                detailMessage += `Supplier: ${record.supplier || 'Tidak tersedia'}\n`;
+                detailMessage += `Purchase Date: ${record.purchase_date || 'Tidak tersedia'}\n`;
+                detailMessage += `Total Amount: Rp ${parseCurrency(record.total_amount || 0).toLocaleString('id-ID')}\n`;
+                detailMessage += `Paid Amount: Rp ${parseCurrency(record.paid_amount || 0).toLocaleString('id-ID')}\n`;
+                detailMessage += `Payment Method: ${record.payment_method || 'Tidak tersedia'}\n`;
+                detailMessage += `Payment Status: ${record.payment_status || 'unknown'}`;
+                
+                // FIX CRITICAL: Handle items_json dengan cara yang lebih sederhana
+                // SOLUSI SIMPLE: items_json sudah berupa array object
+                if (record.items_json) {
+                    console.log('🔍 items_json sudah array:', record.items_json);
+                    
+                    let items = [];
+                    
+                    // Jika sudah array, gunakan langsung
+                    if (Array.isArray(record.items_json)) {
+                        items = record.items_json;
+                    }
+                    // Jika object, jadikan array
+                    else if (typeof record.items_json === 'object') {
+                        items = [record.items_json];
+                    }
+                    
+                    if (items.length > 0) {
+                        detailMessage += `\n\n🛒 Detail Items (${items.length} item):\n`;
+                        detailMessage += '──────────────────────────────────────────────────\n';
+                        
+                        items.forEach((item, index) => {
+                            const itemName = item.name || item.item_name || 'Item';
+                            const quantity = Number(item.quantity) || 0;
+                            const price = Number(item.price) || 0;
+                            const subtotal = Number(item.subtotal) || (quantity * price);
+                            const unit = item.unit || 'pcs';
+                            const sku = item.sku || 'N/A';
+                            const category = item.category || 'Tidak ada kategori';
+                            
+                            detailMessage += `\n${index + 1}. ${itemName}\n`;
+                            detailMessage += `   📍 SKU: ${sku}\n`;
+                            detailMessage += `   🏷️ Kategori: ${category}\n`;
+                            detailMessage += `   📏 Quantity: ${quantity} ${unit}\n`;
+                            detailMessage += `   💵 Harga: Rp ${price.toLocaleString('id-ID')}\n`;
+                            detailMessage += `   💰 Subtotal: Rp ${subtotal.toLocaleString('id-ID')}\n`;
+                        });
+                        
+                        detailMessage += `\n──────────────────────────────────────────────────`;
+                        detailMessage += `\n📊 Total Items: Rp ${items.reduce((sum, item) => sum + (Number(item.subtotal) || (Number(item.quantity) * Number(item.price)) || 0), 0).toLocaleString('id-ID')}`;
+                    }
+                } else {
+                    detailMessage += `\n\n📝 Notes: ${record.notes_po || 'Tidak ada catatan'}`;
+                }
+            } else {
+                // Untuk expense manual
+                detailMessage += `\n\n📋 Detail Pengeluaran:\n`;
+                detailMessage += `Tujuan: ${record.tujuan_transaksi || 'Tidak tersedia'}\n`;
+                if (record.keterangan_transfer) {
+                    detailMessage += `Keterangan: ${record.keterangan_transfer}\n`;
+                }
+            }
+            
+            // Tambahkan notes jika ada
+            if (record.notes) {
+                detailMessage += `\n\n📝 Catatan Matching: ${record.notes}`;
+            }
+            
+            alert(detailMessage);
+        } else {
+            alert(`Detail Matching dengan ID: ${matchId}\n\nData tidak ditemukan dalam history. Data mungkin hanya tersedia untuk matching yang baru saja disimpan.`);
+        }
+        
+    } catch (error) {
+        console.error('Error fetching match detail:', error);
+        alert(`Detail Matching dengan ID: ${matchId}\n\nGagal memuat detail lengkap: ${error.message}\n\nData detail hanya tersedia untuk matching yang baru saja disimpan.`);
+    }
+}
 
         // Selection Functions - VERSI DIPERBAIKI
         function selectBankTransaction(index) {
@@ -2547,17 +2673,6 @@
             loadHistoryData();
         }
 
-        function viewMatchDetail(matchId) {
-            // Cari di local state terlebih dahulu
-            const localMatch = currentState.matchingHistory.find(m => m.id === matchId);
-            if (localMatch) {
-                alert(`Detail Matching:\n\nID: ${localMatch.id}\nTanggal: ${new Date(localMatch.timestamp).toLocaleString('id-ID')}\nTipe: ${localMatch.transaction.type} → ${localMatch.expense.type}\nCatatan: ${localMatch.notes || 'Tidak ada catatan'}\nUser ID: ${localMatch.user_id || 'Tidak tersedia'}`);
-                return;
-            }
-            
-            // Jika tidak ditemukan di local state, tampilkan info dasar
-            alert(`Detail Matching dengan ID: ${matchId}\n\nData detail hanya tersedia untuk matching yang baru saja disimpan. Untuk data lengkap, lihat dari sistem database.`);
-        }
 
         // Search Functionality
         // Perbaiki search functionality yang sudah ada
@@ -2794,6 +2909,59 @@ function updateBankDateFilter(transactions) {
                 console.log(`[DEBUG] ${timestamp}: ${message}`);
             }
         }
+        
+        
+        // Fungsi debug untuk melihat struktur data lengkap
+function debugRecordData(matchId) {
+    fetch(WEBHOOK_URLS.readHistory)
+        .then(response => response.json())
+        .then(historyData => {
+            let historyArray = [];
+            
+            if (Array.isArray(historyData)) {
+                historyArray = historyData;
+            } else if (historyData && typeof historyData === 'object') {
+                if (Array.isArray(historyData.data)) historyArray = historyData.data;
+                else if (Array.isArray(historyData.records)) historyArray = historyData.records;
+                else historyArray = [historyData];
+            }
+            
+            const record = historyArray.find(r => r.id === matchId);
+            if (record) {
+                console.log('=== DEBUG RECORD DATA ===');
+                console.log('Full record:', record);
+                console.log('items_json:', record.items_json);
+                console.log('typeof items_json:', typeof record.items_json);
+                console.log('items_json length:', record.items_json?.length);
+                
+                // Coba berbagai method parsing
+                const testMethods = [
+                    { name: 'Direct JSON.parse', method: (str) => JSON.parse(str.trim()) },
+                    { name: 'With escape cleanup', method: (str) => JSON.parse(str.trim().replace(/\\"/g, '"').replace(/\\\\/g, '\\')) },
+                    { name: 'Remove surrounding quotes', method: (str) => JSON.parse(str.trim().replace(/^"{/, '{').replace(/}"$/, '}')) },
+                    { name: 'eval', method: (str) => eval(`(${str})`) }
+                ];
+                
+                for (let method of testMethods) {
+                    try {
+                        const result = method.method(record.items_json);
+                        console.log(`✅ ${method.name}:`, result);
+                    } catch (e) {
+                        console.log(`❌ ${method.name}:`, e.message);
+                    }
+                }
+            } else {
+                console.log('Record not found for ID:', matchId);
+            }
+        })
+        .catch(error => {
+            console.error('Debug error:', error);
+        });
+}
+
+// Panggil fungsi debug di console dengan ID yang ingin di-debug
+// debugRecordData('MATCH-1759579537438');
+
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
