@@ -2107,11 +2107,35 @@
             }
         }
         
-        // Fungsi tambahan untuk menampilkan detail dari data history webhook
-       // Fungsi tambahan untuk menampilkan detail dari data history webhook - VERSI DIPERBAIKI
-      // Fungsi tambahan untuk menampilkan detail dari data history webhook - VERSI FIXED
-// Fungsi tambahan untuk menampilkan detail dari data history webhook - VERSI SUPER ROBUST
-async function showMatchDetailFromHistory(matchId) {
+// Fungsi untuk menampilkan detail items
+function showItemsDetailAlert(items, poNumber) {
+    let itemsMessage = `📦 Detail Items PO: ${poNumber || 'N/A'}\n\n`;
+    
+    items.forEach((item, index) => {
+        const itemName = item.name || item.item_name || 'Item';
+        const quantity = Number(item.quantity) || 0;
+        const price = Number(item.price) || 0;
+        const subtotal = Number(item.subtotal) || (quantity * price);
+        const unit = item.unit || 'pcs';
+        const sku = item.sku || 'N/A';
+        const category = item.category || 'Tidak ada kategori';
+        
+        itemsMessage += `${index + 1}. ${itemName}\n`;
+        itemsMessage += `   📍 SKU: ${sku}\n`;
+        itemsMessage += `   🏷️ Kategori: ${category}\n`;
+        itemsMessage += `   📏 Quantity: ${quantity} ${unit}\n`;
+        itemsMessage += `   💵 Harga: Rp ${price.toLocaleString('id-ID')}\n`;
+        itemsMessage += `   💰 Subtotal: Rp ${subtotal.toLocaleString('id-ID')}\n\n`;
+    });
+    
+    const total = items.reduce((sum, item) => sum + (Number(item.subtotal) || (Number(item.quantity) * Number(item.price)) || 0), 0);
+    itemsMessage += `📊 Total: Rp ${total.toLocaleString('id-ID')}`;
+    
+    alert(itemsMessage);
+}
+
+        // Fungsi tambahan untuk menampilkan detail dari datahistory webhook - VERSI SUPER ROBUST
+        async function showMatchDetailFromHistory(matchId) {
     try {
         // Coba ambil data history lagi untuk mendapatkan detail lengkap
         const response = await fetch(WEBHOOK_URLS.readHistory, {
@@ -2171,47 +2195,63 @@ async function showMatchDetailFromHistory(matchId) {
                 
                 // FIX CRITICAL: Handle items_json dengan cara yang lebih sederhana
                 // SOLUSI SIMPLE: items_json sudah berupa array object
+                // SOLUSI MINIMAL: tanpa karakter khusus
                 if (record.items_json) {
-                    console.log('🔍 items_json sudah array:', record.items_json);
-                    
-                    let items = [];
-                    
-                    // Jika sudah array, gunakan langsung
-                    if (Array.isArray(record.items_json)) {
-                        items = record.items_json;
-                    }
-                    // Jika object, jadikan array
-                    else if (typeof record.items_json === 'object') {
-                        items = [record.items_json];
-                    }
-                    
-                    if (items.length > 0) {
-                        detailMessage += `\n\n🛒 Detail Items (${items.length} item):\n`;
-                        detailMessage += '──────────────────────────────────────────────────\n';
-                        
-                        items.forEach((item, index) => {
-                            const itemName = item.name || item.item_name || 'Item';
-                            const quantity = Number(item.quantity) || 0;
-                            const price = Number(item.price) || 0;
-                            const subtotal = Number(item.subtotal) || (quantity * price);
-                            const unit = item.unit || 'pcs';
-                            const sku = item.sku || 'N/A';
-                            const category = item.category || 'Tidak ada kategori';
-                            
-                            detailMessage += `\n${index + 1}. ${itemName}\n`;
-                            detailMessage += `   📍 SKU: ${sku}\n`;
-                            detailMessage += `   🏷️ Kategori: ${category}\n`;
-                            detailMessage += `   📏 Quantity: ${quantity} ${unit}\n`;
-                            detailMessage += `   💵 Harga: Rp ${price.toLocaleString('id-ID')}\n`;
-                            detailMessage += `   💰 Subtotal: Rp ${subtotal.toLocaleString('id-ID')}\n`;
-                        });
-                        
-                        detailMessage += `\n──────────────────────────────────────────────────`;
-                        detailMessage += `\n📊 Total Items: Rp ${items.reduce((sum, item) => sum + (Number(item.subtotal) || (Number(item.quantity) * Number(item.price)) || 0), 0).toLocaleString('id-ID')}`;
-                    }
-                } else {
-                    detailMessage += `\n\n📝 Notes: ${record.notes_po || 'Tidak ada catatan'}`;
-                }
+    console.log('🔍 items_json sudah array:', record.items_json);
+    
+    let items = [];
+    
+    if (Array.isArray(record.items_json)) {
+        items = record.items_json;
+    } else if (typeof record.items_json === 'object') {
+        items = [record.items_json];
+    }
+    
+    if (items.length > 0) {
+        detailMessage += '\n\n--- DETAIL ITEMS ---';
+        
+        items.forEach((item, index) => {
+            const itemName = item.name || item.item_name || 'Item';
+            const quantity = Number(item.quantity) || 0;
+            const price = Number(item.price) || 0;
+            const subtotal = Number(item.subtotal) || (quantity * price);
+            const unit = item.unit || 'pcs';
+            
+            detailMessage += `\n\n${index + 1}. ${itemName}`;
+            detailMessage += `\n   Quantity: ${quantity} ${unit}`;
+            detailMessage += `\n   Harga: Rp ${price.toLocaleString('id-ID')}`;
+            detailMessage += `\n   Subtotal: Rp ${subtotal.toLocaleString('id-ID')}`;
+        });
+        
+        const total = items.reduce((sum, item) => sum + (Number(item.subtotal) || (Number(item.quantity) * Number(item.price)) || 0), 0);
+        detailMessage += `\n\nTotal: Rp ${total.toLocaleString('id-ID')}`;
+    }
+}
+
+            // DEBUG: Test dengan alert sederhana dulu
+// Handle items_json - tampilkan preview di alert pertama, detail di alert terpisah
+if (record.items_json) {
+    let items = [];
+    
+    if (Array.isArray(record.items_json)) {
+        items = record.items_json;
+    } else if (typeof record.items_json === 'object') {
+        items = [record.items_json];
+    }
+    
+    if (items.length > 0) {
+        // Hanya tampilkan preview di alert pertama
+        detailMessage += `\n\n🛒 Items: ${items.length} item ditemukan`;
+        if (items[0].name) {
+            detailMessage += `\nContoh: ${items[0].name}`;
+        }
+        
+        // Tampilkan alert detail items setelah alert pertama ditutup
+        setTimeout(() => {
+            showItemsDetailAlert(items, record.po_number);
+        }, 300);
+    }
+}
             } else {
                 // Untuk expense manual
                 detailMessage += `\n\n📋 Detail Pengeluaran:\n`;
@@ -2268,7 +2308,7 @@ async function showMatchDetailFromHistory(matchId) {
             if (!po) {
                 console.error('PO not found:', poNumber);
                 return;
-            }
+            } 
             
             currentState.selectedPO = po;
             currentState.manualExpense = null;
