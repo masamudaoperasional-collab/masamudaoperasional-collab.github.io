@@ -1340,42 +1340,65 @@
         // Helper functions untuk parsing data
         function parseCurrency(currencyString) {
             if (!currencyString) return 0;
-            // Remove "Rp", spaces, dots, and commas
-            const cleanString = currencyString.replace(/[Rp\s.,]/g, '');
-            return parseFloat(cleanString) || 0;
+            
+            // Handle format seperti "Rp 60.000,00" dari log Anda
+            const numericString = currencyString.toString()
+                .replace(/[^\d,]/g, '') // Hapus non-digit kecuali koma
+                .replace(',', '.'); // Ganti koma dengan titik untuk parsing
+            
+            return parseFloat(numericString) || 0;
         }
 
         function parseItems(itemsString) {
-            try {
-                if (!itemsString) return [];
-                return JSON.parse(itemsString);
-            } catch (e) {
-                console.error('Error parsing items:', e);
-                return [];
+            if (!itemsString) return [];
+            if (Array.isArray(itemsString)) return itemsString;
+            if (typeof itemsString === 'string') {
+                try {
+                    // Handle different string formats
+                    if (itemsString.startsWith('[') && itemsString.endsWith(']')) {
+                        return JSON.parse(itemsString);
+                    } else {
+                        // Try to parse as single item
+                        return [JSON.parse(itemsString)];
+                    }
+                } catch (e) {
+                    console.warn('Error parsing items:', e);
+                    return [];
+                }
             }
+            return [];
         }
 
         function getPaymentStatus(po) {
-            if (po.paymentStatus === 'paid') return 'paid';
-            if (po.paymentStatus === 'pending') return 'unpaid';
-            if (po.paidAmount > 0 && po.paidAmount < po.totalAmount) return 'partial';
+            if (!po) return 'unpaid';
+            
+            const totalAmount = getTotalAmount(po);
+            const paidAmount = po.paidAmount || 0;
+            
+            if (paidAmount >= totalAmount) return 'paid';
+            if (paidAmount > 0) return 'partial';
             return 'unpaid';
         }
 
         function getTotalAmount(po) {
+            if (!po) return 0;
+            
+            // Jika ada totalAmount langsung, gunakan itu
+            if (po.totalAmount) return po.totalAmount;
+            
             // Calculate total from items if available
             if (po.items && Array.isArray(po.items)) {
-                return po.items.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+                return po.items.reduce((sum, item) => sum + (item.subtotal || (item.quantity || 0) * (item.price || 0)), 0);
             }
             
             // Parse items from string if available
             const items = parseItems(po.items);
             if (items.length > 0) {
-                return items.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+                return items.reduce((sum, item) => sum + (item.subtotal || (item.quantity || 0) * (item.price || 0)), 0);
             }
             
-            // Fallback to paidAmount or 0
-            return po.paidAmount || 0;
+            // Fallback
+            return po.total || po.amount || 0;
         }
 
         // Debug logging
@@ -1475,7 +1498,7 @@
             });
         });
 
-        // Load Data from Webhooks
+        // Load Data from Webhooks - VERSI DIPERBAIKI
         async function loadBankData() {
             const bankList = document.getElementById('bankList');
             bankList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data transaksi bank...</p></div>';
@@ -1509,11 +1532,13 @@
                 if (Array.isArray(transactionsData)) {
                     transactionsArray = transactionsData;
                 } else if (typeof transactionsData === 'object' && transactionsData !== null) {
-                    // Jika response adalah single object, jadikan array
                     transactionsArray = [transactionsData];
                 }
                 
                 logDebug(`Processed transactions: ${JSON.stringify(transactionsArray)}`);
+                
+                // Store in global state
+                currentState.bankTransactions = transactionsArray;
                 
                 if (!transactionsArray || transactionsArray.length === 0) {
                     bankList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada transaksi bank yang menunggu</p></div>';
@@ -1521,19 +1546,18 @@
                 }
                 
                 bankList.innerHTML = transactionsArray.map((transaction, index) => {
-                    // Clean up the data - remove trailing commas and fix property names
+                    // Clean up the data
                     const cleanTransaction = {};
                     Object.keys(transaction).forEach(key => {
                         let value = transaction[key];
                         if (typeof value === 'string') {
                             value = value.replace(/,$/, '').trim();
-                            // Fix property names based on your log
-                            value = value.replace(/""/g, '"'); // Remove double quotes
+                            value = value.replace(/""/g, '"');
                         }
                         cleanTransaction[key] = value;
                     });
-        
-                    // FIX: Use correct property names from your log
+
+                    // Use correct property names
                     const nominal = parseCurrency(cleanTransaction.bombial_longfer || cleanTransaction.nominal_transfer || '0');
                     const bankInfo = cleanTransaction.bank_dan_rekening || 'Bank tidak tersedia';
                     const referensi = cleanTransaction.no_referensi || 'Tidak ada referensi';
@@ -1567,108 +1591,119 @@
         }
 
         async function loadPOData() {
-        const poList = document.getElementById('poList');
-        poList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data PO...</p></div>';
-        
-        try {
-            logDebug("Memulai pengambilan data PO...");
+            const poList = document.getElementById('poList');
+            poList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data PO...</p></div>';
             
-            const response = await fetch(WEBHOOK_URLS.purchaseOrders, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                mode: 'cors'
-            });
-            
-            logDebug(`Status response PO: ${response.status}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const responseText = await response.text();
-            logDebug(`Response raw dari PO: ${responseText}`);
-            
-            const purchaseOrdersData = JSON.parse(responseText);
-            
-            // FIX: Handle both array and object responses
-            let purchaseOrdersArray = [];
-            
-            if (Array.isArray(purchaseOrdersData)) {
-                purchaseOrdersArray = purchaseOrdersData;
-            } else if (typeof purchaseOrdersData === 'object' && purchaseOrdersData !== null) {
-                // Jika response adalah single object, jadikan array
-                purchaseOrdersArray = [purchaseOrdersData];
-            }
-            
-            logDebug(`Processed POs: ${JSON.stringify(purchaseOrdersArray)}`);
-            
-            if (!purchaseOrdersArray || purchaseOrdersArray.length === 0) {
-                poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada PO yang belum lunas</p></div>';
-                return;
-            }
-            
-            // Filter unpaid POs and calculate totals
-            const unpaidPOs = purchaseOrdersArray.filter(po => {
-                const status = getPaymentStatus(po);
-                return status === 'unpaid' || status === 'partial';
-            });
-            
-            if (unpaidPOs.length === 0) {
-                poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada PO yang belum lunas</p></div>';
-                return;
-            }
-            
-            poList.innerHTML = unpaidPOs.map(po => {
-                const totalAmount = getTotalAmount(po);
-                const paidAmount = po.paidAmount || 0;
-                const status = getPaymentStatus(po);
-                const items = parseItems(po.items);
+            try {
+                logDebug("Memulai pengambilan data PO...");
                 
-                // FIX: Handle potential missing properties
-                const poNumber = po.poNumber || po.no_po || 'No PO';
-                const supplier = po.supplier || po.nama_supplier || 'Supplier tidak tersedia';
-                const itemCount = items ? items.length : 0;
+                const response = await fetch(WEBHOOK_URLS.purchaseOrders, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
+                });
                 
-                return `
-                    <div class="data-card" data-po-number="${poNumber}" onclick="selectPO('${poNumber}')">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                            <div>
-                                <strong>${poNumber}</strong>
-                                <div style="font-size: 14px; color: #6b7280;">${supplier}</div>
+                logDebug(`Status response PO: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const responseText = await response.text();
+                logDebug(`Response raw dari PO: ${responseText}`);
+                
+                const purchaseOrdersData = JSON.parse(responseText);
+                
+                // FIX: Handle both array and object responses
+                let purchaseOrdersArray = [];
+                
+                if (Array.isArray(purchaseOrdersData)) {
+                    purchaseOrdersArray = purchaseOrdersData;
+                } else if (typeof purchaseOrdersData === 'object' && purchaseOrdersData !== null) {
+                    purchaseOrdersArray = [purchaseOrdersData];
+                }
+                
+                logDebug(`Processed POs: ${JSON.stringify(purchaseOrdersArray)}`);
+                
+                if (!purchaseOrdersArray || purchaseOrdersArray.length === 0) {
+                    poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada data PO</p></div>';
+                    return;
+                }
+                
+                // TAMPILKAN SEMUA DATA PO - HAPUS FILTER UNPAID ONLY
+                poList.innerHTML = purchaseOrdersArray.map(po => {
+                    const totalAmount = getTotalAmount(po);
+                    const paidAmount = po.paidAmount || 0;
+                    const status = getPaymentStatus(po);
+                    const items = parseItems(po.items);
+                    
+                    // Handle potential missing properties
+                    const poNumber = po.poNumber || po.no_po || 'No PO';
+                    const supplier = po.supplier || po.nama_supplier || 'Supplier tidak tersedia';
+                    const purchaseType = po.purchaseType || po.type || 'offline'; // Default to offline
+                    const itemCount = items ? items.length : 0;
+                    
+                    // Tampilkan ringkasan item
+                    const itemsSummary = items.slice(0, 3).map(item => 
+                        `${item.name || item.item_name || 'Item'}: ${item.quantity || 0} x Rp ${(item.price || 0).toLocaleString('id-ID')}`
+                    ).join('; ');
+                    
+                    const remainingItems = items.length > 3 ? `... dan ${items.length - 3} item lainnya` : '';
+                    
+                    return `
+                        <div class="data-card" data-po-number="${poNumber}" onclick="selectPO('${poNumber}')">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <strong>${poNumber}</strong>
+                                    <div style="font-size: 14px; color: #6b7280;">
+                                        ${supplier} • ${purchaseType === 'offline' ? 'Offline' : 'Purchase Order'}
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="status-badge ${status === 'paid' ? 'status-paid' : status === 'partial' ? 'status-partial' : 'status-unpaid'}">
+                                        ${status === 'paid' ? 'Paid' : status === 'partial' ? 'Partial Paid' : 'Unpaid'}
+                                    </span>
+                                    <div style="font-size: 14px; color: #6b7280;">Total: Rp ${totalAmount.toLocaleString('id-ID')}</div>
+                                </div>
                             </div>
-                            <div style="text-align: right;">
-                                <span class="status-badge ${status === 'partial' ? 'status-partial' : 'status-unpaid'}">
-                                    ${status === 'partial' ? 'Partial Paid' : 'Unpaid'}
-                                </span>
-                                <div style="font-size: 14px; color: #6b7280;">Total: Rp ${totalAmount.toLocaleString('id-ID')}</div>
+                            
+                            <!-- Tampilkan Ringkasan Item -->
+                            <div style="margin: 8px 0; padding: 8px; background: #f8fafc; border-radius: 4px;">
+                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">
+                                    <strong>Item:</strong>
+                                </div>
+                                <div style="font-size: 12px; color: #4b5563;">
+                                    ${itemsSummary} ${remainingItems}
+                                </div>
+                            </div>
+                            
+                            <div style="font-size: 14px; color: #6b7280;">
+                                ${itemCount} item • Paid: Rp ${paidAmount.toLocaleString('id-ID')} • Remaining: Rp ${(totalAmount - paidAmount).toLocaleString('id-ID')}
                             </div>
                         </div>
-                        <div style="font-size: 14px; color: #6b7280;">
-                            ${itemCount} item • Paid: Rp ${paidAmount.toLocaleString('id-ID')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // Store POs in state with calculated totals
-            currentState.purchaseOrders = purchaseOrdersArray.map(po => ({
-                ...po,
-                totalAmount: getTotalAmount(po),
-                items: parseItems(po.items)
-            }));
-            
-            logDebug(`Berhasil memuat ${purchaseOrdersArray.length} purchase orders`);
-            
-        } catch (error) {
-            console.error('Error loading PO data:', error);
-            logDebug(`Error loading PO data: ${error}`);
-            poList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data PO</p></div>';
-            showNotification('Gagal memuat data PO: ' + error.message, 'error');
+                    `;
+                }).join('');
+                
+                // Store POs in state with calculated totals
+                currentState.purchaseOrders = purchaseOrdersArray.map(po => ({
+                    ...po,
+                    totalAmount: getTotalAmount(po),
+                    items: parseItems(po.items),
+                    purchaseType: po.purchaseType || po.type || 'offline'
+                }));
+                
+                logDebug(`Berhasil memuat ${purchaseOrdersArray.length} purchase orders`);
+                
+            } catch (error) {
+                console.error('Error loading PO data:', error);
+                logDebug(`Error loading PO data: ${error}`);
+                poList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data PO</p></div>';
+                showNotification('Gagal memuat data PO: ' + error.message, 'error');
+            }
         }
-    }
 
         // Load History Data from Webhook - FUNGSI BARU
         async function loadHistoryData() {
@@ -1850,46 +1885,55 @@
             }
         }
 
-        // Selection Functions
+        // Selection Functions - VERSI DIPERBAIKI
         function selectBankTransaction(index) {
             const transaction = currentState.bankTransactions[index];
-            if (!transaction) return;
+            if (!transaction) {
+                console.error('Transaction not found at index:', index);
+                return;
+            }
             
             currentState.selectedBankTransaction = transaction;
             currentState.manualTransaction = null;
             
+            // Remove selection from all cards
             document.querySelectorAll('#bankList .data-card').forEach(card => {
                 card.classList.remove('selected');
             });
-            document.querySelector(`[data-bank-index="${index}"]`).classList.add('selected');
+            
+            // Add selection to clicked card
+            const selectedCard = document.querySelector(`[data-bank-index="${index}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
             
             updateMatchingSummary();
+            showNotification('Transaksi bank dipilih', 'success');
         }
 
         function selectPO(poNumber) {
-            const po = currentState.purchaseOrders.find(p => p.poNumber === poNumber);
-            if (!po) return;
+            const po = currentState.purchaseOrders.find(p => (p.poNumber === poNumber) || (p.no_po === poNumber));
+            if (!po) {
+                console.error('PO not found:', poNumber);
+                return;
+            }
             
             currentState.selectedPO = po;
             currentState.manualExpense = null;
             
+            // Remove selection from all cards
             document.querySelectorAll('#poList .data-card').forEach(card => {
                 card.classList.remove('selected');
             });
-            document.querySelector(`[data-po-number="${poNumber}"]`).classList.add('selected');
+            
+            // Add selection to clicked card
+            const selectedCard = document.querySelector(`[data-po-number="${poNumber}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
             
             updateMatchingSummary();
-        }
-
-        function parseCurrency(currencyString) {
-            if (!currencyString) return 0;
-            
-            // Handle format seperti "Rp 60.000,00" dari log Anda
-            const numericString = currencyString.toString()
-                .replace(/[^\d,]/g, '') // Hapus non-digit kecuali koma
-                .replace(',', '.'); // Ganti koma dengan titik untuk parsing
-            
-            return parseFloat(numericString) || 0;
+            showNotification('PO dipilih', 'success');
         }
 
         // Manual Input Handlers
@@ -1983,7 +2027,7 @@
             }
         });
 
-        // Matching Summary
+        // Matching Summary - VERSI DIPERBAIKI
         function updateMatchingSummary() {
             updateTransactionSummary();
             updateExpenseSummary();
@@ -2005,7 +2049,7 @@
                     cleanData[key] = value;
                 });
 
-                const nominal = parseCurrency(cleanData.nominal_transfer);
+                const nominal = parseCurrency(cleanData.bombial_longfer || cleanData.nominal_transfer);
                 
                 html = `
                     <div class="summary-item">
@@ -2014,7 +2058,7 @@
                     </div>
                     <div class="summary-item">
                         <span>Penerima:</span>
-                        <span>${cleanData.penerima || 'Tidak tersedia'}</span>
+                        <span>${cleanData.tujuan_transass || 'Tidak tersedia'}</span>
                     </div>
                     <div class="summary-item">
                         <span>Nominal:</span>
@@ -2061,15 +2105,20 @@
                 const po = currentState.selectedPO;
                 const totalAmount = po.totalAmount || getTotalAmount(po);
                 const paidAmount = po.paidAmount || 0;
+                const items = parseItems(po.items);
                 
                 html = `
                     <div class="summary-item">
                         <span>PO Number:</span>
-                        <span>${po.poNumber}</span>
+                        <span>${po.poNumber || po.no_po}</span>
                     </div>
                     <div class="summary-item">
                         <span>Supplier:</span>
-                        <span>${po.supplier}</span>
+                        <span>${po.supplier || po.nama_supplier}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Purchase Type:</span>
+                        <span>${po.purchaseType === 'offline' ? 'Offline' : 'Purchase Order'}</span>
                     </div>
                     <div class="summary-item">
                         <span>Total:</span>
@@ -2077,10 +2126,38 @@
                     </div>
                     <div class="summary-divider"></div>
                     <div class="summary-item">
+                        <span>Paid:</span>
+                        <span>Rp ${paidAmount.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="summary-item">
                         <span>Remaining:</span>
                         <span>Rp ${(totalAmount - paidAmount).toLocaleString('id-ID')}</span>
                     </div>
                 `;
+                
+                // Tambahkan ringkasan item jika ada
+                if (items.length > 0) {
+                    html += `<div class="summary-divider"></div>`;
+                    html += `<div style="font-size: 12px; color: #6b7280; margin-top: 8px;"><strong>Item:</strong></div>`;
+                    
+                    items.slice(0, 3).forEach(item => {
+                        const itemName = item.name || item.item_name || 'Item';
+                        const quantity = item.quantity || 0;
+                        const price = item.price || 0;
+                        const subtotal = item.subtotal || (quantity * price);
+                        
+                        html += `
+                            <div style="font-size: 11px; color: #4b5563; margin-top: 4px;">
+                                • ${itemName}: ${quantity} x Rp ${price.toLocaleString('id-ID')} = Rp ${subtotal.toLocaleString('id-ID')}
+                            </div>
+                        `;
+                    });
+                    
+                    if (items.length > 3) {
+                        html += `<div style="font-size: 11px; color: #6b7280; margin-top: 4px;">... dan ${items.length - 3} item lainnya</div>`;
+                    }
+                }
+                
             } else if (currentState.expenseType === 'manual' && currentState.manualExpense && currentState.manualExpense.category) {
                 html = `
                     <div class="summary-item">
@@ -2342,6 +2419,16 @@
             loadPOData();
             setupManualInputHandlers();
             updateMatchingSummary();
+            
+            // Debug: Log ketika DOM siap
+            logDebug('DOM fully loaded and parsed');
+            
+            // Test event listeners
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.data-card')) {
+                    logDebug('Data card clicked:', e.target.closest('.data-card'));
+                }
+            });
         });
     </script>
 </body>
