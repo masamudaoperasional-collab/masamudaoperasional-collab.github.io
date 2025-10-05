@@ -1389,71 +1389,88 @@
             
             // Fungsi untuk menampilkan halaman review
             // Fungsi untuk menampilkan halaman review
-            function showReviewPage() {
-                const requiredFields = document.querySelectorAll('[required]');
-                let isValid = true;
-                let emptyFields = [];
+// Fungsi untuk menampilkan halaman review - FIXED
+function showReviewPage() {
+    const requiredFields = document.querySelectorAll('[required]');
+    let isValid = true;
+    let emptyFields = [];
+
+    requiredFields.forEach(field => {
+        if (!field.value) {
+            isValid = false;
+            field.classList.add('is-invalid');
+            // Dapatkan label field
+            const label = document.querySelector(`label[for="${field.id}"]`);
+            const fieldName = label ? label.textContent.replace(' *', '') : field.name;
+            emptyFields.push(fieldName);
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+
+    const itemsCount = document.querySelectorAll('#items-table-body tr').length;
+    if (itemsCount === 0) {
+        showNotification('Harap tambahkan minimal satu item!', 'error');
+        isValid = false;
+    }
+
+    if (!isValid) {
+        if (emptyFields.length > 0) {
+            showNotification(`Harap isi field wajib: ${emptyFields.join(', ')}`, 'error');
+        } else {
+            showNotification('Harap isi semua field yang wajib diisi!', 'error');
+        }
+        return;
+    }
+
+    // Isi data review
+    document.getElementById('review-purchase-type').textContent = 
+        document.getElementById('purchase-type').options[document.getElementById('purchase-type').selectedIndex].text;
+    document.getElementById('review-po-number').textContent = document.getElementById('po-number').value;
+    document.getElementById('review-supplier').textContent = 
+        document.getElementById('supplier').options[document.getElementById('supplier').selectedIndex].text;
+    document.getElementById('review-purchase-date').textContent = document.getElementById('purchase-date').value;
+    document.getElementById('review-payment-method').textContent = 
+        document.getElementById('payment-method').options[document.getElementById('payment-method').selectedIndex].text;
+    document.getElementById('review-payment-status').textContent = 
+        document.getElementById('payment-status').options[document.getElementById('payment-status').selectedIndex].text;
+    document.getElementById('review-payment-date').textContent = document.getElementById('payment-date').value || '-';
+    document.getElementById('review-paid-amount').textContent = 
+        document.getElementById('paid-amount').value ? formatCurrency(parseFloat(document.getElementById('paid-amount').value)) : '-';
+    document.getElementById('review-notes').textContent = document.getElementById('notes').value || '-';
+
+    // Salin tabel item - FIXED
+    const itemsTableBody = document.getElementById('items-table-body');
+    const reviewItemsTableBody = document.getElementById('review-items-table-body');
+    reviewItemsTableBody.innerHTML = '';
+
+    // Salin setiap baris item dengan benar
+    itemsTableBody.querySelectorAll('tr').forEach(row => {
+        const newRow = document.createElement('tr');
+        
+        // Salin semua cell kecuali cell aksi
+        for (let i = 0; i < row.cells.length - 1; i++) {
+            const newCell = document.createElement('td');
             
-                requiredFields.forEach(field => {
-                    if (!field.value) {
-                        isValid = false;
-                        field.classList.add('is-invalid');
-                        // Dapatkan label field
-                        const label = document.querySelector(`label[for="${field.id}"]`);
-                        const fieldName = label ? label.textContent.replace(' *', '') : field.name;
-                        emptyFields.push(fieldName);
-                    } else {
-                        field.classList.remove('is-invalid');
-                    }
-                });
-            
-                const itemsCount = document.querySelectorAll('#items-table-body tr').length;
-                if (itemsCount === 0) {
-                    showNotification('Harap tambahkan minimal satu item!', 'error');
-                    isValid = false;
-                }
-            
-                if (!isValid) {
-                    if (emptyFields.length > 0) {
-                        showNotification(`Harap isi field wajib: ${emptyFields.join(', ')}`, 'error');
-                    } else {
-                        showNotification('Harap isi semua field yang wajib diisi!', 'error');
-                    }
-                    return;
-                }
-            
-                // Isi data review
-                document.getElementById('review-purchase-type').textContent = 
-                    document.getElementById('purchase-type').options[document.getElementById('purchase-type').selectedIndex].text;
-                document.getElementById('review-po-number').textContent = document.getElementById('po-number').value;
-                document.getElementById('review-supplier').textContent = 
-                    document.getElementById('supplier').options[document.getElementById('supplier').selectedIndex].text;
-                document.getElementById('review-purchase-date').textContent = document.getElementById('purchase-date').value;
-                document.getElementById('review-payment-method').textContent = 
-                    document.getElementById('payment-method').options[document.getElementById('payment-method').selectedIndex].text;
-                document.getElementById('review-payment-status').textContent = 
-                    document.getElementById('payment-status').options[document.getElementById('payment-status').selectedIndex].text;
-                document.getElementById('review-payment-date').textContent = document.getElementById('payment-date').value || '-';
-                document.getElementById('review-paid-amount').textContent = 
-                    document.getElementById('paid-amount').value ? formatCurrency(parseFloat(document.getElementById('paid-amount').value)) : '-';
-                document.getElementById('review-notes').textContent = document.getElementById('notes').value || '-';
-            
-                // Salin tabel item
-                const itemsTableBody = document.getElementById('items-table-body');
-                const reviewItemsTableBody = document.getElementById('review-items-table-body');
-                reviewItemsTableBody.innerHTML = itemsTableBody.innerHTML;
-            
-                reviewItemsTableBody.querySelectorAll('tr').forEach(row => {
-                    row.removeChild(row.lastElementChild);
-                    const quantityCell = row.cells[4];
-                    quantityCell.textContent = quantityCell.querySelector('input').value;
-                });
-            
-                document.getElementById('review-total-amount').textContent = document.getElementById('total-amount').textContent;
-            
-                document.getElementById('input-page').classList.remove('active');
-                document.getElementById('review-page').classList.add('active');
+            if (i === 4) { // Cell quantity (index 4)
+                // Ambil nilai dari input quantity
+                const quantityInput = row.querySelector('.item-quantity');
+                newCell.textContent = quantityInput.value;
+            } else {
+                newCell.textContent = row.cells[i].textContent;
             }
+            
+            newRow.appendChild(newCell);
+        }
+        
+        reviewItemsTableBody.appendChild(newRow);
+    });
+
+    document.getElementById('review-total-amount').textContent = document.getElementById('total-amount').textContent;
+
+    document.getElementById('input-page').classList.remove('active');
+    document.getElementById('review-page').classList.add('active');
+}
             
             // Fungsi untuk kembali ke halaman input
             function showInputPage() {
