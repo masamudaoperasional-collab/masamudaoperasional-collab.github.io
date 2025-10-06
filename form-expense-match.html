@@ -1814,7 +1814,7 @@
         }
     }
 
-    // State Management
+    // State Management - DIPERBAIKI: Tambah historyData
     let currentState = {
         transactionType: 'bank',
         selectedBankTransaction: null,
@@ -1823,9 +1823,10 @@
         selectedPO: null,
         manualExpense: null,
         matchingHistory: [],
+        historyData: [], // BARU: Untuk menyimpan data dari webhook history
         bankTransactions: [],
         purchaseOrders: [],
-        urlParams: getUrlParams() // Tambahkan URL parameters ke state
+        urlParams: getUrlParams()
     };
 
     // Helper functions untuk parsing data
@@ -1926,7 +1927,7 @@
         }, 5000);
     }
 
-    // Navigation
+    // Navigation - DIPERBAIKI: Force reload data history
     function switchPage(pageId) {
         document.querySelectorAll('.page').forEach(page => {
             page.classList.remove('active');
@@ -1940,6 +1941,10 @@
         
         if (pageId === 'review-page') {
             loadReviewData();
+            // Force reload data untuk memastikan data terbaru
+            setTimeout(() => {
+                loadHistoryData();
+            }, 100);
         }
     }
 
@@ -2268,7 +2273,95 @@
         }
     }
     
-    // Load History Data from Webhook
+    // FUNGSI BARU: Helper untuk mendapatkan teks display kategori
+    function getCategoryDisplayText(categoryValue) {
+        if (!categoryValue) return 'Tidak ada kategori';
+        
+        const categoryMap = {
+            'electricity': 'Listrik',
+            'water': 'Air',
+            'internet': 'Internet',
+            'rent': 'Sewa Tempat',
+            'salary': 'Gaji',
+            'bonus': 'Bonus',
+            'training': 'Pelatihan',
+            'marketing': 'Pemasaran',
+            'maintenance': 'Pemeliharaan',
+            'tax': 'Pajak',
+            'other': 'Lainnya'
+        };
+        
+        return categoryMap[categoryValue] || categoryValue;
+    }
+
+    // FUNGSI BARU: Konversi data dari webhook ke format yang diharapkan popup - DIPERBAIKI
+    function convertWebhookDataToMatchFormat(webhookData) {
+        console.log("🔄 Converting webhook data:", webhookData);
+        
+        // Tentukan tipe expense berdasarkan data yang ada
+        let expenseType = 'manual';
+        let expenseData = {};
+        
+        if (webhookData.po_type === 'purchase_order' || webhookData.po_number) {
+            expenseType = 'po';
+            expenseData = {
+                poNumber: webhookData.po_number,
+                supplier: webhookData.supplier || webhookData.nama_supplier,
+                purchaseType: webhookData.po_type,
+                totalAmount: webhookData.total_amount || webhookData.totalAmount,
+                paidAmount: webhookData.paid_amount || webhookData.paidAmount,
+                items: webhookData.items_json ? parseItems(webhookData.items_json) : 
+                       webhookData.items ? parseItems(webhookData.items) : [],
+                category: webhookData.tujuan_transaksi || webhookData.expense_category,
+                categoryText: webhookData.tujuan_transaksi || webhookData.expense_category,
+                description: webhookData.keterangan_transfer || webhookData.notes || webhookData.description
+            };
+        } else {
+            // Manual expense - PERBAIKAN BESAR DI SINI
+            expenseType = 'manual';
+            expenseData = {
+                category: webhookData.tujuan_transaksi || webhookData.expense_category || webhookData.category,
+                categoryText: getCategoryDisplayText(webhookData.tujuan_transaksi || webhookData.expense_category || webhookData.category),
+                description: webhookData.keterangan_transfer || webhookData.notes || webhookData.description || 'Tidak ada keterangan'
+            };
+            console.log("📝 Manual expense data:", expenseData);
+        }
+        
+        const convertedData = {
+            id: webhookData.id || webhookData.match_id,
+            timestamp: webhookData.timestamp || webhookData.date || webhookData.created_at,
+            user_id: webhookData.user_id || 'N/A',
+            transaction: {
+                type: webhookData.trx_type || (webhookData.bank_dan_rekening ? 'bank' : 'manual'),
+                data: {
+                    // Data untuk transaksi bank
+                    bank_dan_rekening: webhookData.bank_dan_rekening,
+                    penerima: webhookData.penerima,
+                    nominal_transfer: webhookData.nominal_transfer,
+                    bombial_longfer: webhookData.bombial_longfer,
+                    tanggal: webhookData.tanggal_transfer || webhookData.tanggal,
+                    no_referensi: webhookData.no_referensi,
+                    tujuan_transaksi: webhookData.tujuan_transaksi,
+                    keterangan: webhookData.keterangan_transfer,
+                    // Data untuk transaksi manual
+                    amount: webhookData.nominal_transfer || webhookData.amount,
+                    method: webhookData.payment_method,
+                    description: webhookData.keterangan_transfer || webhookData.description
+                }
+            },
+            expense: {
+                type: expenseType,
+                data: expenseData
+            },
+            notes: webhookData.notes || webhookData.matching_notes,
+            status: webhookData.status || 'completed'
+        };
+        
+        console.log("✅ Converted data:", convertedData);
+        return convertedData;
+    }
+
+    // Load History Data from Webhook - DIPERBAIKI: Simpan data ke state
     async function loadHistoryData() {
         const tableBody = document.getElementById('reviewTableBody');
         const mobileView = document.getElementById('reviewMobileView');
@@ -2295,7 +2388,7 @@
             }
             
             const responseText = await response.text();
-            logDebug(`Response raw dari history: ${responseText}`);
+            console.log("📨 Raw response from history webhook:", responseText);
             
             let historyData;
             try {
@@ -2306,7 +2399,7 @@
                 throw new Error(`Gagal parsing response history: ${parseError.message}`);
             }
             
-            logDebug(`Parsed history data:`, historyData);
+            console.log("📊 Parsed history data:", historyData);
             
             let historyArray = [];
             
@@ -2324,8 +2417,12 @@
                 }
             }
             
-            logDebug(`Final history array:`, historyArray);
+            console.log("🔍 Final history array:", historyArray);
             logDebug(`Total history records: ${historyArray.length}`);
+            
+            // SIMPAN DATA KE STATE UNTUK DIGUNAKAN DI POPUP
+            currentState.historyData = historyArray.map(record => convertWebhookDataToMatchFormat(record));
+            console.log("💾 Saved to state:", currentState.historyData);
             
             if (!historyArray || historyArray.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada data pengeluaran</p></div></td></tr>';
@@ -2462,8 +2559,7 @@
         }
     }
 
-    // POPUP FUNCTIONS - VERSI DIPERBAIKI
-    // Fungsi untuk menampilkan popup detail
+    // POPUP FUNCTIONS - VERSI DIPERBAIKI: Cari data dari multiple sources
     function showDetailPopup(matchId) {
         logDebug("Showing detail popup for ID:", matchId);
         
@@ -2473,20 +2569,29 @@
         document.getElementById('popupExpenseSummary').innerHTML = 
             '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data...</p></div>';
         
-        // Cari data dari state atau fetch dari server
-        const matchData = currentState.matchingHistory.find(m => m.id === matchId);
+        // CARI DATA DARI MULTIPLE SOURCES - DIPERBAIKI
+        let matchData = null;
         
-        if (matchData) {
-            logDebug("Data found in local state:", matchData);
-            displayMatchDetail(matchData);
-        } else {
-            logDebug("Data not found in local state, fetching from webhook...");
-            // Jika tidak ada di local state, coba fetch dari webhook
-            fetchMatchDetail(matchId);
+        // 1. Cari di matchingHistory (data session ini)
+        matchData = currentState.matchingHistory.find(m => m.id === matchId);
+        
+        // 2. Jika tidak ditemukan, cari di historyData yang di-load dari webhook
+        if (!matchData && currentState.historyData) {
+            const webhookRecord = currentState.historyData.find(h => h.id === matchId);
+            if (webhookRecord) {
+                matchData = webhookRecord;
+            }
         }
         
-        document.getElementById('detailPopup').classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        if (matchData) {
+            logDebug("Data found:", matchData);
+            displayMatchDetail(matchData);
+            document.getElementById('detailPopup').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        } else {
+            logDebug("Data not found in any source, fetching individually...");
+            fetchMatchDetail(matchId);
+        }
     }
     
     // Fungsi untuk menutup popup
@@ -2578,12 +2683,18 @@
         }
     }
     
-    // Fungsi untuk menampilkan detail expense dan items
+    // Fungsi untuk menampilkan detail expense dan items - DIPERBAIKI
     function displayExpenseDetail(matchData) {
         const expenseSummary = document.getElementById('popupExpenseSummary');
         const expenseData = matchData.expense?.data;
         const expenseType = matchData.expense?.type;
         const itemsSection = document.getElementById('popupItemsSection');
+        
+        console.log("📊 Displaying expense detail:", {
+            expenseType: expenseType,
+            expenseData: expenseData,
+            fullMatchData: matchData
+        });
         
         if (expenseType === 'po' && expenseData) {
             const totalAmount = getTotalAmount(expenseData);
@@ -2592,12 +2703,16 @@
             
             expenseSummary.innerHTML = `
                 <div class="summary-item-popup">
+                    <span class="summary-label">Jenis:</span>
+                    <span class="summary-value">Purchase Order</span>
+                </div>
+                <div class="summary-item-popup">
                     <span class="summary-label">PO Number:</span>
-                    <span class="summary-value">${expenseData.poNumber || expenseData.no_po}</span>
+                    <span class="summary-value">${expenseData.poNumber || 'Tidak tersedia'}</span>
                 </div>
                 <div class="summary-item-popup">
                     <span class="summary-label">Supplier:</span>
-                    <span class="summary-value">${expenseData.supplier || expenseData.nama_supplier}</span>
+                    <span class="summary-value">${expenseData.supplier || 'Tidak tersedia'}</span>
                 </div>
                 <div class="summary-item-popup">
                     <span class="summary-label">Total:</span>
@@ -2611,6 +2726,12 @@
                     <span class="summary-label">Remaining:</span>
                     <span class="summary-value">Rp ${(totalAmount - paidAmount).toLocaleString('id-ID')}</span>
                 </div>
+                ${expenseData.description ? `
+                <div class="summary-item-popup">
+                    <span class="summary-label">Keterangan:</span>
+                    <span class="summary-value">${expenseData.description}</span>
+                </div>
+                ` : ''}
             `;
             
             // Tampilkan items jika ada
@@ -2622,6 +2743,8 @@
             }
             
         } else if (expenseType === 'manual' && expenseData) {
+            console.log("🛠️ Rendering manual expense:", expenseData);
+            
             expenseSummary.innerHTML = `
                 <div class="summary-item-popup">
                     <span class="summary-label">Jenis:</span>
@@ -2629,16 +2752,23 @@
                 </div>
                 <div class="summary-item-popup">
                     <span class="summary-label">Kategori:</span>
-                    <span class="summary-value">${expenseData.categoryText || expenseData.category}</span>
+                    <span class="summary-value">${expenseData.categoryText || expenseData.category || 'Tidak ada kategori'}</span>
                 </div>
                 <div class="summary-item-popup">
                     <span class="summary-label">Keterangan:</span>
-                    <span class="summary-value">${expenseData.description || 'Tidak ada'}</span>
+                    <span class="summary-value">${expenseData.description || 'Tidak ada keterangan'}</span>
                 </div>
             `;
             itemsSection.classList.add('hidden');
         } else {
-            expenseSummary.innerHTML = '<div class="empty-state">Data pengeluaran tidak tersedia</div>';
+            console.warn("❌ Expense data tidak valid:", { expenseType, expenseData });
+            expenseSummary.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Data pengeluaran tidak tersedia</p>
+                    <small>Type: ${expenseType}, Data: ${JSON.stringify(expenseData)}</small>
+                </div>
+            `;
             itemsSection.classList.add('hidden');
         }
     }
@@ -2667,7 +2797,7 @@
         }).join('');
     }
     
-    // Fungsi untuk fetch detail dari webhook jika tidak ada di local state
+    // Fungsi untuk fetch detail dari webhook jika tidak ada di local state - DIPERBAIKI
     async function fetchMatchDetail(matchId) {
         try {
             logDebug("Fetching match detail from webhook for ID:", matchId);
@@ -2685,7 +2815,17 @@
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const historyData = await response.json();
+            const responseText = await response.text();
+            console.log("📨 Raw response from webhook:", responseText);
+            
+            let historyData;
+            try {
+                historyData = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing JSON:', parseError);
+                throw new Error(`Gagal parsing response: ${parseError.message}`);
+            }
+            
             let historyArray = [];
             
             // Extract array dari response
@@ -2703,68 +2843,42 @@
                 }
             }
             
+            console.log("📊 History array from webhook:", historyArray);
+            
             // Cari record yang sesuai dengan matchId
-            const record = historyArray.find(r => r.id === matchId);
+            const record = historyArray.find(r => r.id === matchId || r.match_id === matchId);
             
             if (record) {
-                logDebug("Record found from webhook:", record);
+                console.log("✅ Record found from webhook:", record);
                 
-                // Format data untuk ditampilkan di popup
-                const formattedData = {
-                    id: record.id,
-                    timestamp: record.timestamp || record.date,
-                    user_id: record.user_id || 'N/A',
-                    transaction: {
-                        type: record.trx_type || 'unknown',
-                        data: {
-                            // Data untuk transaksi bank
-                            bank_dan_rekening: record.bank_dan_rekening,
-                            penerima: record.penerima,
-                            nominal_transfer: record.nominal_transfer,
-                            bombial_longfer: record.bombial_longfer,
-                            tanggal: record.tanggal_transfer || record.tanggal,
-                            no_referensi: record.no_referensi,
-                            tujuan_transaksi: record.tujuan_transaksi,
-                            keterangan: record.keterangan_transfer,
-                            // Data untuk transaksi manual
-                            amount: record.nominal_transfer,
-                            method: record.payment_method,
-                            description: record.keterangan_transfer
-                        }
-                    },
-                    expense: {
-                        type: record.po_type === 'purchase_order' ? 'po' : 'manual',
-                        data: {
-                            // Data untuk PO
-                            poNumber: record.po_number,
-                            supplier: record.supplier,
-                            purchaseType: record.po_type,
-                            purchaseDate: record.purchase_date,
-                            paymentMethod: record.payment_method,
-                            paymentStatus: record.payment_status,
-                            paymentDate: record.payment_date,
-                            paidAmount: record.paid_amount,
-                            totalAmount: record.total_amount,
-                            notes: record.notes_po,
-                            items: record.items_json ? parseItems(record.items_json) : [],
-                            // Data untuk expense manual
-                            category: record.tujuan_transaksi,
-                            categoryText: record.tujuan_transaksi,
-                            description: record.keterangan_transfer
-                        }
-                    },
-                    notes: record.notes,
-                    status: record.status || 'completed'
-                };
+                // Convert ke format yang konsisten
+                const formattedData = convertWebhookDataToMatchFormat(record);
+                
+                // SIMPAN KE STATE UNTUK PENGGUNAAN MENDATANG
+                if (!currentState.historyData) {
+                    currentState.historyData = [];
+                }
+                
+                // Cek apakah data sudah ada, jika belum tambahkan
+                const existingIndex = currentState.historyData.findIndex(h => h.id === matchId);
+                if (existingIndex === -1) {
+                    currentState.historyData.push(formattedData);
+                } else {
+                    currentState.historyData[existingIndex] = formattedData;
+                }
                 
                 displayMatchDetail(formattedData);
+                document.getElementById('detailPopup').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
             } else {
+                console.warn("❌ Record not found for ID:", matchId);
                 // Jika tidak ditemukan, tampilkan pesan error
                 document.getElementById('popupTransactionSummary').innerHTML = 
                     '<div class="empty-state">Data tidak ditemukan untuk ID: ' + matchId + '</div>';
                 document.getElementById('popupExpenseSummary').innerHTML = 
-                    '<div class="empty-state">Data tidak ditemukan</div>';
-                showNotification('Data detail tidak ditemukan', 'error');
+                    '<div class="empty-state">Data tidak ditemukan di server</div>';
+                document.getElementById('detailPopup').classList.remove('hidden');
+                showNotification('Data detail tidak ditemukan di server', 'error');
             }
             
         } catch (error) {
@@ -2776,6 +2890,7 @@
                 '<div class="empty-state">Gagal memuat detail data: ' + error.message + '</div>';
             document.getElementById('popupExpenseSummary').innerHTML = 
                 '<div class="empty-state">Gagal memuat detail data</div>';
+            document.getElementById('detailPopup').classList.remove('hidden');
             showNotification('Gagal memuat detail: ' + error.message, 'error');
         }
     }
@@ -3560,7 +3675,7 @@
             showNotification('Selamat datang! Silakan gunakan form pengeluaran.', 'info');
         }
         
-        // Load data dengan timeout untuk memastikan DOM siap 
+        // Load data dengan timeout untuk memastikan DOM siap
         setTimeout(() => {
             loadBankData();
             loadPOData();
@@ -3597,12 +3712,22 @@
             console.log('Selected Bank:', currentState.selectedBankTransaction);
             console.log('Selected PO:', currentState.selectedPO);
             console.log('Matching History:', currentState.matchingHistory);
+            console.log('History Data (from webhook):', currentState.historyData);
             console.groupEnd();
             showNotification('Data state telah di-log ke console', 'info');
         };
         document.body.appendChild(debugButton);
 
-    
+        // Tambahkan tombol test popup
+        const testButton = document.createElement('button');
+        testButton.innerHTML = '<i class="fas fa-vial"></i> Test Popup';
+        testButton.style.position = 'fixed';
+        testButton.style.bottom = '80px';
+        testButton.style.right = '20px';
+        testButton.style.zIndex = '1000';
+        testButton.className = 'btn confirm-btn';
+        testButton.onclick = testDetailPopup;
+        document.body.appendChild(testButton);
     });
 </script>
 </body>
