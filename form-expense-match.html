@@ -1802,7 +1802,7 @@
     const WEBHOOK_URLS = {
         bankTransactions: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hookbanktransaction',
         purchaseOrders: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hook-po',
-        submitMatching: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/output-formexpense-match',
+        submitMatching: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/output-formexpense-match',
         readHistory: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/read-output-formexpense-match'
     };
 
@@ -3718,16 +3718,6 @@
         };
         document.body.appendChild(debugButton);
 
-        // Tambahkan tombol test popup
-        const testButton = document.createElement('button');
-        testButton.innerHTML = '<i class="fas fa-vial"></i> Test Popup';
-        testButton.style.position = 'fixed';
-        testButton.style.bottom = '80px';
-        testButton.style.right = '20px';
-        testButton.style.zIndex = '1000';
-        testButton.className = 'btn confirm-btn';
-        testButton.onclick = testDetailPopup;
-        document.body.appendChild(testButton);
     });
 </script>
 </body>
