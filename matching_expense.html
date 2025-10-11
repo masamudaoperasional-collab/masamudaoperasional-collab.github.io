@@ -1393,10 +1393,75 @@
             font-size: 1rem;
         }
     }
+    /* Tambahkan sedikit style untuk modal jika belum ada */
+    .popup-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1001;
+    }
+    .popup-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
 
   </style>
 </head>
 <body>
+    <!-- Pop-up Modal Konfirmasi Hapus dengan Password -->
+<div id="deleteConfirmPopup" class="popup-modal hidden">
+    <div class="popup-content" style="max-width: 400px;">
+        <div class="popup-header">
+            <h3>Konfirmasi Hapus</h3>
+            <button class="close-btn" onclick="closeDeleteConfirmPopup()">&times;</button>
+        </div>
+        <div class="popup-body">
+            <p>Anda yakin ingin menghapus data matching dengan ID: <strong id="deleteMatchIdDisplay"></strong>?</p>
+            <div class="form-group" style="margin-top: 15px;">
+                <label for="deletePassword">Masukkan Kata Sandi Admin:</label>
+                <input type="password" id="deletePassword" class="form-control" placeholder="Kata Sandi" onkeyup="if(event.key === 'Enter') deleteMatch()">
+            </div>
+            <p id="deleteErrorMsg" style="color: red; margin-top: 10px;"></p>
+        </div>
+        <div class="popup-footer" style="display: flex; justify-content: flex-end;">
+            <button class="btn" onclick="closeDeleteConfirmPopup()">Batal</button>
+            <button class="btn btn-danger" style="margin-left: 10px;" onclick="deleteMatch()">
+                <i class="fas fa-trash"></i> Hapus Permanen
+            </button>
+        </div>
+    </div>
+</div>
     <div class="container">
         <!-- Notification Area -->
         <div id="notification" class="notification"></div>
@@ -1797,14 +1862,103 @@
     </div> 
 
 <script>
+        /* ========================================================================= */
+    /* DELETE LOGIC */
+    /* ========================================================================= */
+    
+    // KONSTANTA PASSWORD
+    const ADMIN_PASSWORD = "admin123"; // GANTI DENGAN PASSWORD ASLI YANG KUAT!
+    
+    function showDeleteConfirmPopup(matchId) {
+        currentState.selectedMatchIdToDelete = matchId;
+        document.getElementById('deleteMatchIdDisplay').textContent = matchId;
+        document.getElementById('deletePassword').value = '';
+        document.getElementById('deleteErrorMsg').textContent = '';
+        document.getElementById('deleteConfirmPopup').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeDeleteConfirmPopup() {
+        currentState.selectedMatchIdToDelete = null;
+        document.getElementById('deleteConfirmPopup').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
+    async function deleteMatch() {
+        const matchId = currentState.selectedMatchIdToDelete;
+        const passwordInput = document.getElementById('deletePassword');
+        const password = passwordInput.value;
+        const errorMsg = document.getElementById('deleteErrorMsg');
+        
+        errorMsg.textContent = '';
+        
+        if (password !== ADMIN_PASSWORD) {
+            errorMsg.textContent = 'Kata sandi salah!';
+            passwordInput.focus();
+            return;
+        }
+        
+        if (!matchId) {
+            errorMsg.textContent = 'ID yang akan dihapus tidak ditemukan.';
+            return;
+        }
+        
+        const deleteBtn = document.querySelector('#deleteConfirmPopup .btn-danger');
+        const originalText = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghapus...';
+        deleteBtn.disabled = true;
+        
+        try {
+            logDebug("Mengirim permintaan hapus untuk ID:", matchId);
+            
+            // Membangun URL untuk permintaan hapus. 
+            // Idealnya menggunakan DELETE method, tetapi POST/GET lebih umum di n8n/webhook. 
+            // Kita akan menggunakan POST dengan body.
+            const response = await fetch(WEBHOOK_URLS.deleteMatching, {
+                method: 'POST', // Gunakan POST
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                mode: 'cors',
+                body: JSON.stringify({ match_id: matchId, admin_password: password }) // Kirim ID dan Password ke n8n
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success === false) { // Asumsi n8n mengembalikan { success: false, message: '...' } jika gagal
+                throw new Error(result.message || 'Gagal menghapus data di sisi server.');
+            }
+    
+            showNotification('Data matching berhasil dihapus!', 'success');
+            
+            // Hapus data dari state lokal (opsional, tetapi lebih baik)
+            currentState.historyData = currentState.historyData.filter(h => h.id !== matchId);
+            
+            // Memuat ulang tampilan review history
+            loadReviewData();
+            closeDeleteConfirmPopup();
+            
+        } catch (error) {
+            console.error('Error deleting matching:', error);
+            errorMsg.textContent = 'Gagal menghapus: ' + error.message;
+            showNotification('Gagal menghapus data: ' + error.message, 'error');
+        } finally {
+            deleteBtn.innerHTML = originalText;
+            deleteBtn.disabled = false;
+        }
+    }
     /* ========================================================================= */
     /* KONFIGURASI WEBHOOKS */
     /* ========================================================================= */
     const WEBHOOK_URLS = {
-        bankTransactions: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hookbanktransaction',
-        purchaseOrders: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hook-po',
-        submitMatching: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/output-formexpense-match',
-        readHistory: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/read-output-formexpense-match'
+    bankTransactions: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hookbanktransaction',
+    purchaseOrders: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hook-po',
+    submitMatching: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/output-formexpense-match',
+    readHistory: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/read-output-formexpense-match',
+    // BARU: Webhook untuk menghapus data
+    deleteMatching: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/delete-output-formexpense-match' // GANTI DENGAN WEBHOOK DELETE ASLI ANDA
     };
 
     /* ========================================================================= */
@@ -1828,6 +1982,7 @@
         historyData: [], 
         bankTransactions: [], 
         purchaseOrders: [],  
+        selectedMatchIdToDelete: null,
         urlParams: getUrlParams()
     };
 
@@ -2428,6 +2583,9 @@
                             <button class="btn" style="padding: 6px 12px; font-size: 12px;" onclick="showDetailPopup('${recordId}')">
                                 <i class="fas fa-eye"></i> Detail
                             </button>
+                            <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="showDeleteConfirmPopup('${recordId}')">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -2480,6 +2638,9 @@
                         <div class="card-actions">
                             <button class="btn" style="padding: 6px 12px; font-size: 12px;" onclick="showDetailPopup('${recordId}')">
                                 <i class="fas fa-eye"></i> Detail
+                            </button>
+                            <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="showDeleteConfirmPopup('${recordId}')">
+                                <i class="fas fa-trash"></i> Hapus
                             </button>
                         </div>
                     </div>
