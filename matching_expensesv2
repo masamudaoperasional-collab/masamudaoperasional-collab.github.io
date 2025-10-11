@@ -1,0 +1,3267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pengeluaran - Coffee Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========================================================================= */
+        /* BASE & VARIABLES */
+        /* ========================================================================= */
+        :root {
+            --primary-color: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --danger-color: #ef4444;
+            --danger-light: #f87171;
+            --success-color: #10b981;
+            --success-light: #34d399;
+            --warning-color: #f59e0b;
+            --text-color: #334155;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
+            --background-color: #f8fafc;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            color: var(--text-color);
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1, h2 { 
+            text-align: center; 
+            margin-bottom: 24px; 
+            color: var(--primary-color); 
+            font-weight: 700; 
+            font-size: 1.75rem;
+            position: relative;
+            padding-bottom: 12px;
+        }
+        
+        h1::after, h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary-color), var(--success-color));
+            border-radius: 2px;
+        }
+
+        /* ========================================================================= */
+        /* CARD & FORM STYLES */
+        /* ========================================================================= */
+        form, .card {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto 24px;
+            background: var(--card-bg);
+            padding: 28px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+        
+        form:hover, .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .form-row { 
+            display: flex; 
+            gap: 20px; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap; 
+        }
+        
+        .form-group { 
+            flex: 1; 
+            min-width: 0;
+            position: relative;
+        }
+        
+        label { 
+            font-weight: 500; 
+            display: block; 
+            margin-bottom: 8px; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-color);
+            font-size: 15px;
+        }
+        
+        .required::after {
+            content: ' *';
+            color: var(--danger-color);
+        }
+        
+        select, input[type="number"], input[type="text"], textarea, input[type="file"] {
+            width: 100%; 
+            padding: 14px 16px; 
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm); 
+            outline: none; 
+            font-family: 'Poppins', sans-serif; 
+            font-size: 16px;
+            max-width: 100%;
+            transition: var(--transition);
+            background-color: var(--card-bg);
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        textarea { 
+            resize: vertical; 
+            min-height: 120px; 
+        }
+        
+        .date-nav { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            width: 100%;
+        }
+        
+        .date-nav button {
+            padding: 12px 16px; 
+            background: var(--primary-color); 
+            color: white;
+            border-radius: var(--radius-sm); 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 500;
+            font-size: 16px;
+            min-width: 44px;
+            min-height: 44px;
+            flex-shrink: 0;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .date-nav button:hover { 
+            background: var(--primary-dark); 
+            transform: translateY(-2px);
+        }
+        
+        .date-nav input { 
+            text-align: center; 
+            background: var(--background-color); 
+            border: 1px solid var(--border-color); 
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            font-weight: 500;
+        }
+
+        .date-filter {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            background-color: var(--card-bg);
+            cursor: pointer;
+        }
+        
+        .date-filter:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* ========================================================================= */
+        /* BUTTON STYLES */
+        /* ========================================================================= */
+        button {
+            padding: 14px 20px; 
+            border-radius: var(--radius-sm); 
+            border: none; 
+            cursor: pointer;
+            font-weight: 500; 
+            transition: var(--transition); 
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button i {
+            font-size: 14px;
+        }
+        
+        .add-btn { 
+            background: var(--primary-color); 
+            color: white; 
+            margin-top: 16px; 
+            width: 100%;
+            font-weight: 600;
+        }
+        
+        .add-btn:hover { 
+            background: var(--primary-dark); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+        }
+        
+        .remove-btn { 
+            background: var(--danger-color); 
+            color: white; 
+            padding: 10px 14px;
+            font-size: 14px;
+            min-height: 40px;
+            white-space: nowrap;
+        }
+        
+        .remove-btn:hover {
+            background: var(--danger-light);
+        }
+        
+        .submit-btn, .confirm-btn { 
+            background: var(--success-color); 
+            color: white; 
+            font-weight: 600;
+        }
+        
+        .submit-btn:hover, .confirm-btn:hover {
+            background: var(--success-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+        }
+        
+        .back-btn { 
+            background: var(--danger-color); 
+            color: white; 
+            margin-right: 12px; 
+        }
+        
+        .back-btn:hover {
+            background: var(--danger-light);
+        }
+
+        /* ========================================================================= */
+        /* TABLE & MOBILE CARD STYLES */
+        /* ========================================================================= */
+        .table-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin: 20px 0 15px; 
+        }
+        
+        .table-header h3 { 
+            margin: 0; 
+            font-weight: 600; 
+            color: #111827; 
+            font-size: 1.3rem;
+        }
+
+        /* Table wrapper untuk scroll di mobile */
+        .table-wrapper { 
+            width: 100%; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 0;
+            font-size: 15px; 
+            min-width: 600px;
+        }
+        
+        th, td { 
+            border: 1px solid var(--border-color); 
+            padding: 14px 12px; 
+            text-align: center; 
+            word-break: break-word;
+            max-width: 200px;
+        }
+        
+        th { 
+            background: linear-gradient(to bottom, #f8fafc, #f1f5f9); 
+            font-weight: 600; 
+            white-space: nowrap;
+            color: var(--text-color);
+            font-size: 15px;
+        }
+        
+        tr:hover td { 
+            background-color: #f8fafc; 
+        }
+
+        /* Tampilan kartu untuk tabel di mobile */
+        .mobile-card-view {
+            display: none;
+        }
+        
+        .card-row {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin-bottom: 16px;
+            background: var(--card-bg);
+            transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .card-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-field {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .card-field:last-child {
+            margin-bottom: 0;
+        }
+        
+        .card-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: var(--text-light);
+        }
+        
+        .card-value {
+            flex: 1;
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        /* ========================================================================= */
+        /* CUSTOM STYLES: Matching, Navigation, Data Card */
+        /* ========================================================================= */
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 14px 24px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+        }
+        
+        .nav-btn.active {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .nav-btn:hover:not(.active) {
+            background: #f0f9ff;
+            transform: translateY(-2px);
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .matching-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .section {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px;
+            background: var(--card-bg);
+            transition: var(--transition);
+        }
+        
+        .section:hover {
+            box-shadow: var(--shadow);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: #111827;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title i {
+            color: var(--primary-color);
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 6px;
+            border-radius: var(--radius-sm);
+        }
+        
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .data-card {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--card-bg);
+        }
+        
+        .data-card:hover {
+            border-color: var(--primary-color);
+            background-color: #f0f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .data-card.selected {
+            border-color: var(--primary-color);
+            background-color: #dbeafe;
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.1);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-unpaid {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-partial {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .matching-stage {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-color: var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .matching-stage::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary-color), var(--success-color));
+        }
+        
+        .matching-summary {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .match-arrow {
+            text-align: center;
+            font-size: 28px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .summary-item {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .summary-divider {
+            border-top: 1px solid var(--border-color);
+            margin: 12px 0;
+            padding-top: 12px;
+        }
+        
+        .photo-upload {
+            border: 2px dashed #d1d5db;
+            border-radius: var(--radius-sm);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            background: #f9fafb;
+            transition: var(--transition);
+        }
+        
+        .photo-upload:hover {
+            border-color: var(--primary-color);
+            background: #f0f9ff;
+        }
+        
+        .photo-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 12px;
+            border-radius: var(--radius-sm);
+            display: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .search-box input {
+            padding-left: 42px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+            background: #f9fafb;
+            border-radius: var(--radius-sm);
+            border: 1px dashed #d1d5db;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* ========================================================================= */
+        /* NOTIFICATION */
+        /* ========================================================================= */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: var(--radius-sm);
+            color: white;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: var(--success-color);
+        }
+        
+        .notification.error {
+            background: var(--danger-color);
+        }
+        
+        .notification.warning {
+            background: var(--warning-color);
+        }
+
+        /* ========================================================================= */
+        /* POPUP STYLES */
+        /* ========================================================================= */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .popup-overlay.hidden {
+            display: none;
+        }
+        
+        .popup-container {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+        
+        .popup-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.4rem;
+        }
+        
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+        
+        .popup-close:hover {
+            background: var(--danger-light);
+            color: white;
+        }
+        
+        .popup-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        
+        .popup-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-color);
+            background: #f8fafc;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* Detail Header */
+        .detail-header {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: white;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .detail-id, .detail-date {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .label {
+            font-size: 12px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        
+        .value {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        /* Matching Layout Popup */
+        .matching-layout-popup {
+            margin: 24px 0;
+        }
+        
+        .matching-summary-popup {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        .summary-card-popup {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            height: 100%;
+        }
+        
+        .section-title-popup {
+            font-weight: 600;
+            color: #111827;
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .section-title-popup i {
+            color: var(--primary-color);
+        }
+        
+        .match-arrow-popup {
+            text-align: center;
+            font-size: 24px;
+            color: var(--primary-color);
+            font-weight: 700;
+            padding-top: 40px;
+        }
+        
+        .summary-content {
+            min-height: 120px;
+        }
+
+        /* Items Section */
+        .items-section {
+            margin: 24px 0;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .items-table-wrapper {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .items-table th {
+            background: linear-gradient(to bottom, #f1f5f9, #e2e8f0);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .items-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        /* Notes Section */
+        .notes-section {
+            margin: 24px 0;
+            padding: 20px;
+            background: white;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .notes-content {
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--primary-color);
+            font-style: italic;
+        }
+        
+        /* Additional Info */
+        .additional-info {
+            margin-top: 24px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: var(--text-light);
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .info-value.amount {
+            color: var(--success-color);
+            font-size: 1.1rem;
+        }
+        
+        /* Summary Item Styles */
+        .summary-item-popup {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .summary-item-popup:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .summary-label {
+            font-weight: 500;
+            color: var(--text-light);
+            min-width: 120px;
+        }
+        
+        .summary-value {
+            font-weight: 600;
+            color: var(--text-color);
+            text-align: right;
+            flex: 1;
+        }
+
+        /* ========================================================================= */
+        /* RESPONSIVE */
+        /* ========================================================================= */
+        @media (max-width: 1024px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body { 
+                padding: 16px; 
+                font-size: 15px; 
+            }
+            
+            form, .card { 
+                padding: 20px; 
+            }
+            
+            .form-row { 
+                flex-direction: column; 
+                gap: 16px; 
+            }
+            
+            .form-group { 
+                width: 100%; 
+            }
+            
+            table { 
+                font-size: 14px; 
+            }
+            
+            th, td {
+                padding: 12px 8px;
+                max-width: 150px;
+            }
+            
+            .date-nav { 
+                flex-wrap: nowrap;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .back-btn, .confirm-btn {
+                width: 100%;
+                margin-right: 0;
+            }
+            
+            /* Sembunyikan tabel, tampilkan kartu pada layar kecil */
+            .table-wrapper {
+                display: none;
+            }
+            
+            .mobile-card-view {
+                display: block;
+            }
+            
+            .add-btn {
+                margin-top: 20px;
+            }
+            
+            .file-preview {
+                flex-direction: column;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .matching-summary {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .match-arrow {
+                transform: rotate(90deg);
+                padding: 16px 0;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            
+            .tab-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            /* Popup Responsive */
+            .popup-container {
+                margin: 10px;
+                max-height: 95vh;
+            }
+            
+            .matching-summary-popup {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .match-arrow-popup {
+                transform: rotate(90deg);
+                padding: 16px 0;
+            }
+            
+            .detail-header {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                text-align: center;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .items-table {
+                font-size: 14px;
+            }
+            
+            .items-table th,
+            .items-table td {
+                padding: 8px 6px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            
+            form, .card {
+                padding: 16px;
+            }
+            
+            h1, h2 {
+                font-size: 1.4rem;
+                margin-bottom: 20px;
+            }
+            
+            .table-header h3 {
+                font-size: 1.1rem;
+            }
+            
+            th, td {
+                padding: 10px 6px;
+                font-size: 13px;
+                max-width: 120px;
+            }
+            
+            select, input, textarea { 
+                font-size: 15px; 
+                padding: 12px 14px;
+            }
+            
+            .date-nav button {
+                padding: 10px 12px;
+                min-width: 42px;
+                min-height: 42px;
+                font-size: 14px;
+            }
+            
+            .card-field {
+                flex-direction: column;
+            }
+            
+            .card-label {
+                min-width: auto;
+                margin-bottom: 6px;
+            }
+            
+            .card-value {
+                text-align: left;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .tab-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            /* Popup Responsive */
+            .popup-content {
+                padding: 16px;
+            }
+            
+            .popup-header {
+                padding: 16px;
+            }
+            
+            .popup-header h3 {
+                font-size: 1.2rem;
+            }
+            
+            .summary-card-popup {
+                padding: 16px;
+            }
+            
+            .section-title-popup {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            body {
+                padding: 8px;
+            }
+            
+            form, .card {
+                padding: 14px;
+            }
+            
+            .date-nav {
+                flex-wrap: wrap;
+            }
+            
+            .date-nav input {
+                order: -1;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .tab-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Notification Area -->
+        <div id="notification" class="notification"></div>
+
+        <!-- Navigation -->
+        <div class="nav-container">
+            <button class="nav-btn active" data-page="matching-page">
+                <i class="fas fa-exchange-alt"></i>
+                Input Pengeluaran
+            </button>
+            <button class="nav-btn" data-page="review-page">
+                <i class="fas fa-history"></i>
+                Review & History
+            </button>
+        </div>
+
+        <!-- Halaman 1: Matching & Input Pengeluaran -->
+        <div id="matching-page" class="page active">
+            <div class="card">
+                <h1><i class="fas fa-money-bill-wave"></i> Input Pengeluaran - Matching System</h1>
+                
+                <div class="matching-layout">
+                    <!-- Card Grid untuk Section 1 dan 2 -->
+                    <div class="card-grid">
+                        <!-- Section 1: Pemilihan Transaksi Keluar -->
+                        <div class="section">
+                            <div class="section-header">
+                                <div class="section-title">
+                                    <i class="fas fa-wallet"></i>
+                                    Sumber Transaksi Keluar
+                                </div>
+                                <div class="tab-buttons">
+                                    <button class="tab-btn active" data-tab="bank">
+                                        <i class="fas fa-university"></i>
+                                        Bank
+                                    </button>
+                                    <button class="tab-btn" data-tab="manual">
+                                        <i class="fas fa-edit"></i>
+                                        Manual
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Tab Bank -->
+                            <div id="bank-tab">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="searchBank" placeholder="Cari transaksi bank...">
+                                </div>
+                                
+                                <div id="bankList">
+                                    <div class="empty-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p>Memuat data transaksi bank dari webhook...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tab Manual -->
+                            <div id="manual-tab" class="hidden">
+                                <div class="form-group">
+                                    <label for="manualAmount" class="required">Jumlah Pengeluaran</label>
+                                    <input type="number" id="manualAmount" name="manualAmount" min="0" step="0.01" placeholder="0">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="manualPaymentMethod" class="required">Metode Pembayaran</label>
+                                    <select id="manualPaymentMethod" name="manualPaymentMethod">
+                                        <option value="">Pilih Metode</option>
+                                        <option value="cash">Tunai</option>
+                                        <option value="debt">Hutang</option>
+                                        <option value="other">Lainnya</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="manualDescription">Keterangan</label>
+                                    <textarea id="manualDescription" name="manualDescription" rows="2" placeholder="Deskripsi pengeluaran manual..."></textarea>
+                                </div>
+                                
+                                <div class="upload-section">
+                                    <h4><i class="fas fa-cloud-upload-alt"></i> Upload Bukti (Opsional)</h4>
+                                    <div class="photo-upload" id="manualPhotoUpload">
+                                        <p><i class="fas fa-camera"></i> Klik untuk upload foto bukti</p>
+                                        <input type="file" id="manualPhotoInput" accept="image/*" style="display: none;">
+                                        <img id="manualPhotoPreview" class="photo-preview" alt="Preview">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Pengeluaran Untuk -->
+                        <div class="section">
+                            <div class="section-header">
+                                <div class="section-title">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Pengeluaran Untuk
+                                </div>
+                                <div class="tab-buttons">
+                                    <button class="tab-btn" data-tab="po">Purchase Order</button>
+                                    <button class="tab-btn active" data-tab="manual-expense">Manual</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Tab PO -->
+                            <div id="po-tab" class="hidden">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="searchPO" placeholder="Cari PO...">
+                                </div>
+                                
+                                <div id="poList">
+                                    <div class="empty-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p>Memuat data PO dari webhook...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tab Manual Expense -->
+                            <div id="manual-expense-tab">
+                                <div class="form-group">
+                                    <label for="expenseCategory" class="required">Kategori Pengeluaran</label>
+                                    <select id="expenseCategory" name="expenseCategory">
+                                        <option value="">Pilih Kategori</option>
+                                        <optgroup label="Operasional">
+                                            <option value="electricity">Listrik</option>
+                                            <option value="water">Air</option>
+                                            <option value="internet">Internet</option>
+                                            <option value="rent">Sewa Tempat</option>
+                                        </optgroup>
+                                        <optgroup label="Karyawan">
+                                            <option value="salary">Gaji</option>
+                                            <option value="bonus">Bonus</option>
+                                            <option value="training">Pelatihan</option>
+                                        </optgroup>
+                                        <optgroup label="Lainnya">
+                                            <option value="marketing">Pemasaran</option>
+                                            <option value="maintenance">Pemeliharaan</option>
+                                            <option value="tax">Pajak</option>
+                                            <option value="other">Lainnya</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="expenseDescription">Keterangan Detail</label>
+                                    <textarea id="expenseDescription" name="expenseDescription" rows="2" placeholder="Detail pengeluaran..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Matching Stage -->
+                    <div class="section matching-stage">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <i class="fas fa-link"></i>
+                                Ringkasan Matching
+                            </div>
+                        </div>
+                        
+                        <div class="matching-summary">
+                            <div class="summary-card">
+                                <div class="section-title" style="margin-bottom: 16px;">
+                                    <i class="fas fa-wallet"></i>
+                                    Transaksi Keluar
+                                </div>
+                                <div id="transactionSummary">
+                                    <div class="empty-state" style="padding: 20px;">
+                                        <i class="fas fa-hand-pointer"></i>
+                                        <p>Pilih transaksi bank atau input manual</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="match-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            
+                            <div class="summary-card">
+                                <div class="section-title" style="margin-bottom: 16px;">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Pengeluaran Untuk
+                                </div>
+                                <div id="expenseSummary">
+                                    <div class="empty-state" style="padding: 20px;">
+                                        <i class="fas fa-hand-pointer"></i>
+                                        <p>Pilih PO atau input manual</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label for="matchingNotes">
+                                <i class="fas fa-sticky-note"></i>
+                                Catatan Matching (Opsional)
+                            </label>
+                            <textarea id="matchingNotes" name="matchingNotes" rows="2" placeholder="Tambahkan catatan untuk matching ini..."></textarea>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button type="button" class="btn back-btn" onclick="resetMatching()">
+                                <i class="fas fa-redo"></i>
+                                Reset Form
+                            </button>
+                            <button type="button" class="btn confirm-btn" onclick="submitMatching()">
+                                <i class="fas fa-check-circle"></i>
+                                Simpan Matching
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POPUP DETAIL CARD -->
+        <div id="detailPopup" class="popup-overlay hidden">
+            <div class="popup-container">
+                <div class="popup-header">
+                    <h3><i class="fas fa-info-circle"></i> Detail Matching Pengeluaran</h3>
+                    <button class="popup-close" onclick="closeDetailPopup()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="popup-content">
+                    <!-- Header Info -->
+                    <div class="detail-header">
+                        <div class="detail-id">
+                            <span class="label">ID Matching:</span>
+                            <span class="value" id="popupMatchId">MATCH-123456789</span>
+                        </div>
+                        <div class="detail-date">
+                            <span class="label">Tanggal:</span>
+                            <span class="value" id="popupMatchDate">12 Des 2024, 14:30</span>
+                        </div>
+                        <div class="detail-status">
+                            <span class="status-badge status-paid">Completed</span>
+                        </div>
+                    </div>
+
+                    <!-- Matching Layout (Mirip matching-stage) -->
+                    <div class="matching-layout-popup">
+                        <div class="matching-summary-popup">
+                            <!-- Sumber Transaksi -->
+                            <div class="summary-card-popup">
+                                <div class="section-title-popup">
+                                    <i class="fas fa-wallet"></i>
+                                    Sumber Transaksi Keluar
+                                </div>
+                                <div class="summary-content" id="popupTransactionSummary">
+                                    <!-- Data akan diisi oleh JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <div class="match-arrow-popup">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            
+                            <!-- Pengeluaran Untuk -->
+                            <div class="summary-card-popup">
+                                <div class="section-title-popup">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Pengeluaran Untuk
+                                </div>
+                                <div class="summary-content" id="popupExpenseSummary">
+                                    <!-- Data akan diisi oleh JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Items PO (jika ada) -->
+                    <div class="items-section hidden" id="popupItemsSection">
+                        <div class="section-title-popup">
+                            <i class="fas fa-boxes"></i>
+                            Detail Items Purchase Order
+                        </div>
+                        <div class="items-table-wrapper">
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>SKU</th>
+                                        <th>Qty</th>
+                                        <th>Harga</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="popupItemsTable">
+                                    <!-- Data items akan diisi oleh JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Catatan -->
+                    <div class="notes-section">
+                        <div class="section-title-popup">
+                            <i class="fas fa-sticky-note"></i>
+                            Catatan Matching
+                        </div>
+                        <div class="notes-content" id="popupNotes">
+                            Tidak ada catatan
+                        </div>
+                    </div>
+
+                    <!-- Informasi Tambahan -->
+                    <div class="additional-info">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">User ID:</span>
+                                <span class="info-value" id="popupUserId">USR-001</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Tipe Matching:</span>
+                                <span class="info-value" id="popupMatchType">Bank → PO</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Amount:</span>
+                                <span class="info-value amount" id="popupTotalAmount">Rp 1.000.000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popup-footer">
+                    <button class="btn confirm-btn" onclick="closeDetailPopup()">
+                        <i class="fas fa-check"></i>
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Halaman 2: Review & History -->
+        <div id="review-page" class="page">
+            <div class="card">
+                <h1><i class="fas fa-history"></i> Review & History Pengeluaran</h1>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="fas fa-list-alt"></i>
+                            Riwayat Pengeluaran Terbaru
+                        </div>
+                        <div class="tab-buttons">
+                            <button class="tab-btn active" data-review-tab="all">Semua</button>
+                            <button class="tab-btn" data-review-tab="po">PO Matching</button>
+                            <button class="tab-btn" data-review-tab="bank">Bank Matching</button>
+                            <button class="tab-btn" data-review-tab="manual">Manual</button>
+                        </div>
+                    </div>
+                    
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchReview" placeholder="Cari riwayat pengeluaran...">
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Jenis</th>
+                                    <th>Amount</th>
+                                    <th>Dari</th>
+                                    <th>Untuk</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reviewTableBody">
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="empty-state" style="padding: 20px;">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            <p>Memuat data dari server...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Mobile Card View -->
+                    <div class="mobile-card-view" id="reviewMobileView">
+                        <div class="empty-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Memuat data dari server...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    /* ========================================================================= */
+    /* KONFIGURASI WEBHOOKS */
+    /* ========================================================================= */
+    const WEBHOOK_URLS = {
+        bankTransactions: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hookbanktransaction',
+        purchaseOrders: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hook-po',
+        submitMatching: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/output-formexpense-match',
+        readHistory: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/read-output-formexpense-match'
+    };
+
+    /* ========================================================================= */
+    /* STATE MANAGEMENT & UTILITIES */
+    /* ========================================================================= */
+    function getUrlParams() {
+        const p = new URLSearchParams(window.location.search);
+        return {
+            id: p.get('id')
+        }
+    }
+
+    let currentState = {
+        transactionType: 'bank',
+        selectedBankTransaction: null,
+        manualTransaction: null,
+        expenseType: 'manual-expense', // Diperbaiki, harus sesuai dengan id div
+        selectedPO: null,
+        manualExpense: null,
+        matchingHistory: [],
+        historyData: [],
+        bankTransactions: [],
+        purchaseOrders: [],
+        urlParams: getUrlParams()
+    };
+
+    function parseCurrency(currencyString) {
+        if (!currencyString) return 0;
+        
+        const numericString = currencyString.toString()
+            .replace(/[^\d,]/g, '')
+            .replace(',', '.');
+        
+        return parseFloat(numericString) || 0;
+    }
+
+    function parseItems(itemsString) {
+        if (!itemsString) return [];
+        if (Array.isArray(itemsString)) return itemsString;
+        if (typeof itemsString === 'object') return [itemsString];
+        
+        if (typeof itemsString === 'string') {
+            try {
+                let cleanedString = itemsString.trim();
+                
+                if (cleanedString.startsWith('[') && cleanedString.endsWith(']')) {
+                    return JSON.parse(cleanedString);
+                }
+                else if (cleanedString.startsWith('{') && cleanedString.endsWith('}')) {
+                    return [JSON.parse(cleanedString)];
+                }
+                else {
+                    return JSON.parse(cleanedString);
+                }
+            } catch (e) {
+                console.warn('Error parsing items:', e);
+                console.warn('Raw items string:', itemsString);
+                return [];
+            }
+        }
+        return [];
+    }
+
+    function getPaymentStatus(po) {
+        if (!po) return 'unpaid';
+        
+        const totalAmount = getTotalAmount(po);
+        const paidAmount = po.paidAmount || 0;
+        
+        if (paidAmount >= totalAmount) return 'paid';
+        if (paidAmount > 0) return 'partial';
+        return 'unpaid';
+    }
+
+    function getTotalAmount(po) {
+        if (!po) return 0;
+        
+        if (po.totalAmount) return po.totalAmount;
+        
+        if (po.items && Array.isArray(po.items)) {
+            return po.items.reduce((sum, item) => sum + (item.subtotal || (item.quantity || 0) * (item.price || 0)), 0);
+        }
+        
+        const items = parseItems(po.items);
+        if (items.length > 0) {
+            return items.reduce((sum, item) => sum + (item.subtotal || (item.quantity || 0) * (item.price || 0)), 0);
+        }
+        
+        return po.total || po.amount || 0;
+    }
+
+    function logDebug(message, data = null) {
+        const timestamp = new Date().toISOString();
+        if (data !== null) {
+            console.log(`[DEBUG] ${timestamp}: ${message}`, data);
+        } else {
+            console.log(`[DEBUG] ${timestamp}: ${message}`);
+        }
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 5000);
+    }
+    
+    function formatDateForDisplay(dateString) {
+        if (!dateString) return 'Tanggal tidak tersedia';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                return dateString;
+            }
+            return date.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return dateString;
+        }
+    }
+
+    function getCategoryDisplayText(categoryValue) {
+        if (!categoryValue) return 'Tidak ada kategori';
+        
+        const categoryMap = {
+            'electricity': 'Listrik',
+            'water': 'Air',
+            'internet': 'Internet',
+            'rent': 'Sewa Tempat',
+            'salary': 'Gaji',
+            'bonus': 'Bonus',
+            'training': 'Pelatihan',
+            'marketing': 'Pemasaran',
+            'maintenance': 'Pemeliharaan',
+            'tax': 'Pajak',
+            'other': 'Lainnya'
+        };
+        
+        return categoryMap[categoryValue] || categoryValue;
+    }
+    
+    /* ========================================================================= */
+    /* NAVIGATION & TAB SWITCHING */
+    /* ========================================================================= */
+    function switchPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+        });
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        document.getElementById(pageId).classList.add('active');
+        document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+        
+        if (pageId === 'review-page') {
+            loadReviewData();
+            setTimeout(() => {
+                loadHistoryData();
+            }, 100);
+        }
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            switchPage(this.dataset.page);
+        });
+    });
+
+    function switchTab(section, tabName) {
+        if (section === 'transaction') {
+            currentState.transactionType = tabName;
+            document.querySelectorAll('#bank-tab, #manual-tab').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+                if (btn.parentElement.previousElementSibling?.textContent.includes('Sumber Transaksi Keluar')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+            
+            resetTransactionSelection();
+        }
+        
+        if (section === 'expense') {
+            currentState.expenseType = tabName;
+            document.querySelectorAll('#po-tab, #manual-expense-tab').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+                if (btn.parentElement.previousElementSibling?.textContent.includes('Pengeluaran Untuk')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+                if (btn.parentElement.previousElementSibling?.textContent.includes('Pengeluaran Untuk') && 
+                    btn.dataset.tab === tabName) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            resetExpenseSelection();
+        }
+        
+        updateMatchingSummary(); 
+    }
+
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const section = this.parentElement.previousElementSibling.textContent.trim();
+            const tabName = this.dataset.tab;
+            
+            if (section.includes('Sumber Transaksi Keluar')) {
+                switchTab('transaction', tabName);
+            } else if (section.includes('Pengeluaran Untuk')) {
+                switchTab('expense', tabName);
+            }
+        });
+    });
+
+    /* ========================================================================= */
+    /* DATA LOADING (WEBHOOK) */
+    /* ========================================================================= */
+    async function loadBankData() {
+        const bankList = document.getElementById('bankList');
+        bankList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data transaksi bank...</p></div>';
+        
+        try {
+            logDebug("Memulai pengambilan data bank...");
+            
+            const response = await fetch(WEBHOOK_URLS.bankTransactions, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const responseText = await response.text();
+            
+            let transactionsData;
+            try {
+                transactionsData = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing JSON:', parseError);
+                const cleanedResponse = responseText.replace(/[^\x20-\x7E\n\r]/g, '');
+                transactionsData = JSON.parse(cleanedResponse);
+            }
+            
+            let transactionsArray = [];
+            
+            if (Array.isArray(transactionsData)) {
+                transactionsArray = transactionsData;
+            } else if (typeof transactionsData === 'object' && transactionsData !== null) {
+                if (transactionsData.data && Array.isArray(transactionsData.data)) {
+                    transactionsArray = transactionsData.data;
+                } else if (transactionsData.transactions && Array.isArray(transactionsData.transactions)) {
+                    transactionsArray = transactionsData.transactions;
+                } else if (transactionsData.records && Array.isArray(transactionsData.records)) {
+                    transactionsArray = transactionsData.records;
+                } else {
+                    transactionsArray = [transactionsData];
+                }
+            }
+            
+            currentState.bankTransactions = transactionsArray;
+            
+            if (!transactionsArray || transactionsArray.length === 0) {
+                bankList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada transaksi bank</p></div>';
+                return;
+            }
+            
+            transactionsArray.sort((a, b) => {
+                const dateA = new Date(a.tanggal || a.transaction_date || a.date || 0);
+                const dateB = new Date(b.tanggal || b.transaction_date || b.date || 0);
+                return dateB - dateA;
+            });
+            
+            bankList.innerHTML = transactionsArray.map((transaction, index) => {
+                const cleanTransaction = {};
+                Object.keys(transaction).forEach(key => {
+                    let value = transaction[key];
+                    if (typeof value === 'string') {
+                        value = value.replace(/,$/, '').trim();
+                        value = value.replace(/""/g, '"');
+                    }
+                    cleanTransaction[key] = value;
+                });
+    
+                const nominal = parseCurrency(cleanTransaction.bombial_longfer || cleanTransaction.nominal_transfer || '0');
+                const bankInfo = cleanTransaction.bank_dan_rekening || 'Bank tidak tersedia';
+                const referensi = cleanTransaction.no_referensi || 'Tidak ada referensi';
+                const penerima = cleanTransaction.tujuan_transass || cleanTransaction.penerima || 'Tidak ada nama';
+                const tanggal = cleanTransaction.tanggal || cleanTransaction.transaction_date || 'Tanggal tidak tersedia';
+                
+                const displayDate = formatDateForDisplay(tanggal);
+                
+                return `
+                    <div class="data-card" data-bank-index="${index}" data-transaction-date="${tanggal}" onclick="selectBankTransaction(${index})">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div>
+                                <strong>Rp ${nominal.toLocaleString('id-ID')}</strong>
+                                <div style="font-size: 14px; color: #6b7280;">${penerima}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span class="status-badge status-pending">Pending</span>
+                                <div style="font-size: 14px; color: #6b7280;">${displayDate}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: #6b7280;">
+                            ${bankInfo} • Ref: ${referensi}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            updateBankDateFilter(transactionsArray);
+            
+            showNotification(`Berhasil memuat ${transactionsArray.length} transaksi bank`, 'success');
+            
+        } catch (error) {
+            console.error('Error loading bank data:', error);
+            logDebug(`Error loading bank data: ${error}`);
+            bankList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data transaksi bank</p></div>';
+            showNotification('Gagal memuat data transaksi bank: ' + error.message, 'error');
+        }
+    }
+    
+    async function loadPOData() {
+        const poList = document.getElementById('poList');
+        poList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data PO...</p></div>';
+        
+        try {
+            logDebug("Memulai pengambilan data PO...");
+            
+            const response = await fetch(WEBHOOK_URLS.purchaseOrders, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const responseText = await response.text();
+            
+            let purchaseOrdersData;
+            try {
+                purchaseOrdersData = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing JSON:', parseError);
+                const cleanedResponse = responseText.replace(/[^\x20-\x7E\n\r]/g, '');
+                purchaseOrdersData = JSON.parse(cleanedResponse);
+            }
+            
+            let purchaseOrdersArray = [];
+            
+            if (Array.isArray(purchaseOrdersData)) {
+                purchaseOrdersArray = purchaseOrdersData;
+            } else if (typeof purchaseOrdersData === 'object' && purchaseOrdersData !== null) {
+                if (purchaseOrdersData.data && Array.isArray(purchaseOrdersData.data)) {
+                    purchaseOrdersArray = purchaseOrdersData.data;
+                } else if (purchaseOrdersData.purchaseOrders && Array.isArray(purchaseOrdersData.purchaseOrders)) {
+                    purchaseOrdersArray = purchaseOrdersData.purchaseOrders;
+                } else if (purchaseOrdersData.records && Array.isArray(purchaseOrdersData.records)) {
+                    purchaseOrdersArray = purchaseOrdersData.records;
+                } else if (purchaseOrdersData.items && Array.isArray(purchaseOrdersData.items)) {
+                    purchaseOrdersArray = purchaseOrdersData.items;
+                } else {
+                    purchaseOrdersArray = [purchaseOrdersData];
+                }
+            }
+            
+            if (!purchaseOrdersArray || purchaseOrdersArray.length === 0) {
+                poList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada data PO</p></div>';
+                return;
+            }
+            
+            purchaseOrdersArray.sort((a, b) => {
+                const dateA = new Date(a.purchaseDate || a.created_date || a.date || 0);
+                const dateB = new Date(b.purchaseDate || b.created_date || b.date || 0);
+                return dateB - dateA;
+            });
+            
+            poList.innerHTML = purchaseOrdersArray.map(po => {
+                const totalAmount = getTotalAmount(po);
+                const paidAmount = po.paidAmount || 0;
+                const status = getPaymentStatus(po);
+                const items = parseItems(po.items);
+                
+                const poNumber = po.poNumber || po.no_po || 'No PO';
+                const supplier = po.supplier || po.nama_supplier || 'Supplier tidak tersedia';
+                const purchaseType = po.purchaseType || po.type || 'offline';
+                const purchaseDate = po.purchaseDate || po.created_date || po.date || 'Tanggal tidak tersedia';
+                const itemCount = items ? items.length : 0;
+                
+                const displayDate = formatDateForDisplay(purchaseDate);
+                
+                const itemsSummary = items.slice(0, 3).map(item => 
+                    `${item.name || item.item_name || 'Item'}: ${item.quantity || 0} x Rp ${(item.price || 0).toLocaleString('id-ID')}`
+                ).join('; ');
+                
+                const remainingItems = items.length > 3 ? `... dan ${items.length - 3} item lainnya` : '';
+                
+                return `
+                    <div class="data-card" data-po-number="${poNumber}" data-purchase-date="${purchaseDate}" onclick="selectPO('${poNumber}')">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div>
+                                <strong>${poNumber}</strong>
+                                <div style="font-size: 14px; color: #6b7280;">
+                                    ${supplier} • ${purchaseType === 'offline' ? 'Offline' : 'Purchase Order'}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span class="status-badge ${status === 'paid' ? 'status-paid' : status === 'partial' ? 'status-partial' : 'status-unpaid'}">
+                                    ${status === 'paid' ? 'Paid' : status === 'partial' ? 'Partial Paid' : 'Unpaid'}
+                                </span>
+                                <div style="font-size: 14px; color: #6b7280;">${displayDate}</div>
+                            </div>
+                        </div>
+                        
+                        ${items.length > 0 ? `
+                        <div style="margin: 8px 0; padding: 8px; background: #f8fafc; border-radius: 4px;">
+                            <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">
+                                <strong>Item:</strong>
+                            </div>
+                            <div style="font-size: 12px; color: #4b5563;">
+                                ${itemsSummary} ${remainingItems}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <div style="font-size: 14px; color: #6b7280;">
+                            ${itemCount} item • Total: Rp ${totalAmount.toLocaleString('id-ID')} • Paid: Rp ${paidAmount.toLocaleString('id-ID')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            currentState.purchaseOrders = purchaseOrdersArray.map(po => ({
+                ...po,
+                totalAmount: getTotalAmount(po),
+                items: parseItems(po.items),
+                purchaseType: po.purchaseType || po.type || 'offline'
+            }));
+            
+            updatePODateFilter(purchaseOrdersArray);
+            
+            showNotification(`Berhasil memuat ${purchaseOrdersArray.length} purchase orders`, 'success');
+            
+        } catch (error) {
+            console.error('Error loading PO data:', error);
+            logDebug(`Error loading PO data: ${error}`);
+            poList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data PO</p></div>';
+            showNotification('Gagal memuat data PO: ' + error.message, 'error');
+        }
+    }
+    
+    function convertWebhookDataToMatchFormat(webhookData) {
+        let expenseType = 'manual';
+        let expenseData = {};
+        
+        if (webhookData.po_type === 'purchase_order' || webhookData.po_number) {
+            expenseType = 'po';
+            expenseData = {
+                poNumber: webhookData.po_number,
+                supplier: webhookData.supplier || webhookData.nama_supplier,
+                purchaseType: webhookData.po_type,
+                totalAmount: webhookData.total_amount || webhookData.totalAmount,
+                paidAmount: webhookData.paid_amount || webhookData.paidAmount,
+                items: webhookData.items_json ? parseItems(webhookData.items_json) : 
+                       webhookData.items ? parseItems(webhookData.items) : [],
+                category: webhookData.tujuan_transaksi || webhookData.expense_category,
+                categoryText: webhookData.tujuan_transaksi || webhookData.expense_category,
+                description: webhookData.keterangan_transfer || webhookData.notes || webhookData.description
+            };
+        } else {
+            expenseType = 'manual';
+            expenseData = {
+                category: webhookData.tujuan_transaksi || webhookData.expense_category || webhookData.category,
+                categoryText: getCategoryDisplayText(webhookData.tujuan_transaksi || webhookData.expense_category || webhookData.category),
+                description: webhookData.keterangan_transfer || webhookData.notes || webhookData.description || 'Tidak ada keterangan'
+            };
+        }
+        
+        const convertedData = {
+            id: webhookData.id || webhookData.match_id,
+            timestamp: webhookData.timestamp || webhookData.date || webhookData.created_at,
+            user_id: webhookData.user_id || 'N/A',
+            transaction: {
+                type: webhookData.trx_type || (webhookData.bank_dan_rekening ? 'bank' : 'manual'),
+                data: {
+                    bank_dan_rekening: webhookData.bank_dan_rekening,
+                    penerima: webhookData.penerima,
+                    nominal_transfer: webhookData.nominal_transfer,
+                    bombial_longfer: webhookData.bombial_longfer,
+                    tanggal: webhookData.tanggal_transfer || webhookData.tanggal,
+                    no_referensi: webhookData.no_referensi,
+                    tujuan_transaksi: webhookData.tujuan_transaksi,
+                    keterangan: webhookData.keterangan_transfer,
+                    amount: webhookData.nominal_transfer || webhookData.amount,
+                    method: webhookData.payment_method,
+                    description: webhookData.keterangan_transfer || webhookData.description
+                }
+            },
+            expense: {
+                type: expenseType,
+                data: expenseData
+            },
+            notes: webhookData.notes || webhookData.matching_notes,
+            status: webhookData.status || 'completed'
+        };
+        
+        return convertedData;
+    }
+
+    async function loadHistoryData() {
+        const tableBody = document.getElementById('reviewTableBody');
+        const mobileView = document.getElementById('reviewMobileView');
+        
+        tableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data history...</p></div></td></tr>';
+        mobileView.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data history...</p></div>';
+        
+        try {
+            logDebug("Memulai pengambilan data history...");
+            
+            const response = await fetch(WEBHOOK_URLS.readHistory, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const responseText = await response.text();
+            
+            let historyData;
+            try {
+                historyData = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing history JSON:', parseError);
+                throw new Error(`Gagal parsing response history: ${parseError.message}`);
+            }
+            
+            let historyArray = [];
+            
+            if (Array.isArray(historyData)) {
+                historyArray = historyData;
+            } else if (historyData && typeof historyData === 'object') {
+                if (Array.isArray(historyData.data)) {
+                    historyArray = historyData.data;
+                } else if (Array.isArray(historyData.records)) {
+                    historyArray = historyData.records;
+                } else if (Array.isArray(historyData.items)) {
+                    historyArray = historyData.items;
+                } else {
+                    historyArray = [historyData];
+                }
+            }
+            
+            currentState.historyData = historyArray.map(record => convertWebhookDataToMatchFormat(record));
+            
+            if (!historyArray || historyArray.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada data pengeluaran</p></div></td></tr>';
+                mobileView.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada data pengeluaran</p></div>';
+                showNotification('Tidak ada data history yang ditemukan', 'info');
+                return;
+            }
+            
+            historyArray.sort((a, b) => {
+                const dateA = new Date(a.timestamp || a.date || 0);
+                const dateB = new Date(b.timestamp || b.date || 0);
+                return dateB - dateA;
+            });
+            
+            tableBody.innerHTML = historyArray.map(record => {
+                const date = new Date(record.timestamp || record.date).toLocaleDateString('id-ID');
+                const amount = parseCurrency(record.nominal_transfer || record.amount || 0);
+                
+                let type = 'Unknown';
+                if (record.trx_type === 'bank') {
+                    type = 'Bank Matching';
+                } else if (record.trx_type === 'manual') {
+                    type = 'Manual Input';
+                }
+                
+                const from = record.trx_type === 'bank' 
+                    ? `Bank: ${record.bank_dan_rekening || 'N/A'}` 
+                    : `Manual: ${record.payment_method || 'N/A'}`;
+                
+                const to = record.po_type === 'purchase_order' 
+                    ? `PO: ${record.po_number || 'N/A'}`
+                    : `Manual: ${record.tujuan_transaksi || 'N/A'}`;
+                
+                const recordId = record.id || 'N/A';
+                
+                return ` 
+                    <tr>
+                        <td>${date}</td>
+                        <td>${type}</td>
+                        <td>Rp ${amount.toLocaleString('id-ID')}</td>
+                        <td>${from}</td>
+                        <td>${to}</td>
+                        <td><span class="status-badge status-paid">Completed</span></td>
+                        <td>
+                            <button class="btn" style="padding: 6px 12px; font-size: 12px;" onclick="showDetailPopup('${recordId}')">
+                                <i class="fas fa-eye"></i> Detail
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            mobileView.innerHTML = historyArray.map(record => {
+                const date = new Date(record.timestamp || record.date).toLocaleDateString('id-ID');
+                const amount = parseCurrency(record.nominal_transfer || record.amount || 0);
+                
+                let type = 'Unknown';
+                if (record.trx_type === 'bank') {
+                    type = 'Bank Matching';
+                } else if (record.trx_type === 'manual') {
+                    type = 'Manual Input';
+                }
+                
+                const from = record.trx_type === 'bank' 
+                    ? `Bank: ${record.bank_dan_rekening || 'N/A'}` 
+                    : `Manual: ${record.payment_method || 'N/A'}`;
+                
+                const to = record.po_type === 'purchase_order' 
+                    ? `PO: ${record.po_number || 'N/A'}`
+                    : `Manual: ${record.tujuan_transaksi || 'N/A'}`;
+                
+                const recordId = record.id || 'N/A';
+                
+                return `
+                    <div class="card-row">
+                        <div class="card-field">
+                            <span class="card-label">Tanggal</span>
+                            <span class="card-value">${date}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-label">Jenis</span>
+                            <span class="card-value">${type}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-label">Amount</span>
+                            <span class="card-value">Rp ${amount.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-label">Dari</span>
+                            <span class="card-value">${from}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-label">Untuk</span>
+                            <span class="card-value">${to}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-label">Status</span>
+                            <span class="card-value"><span class="status-badge status-paid">Completed</span></span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn" style="padding: 6px 12px; font-size: 12px;" onclick="showDetailPopup('${recordId}')">
+                                <i class="fas fa-eye"></i> Detail
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            showNotification(`Berhasil memuat ${historyArray.length} data history`, 'success');
+            
+        } catch (error) {
+            console.error('Error loading history data:', error);
+            logDebug(`Error loading history data: ${error}`);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Gagal memuat data history</p>
+                            <small>Error: ${error.message}</small>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            mobileView.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Gagal memuat data history</p>
+                    <small>Error: ${error.message}</small>
+                </div>
+            `;
+            showNotification('Gagal memuat data history: ' + error.message, 'error');
+        }
+    }
+    
+    function loadReviewData() {
+        loadHistoryData();
+    }
+
+    /* ========================================================================= */
+    /* SELECTION & SUMMARY */
+    /* ========================================================================= */
+    function selectBankTransaction(index) {
+        const transaction = currentState.bankTransactions[index];
+        if (!transaction) return;
+        
+        currentState.selectedBankTransaction = transaction;
+        currentState.manualTransaction = null;
+        
+        document.querySelectorAll('#bankList .data-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        const selectedCard = document.querySelector(`[data-bank-index="${index}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
+        
+        updateMatchingSummary();
+        showNotification('Transaksi bank dipilih', 'success');
+    }
+
+    function selectPO(poNumber) {
+        const po = currentState.purchaseOrders.find(p => (p.poNumber === poNumber) || (p.no_po === poNumber));
+        if (!po) return; 
+        
+        currentState.selectedPO = po;
+        currentState.manualExpense = null;
+        
+        document.querySelectorAll('#poList .data-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        const selectedCard = document.querySelector(`[data-po-number="${poNumber}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
+        
+        updateMatchingSummary();
+        showNotification('PO dipilih', 'success');
+    }
+
+    function setupManualInputHandlers() {
+        const manualAmount = document.getElementById('manualAmount');
+        const manualPaymentMethod = document.getElementById('manualPaymentMethod');
+        const manualDescription = document.getElementById('manualDescription');
+        const expenseCategory = document.getElementById('expenseCategory');
+        const expenseDescription = document.getElementById('expenseDescription');
+        
+        if (manualAmount) {
+            manualAmount.addEventListener('input', function() {
+                if (!currentState.manualTransaction) currentState.manualTransaction = {};
+                currentState.manualTransaction.amount = parseFloat(this.value) || 0;
+                currentState.selectedBankTransaction = null;
+                updateMatchingSummary();
+            });
+        }
+        
+        if (manualPaymentMethod) {
+            manualPaymentMethod.addEventListener('change', function() {
+                if (!currentState.manualTransaction) currentState.manualTransaction = {};
+                currentState.manualTransaction.method = this.value;
+                currentState.selectedBankTransaction = null;
+                updateMatchingSummary();
+            });
+        }
+        
+        if (manualDescription) {
+            manualDescription.addEventListener('input', function() {
+                if (!currentState.manualTransaction) currentState.manualTransaction = {};
+                currentState.manualTransaction.description = this.value;
+                currentState.selectedBankTransaction = null;
+                updateMatchingSummary();
+            });
+        }
+        
+        if (expenseCategory) {
+            expenseCategory.addEventListener('change', function() {
+                if (!currentState.manualExpense) currentState.manualExpense = {};
+                currentState.manualExpense.category = this.value;
+                currentState.manualExpense.categoryText = this.options[this.selectedIndex].text;
+                currentState.selectedPO = null;
+                updateMatchingSummary();
+            });
+        }
+        
+        if (expenseDescription) {
+            expenseDescription.addEventListener('input', function() {
+                if (!currentState.manualExpense) currentState.manualExpense = {};
+                currentState.manualExpense.description = this.value;
+                currentState.selectedPO = null;
+                updateMatchingSummary();
+            });
+        }
+    }
+
+    function updateMatchingSummary() {
+        updateTransactionSummary();
+        updateExpenseSummary();
+    }
+
+    function updateTransactionSummary() {
+        const summaryEl = document.getElementById('transactionSummary');
+        let html = '';
+        
+        if (currentState.transactionType === 'bank' && currentState.selectedBankTransaction) {
+            const data = currentState.selectedBankTransaction;
+            const cleanData = {};
+            Object.keys(data).forEach(key => {
+                let value = data[key];
+                if (typeof value === 'string') {
+                    value = value.replace(/,$/, '').trim();
+                }
+                cleanData[key] = value;
+            });
+
+            const nominal = parseCurrency(cleanData.bombial_longfer || cleanData.nominal_transfer);
+            
+            html = `
+                <div class="summary-item">
+                    <span>Bank:</span>
+                    <span>${cleanData.bank_dan_rekening || 'Tidak tersedia'}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Penerima:</span>
+                    <span>${cleanData.tujuan_transass || 'Tidak tersedia'}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Nominal:</span>
+                    <span>Rp ${nominal.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Tanggal:</span>
+                    <span>${cleanData.tanggal || 'Tidak tersedia'}</span>
+                </div>
+            `;
+        } else if (currentState.transactionType === 'manual' && currentState.manualTransaction && currentState.manualTransaction.amount) {
+            html = `
+                <div class="summary-item">
+                    <span>Jenis:</span>
+                    <span>Manual Input</span>
+                </div>
+                <div class="summary-item">
+                    <span>Nominal:</span>
+                    <span>Rp ${currentState.manualTransaction.amount.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Metode:</span>
+                    <span>${currentState.manualTransaction.method || 'Belum dipilih'}</span>
+                </div>
+                ${currentState.manualTransaction.description ? `
+                <div class="summary-item">
+                    <span>Keterangan:</span>
+                    <span>${currentState.manualTransaction.description}</span>
+                </div>
+                ` : ''}
+            `;
+        } else {
+            html = '<div class="empty-state" style="padding: 10px;"><i class="fas fa-hand-pointer"></i><p>Pilih transaksi bank atau input manual</p></div>';
+        }
+        
+        summaryEl.innerHTML = html;
+    }
+
+    function updateExpenseSummary() {
+        const summaryEl = document.getElementById('expenseSummary');
+        let html = '';
+        
+        if (currentState.expenseType === 'po' && currentState.selectedPO) {
+            const po = currentState.selectedPO;
+            const totalAmount = po.totalAmount || getTotalAmount(po);
+            const paidAmount = po.paidAmount || 0;
+            const items = parseItems(po.items);
+            
+            html = `
+                <div class="summary-item">
+                    <span>PO Number:</span>
+                    <span>${po.poNumber || po.no_po}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Supplier:</span>
+                    <span>${po.supplier || po.nama_supplier}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Purchase Type:</span>
+                    <span>${po.purchaseType === 'offline' ? 'Offline' : 'Purchase Order'}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Total:</span>
+                    <span>Rp ${totalAmount.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-item">
+                    <span>Paid:</span>
+                    <span>Rp ${paidAmount.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="summary-item">
+                    <span>Remaining:</span>
+                    <span>Rp ${(totalAmount - paidAmount).toLocaleString('id-ID')}</span>
+                </div>
+            `;
+            
+            if (items.length > 0) {
+                html += `<div class="summary-divider"></div>`;
+                html += `<div style="font-size: 12px; color: #6b7280; margin-top: 8px;"><strong>Item:</strong></div>`;
+                
+                items.slice(0, 3).forEach(item => {
+                    const itemName = item.name || item.item_name || 'Item';
+                    const quantity = item.quantity || 0;
+                    const price = item.price || 0;
+                    const subtotal = item.subtotal || (quantity * price);
+                    
+                    html += `
+                        <div style="font-size: 11px; color: #4b5563; margin-top: 4px;">
+                            • ${itemName}: ${quantity} x Rp ${price.toLocaleString('id-ID')} = Rp ${subtotal.toLocaleString('id-ID')}
+                        </div>
+                    `;
+                });
+                
+                if (items.length > 3) {
+                    html += `<div style="font-size: 11px; color: #6b7280; margin-top: 4px;">... dan ${items.length - 3} item lainnya</div>`;
+                }
+            }
+            
+        } else if (currentState.expenseType === 'manual-expense' && currentState.manualExpense && currentState.manualExpense.category) {
+            html = `
+                <div class="summary-item">
+                    <span>Jenis:</span>
+                    <span>Manual Expense</span>
+                </div>
+                <div class="summary-item">
+                    <span>Kategori:</span>
+                    <span>${currentState.manualExpense.categoryText}</span>
+                </div>
+                ${currentState.manualExpense.description ? `
+                <div class="summary-item">
+                    <span>Keterangan:</span>
+                    <span>${currentState.manualExpense.description}</span>
+                </div>
+                ` : ''}
+            `;
+        } else {
+            html = '<div class="empty-state" style="padding: 10px;"><i class="fas fa-hand-pointer"></i><p>Pilih PO atau input manual</p></div>';
+        }
+        
+        summaryEl.innerHTML = html;
+    }
+
+    function resetTransactionSelection() {
+        currentState.selectedBankTransaction = null;
+        currentState.manualTransaction = null;
+        document.querySelectorAll('#bankList .data-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        if (document.getElementById('manualAmount')) {
+            document.getElementById('manualAmount').value = '';
+        }
+        if (document.getElementById('manualPaymentMethod')) {
+            document.getElementById('manualPaymentMethod').value = '';
+        }
+        if (document.getElementById('manualDescription')) {
+            document.getElementById('manualDescription').value = '';
+        }
+        updateMatchingSummary();
+    }
+
+    function resetExpenseSelection() {
+        currentState.selectedPO = null;
+        currentState.manualExpense = null;
+        document.querySelectorAll('#poList .data-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        if (document.getElementById('expenseCategory')) {
+            document.getElementById('expenseCategory').value = '';
+        }
+        if (document.getElementById('expenseDescription')) {
+            document.getElementById('expenseDescription').value = '';
+        }
+        updateMatchingSummary();
+    }
+
+    function resetMatching() {
+        resetTransactionSelection();
+        resetExpenseSelection();
+        document.getElementById('matchingNotes').value = '';
+        showNotification('Form berhasil direset', 'success');
+    }
+
+    /* ========================================================================= */
+    /* SUBMISSION */
+    /* ========================================================================= */
+    async function submitMatching() {
+        if ((currentState.transactionType === 'bank' && !currentState.selectedBankTransaction) &&
+            (currentState.transactionType === 'manual' && (!currentState.manualTransaction || !currentState.manualTransaction.amount))) {
+            showNotification('Pilih atau input transaksi keluar terlebih dahulu!', 'error');
+            return;
+        }
+        
+        if ((currentState.expenseType === 'po' && !currentState.selectedPO) &&
+            (currentState.expenseType === 'manual-expense' && (!currentState.manualExpense || !currentState.manualExpense.category))) {
+            showNotification('Pilih atau input pengeluaran untuk terlebih dahulu!', 'error');
+            return;
+        }
+        
+        let transactionData = currentState.transactionType === 'bank' ? 
+            currentState.selectedBankTransaction : currentState.manualTransaction;
+        
+        if (currentState.transactionType === 'manual' && currentState.manualTransaction) {
+            transactionData = { ...currentState.manualTransaction };
+            
+            transactionData.penerima = "Manual Input";
+            transactionData.bank_dan_rekening = `Manual - ${currentState.manualTransaction.method || 'Unknown'}`;
+            transactionData.tanggal = new Date().toISOString().split('T')[0];
+            transactionData.nominal_transfer = currentState.manualTransaction.amount || 0;
+            transactionData.biaya_transfer = 0;
+            transactionData.total_transaksi = currentState.manualTransaction.amount || 0;
+            transactionData.tujuan_transaksi = currentState.manualTransaction.description || "";
+            transactionData.no_referensi = `MANUAL-${Date.now()}`;
+            transactionData.keterangan = currentState.manualTransaction.description || "Input manual";
+        }
+        
+        let expenseData = currentState.expenseType === 'po' ? 
+            currentState.selectedPO : currentState.manualExpense;
+        
+        if (currentState.expenseType === 'manual-expense' && currentState.manualExpense) {
+            expenseData = { ...currentState.manualExpense };
+            
+            expenseData.purchaseType = "manual_expense";
+            expenseData.poNumber = `MANUAL-EXP-${Date.now()}`;
+            expenseData.supplier = "Manual Expense";
+            expenseData.purchaseDate = new Date().toISOString().split('T')[0];
+            expenseData.paymentMethod = "manual";
+            expenseData.paymentStatus = "paid";
+            expenseData.paymentDate = new Date().toISOString().split('T')[0];
+            expenseData.paidAmount = 0;
+            expenseData.totalAmount = 0;
+            expenseData.notes = currentState.manualExpense.description || "";
+            expenseData.items = [];
+        }
+        
+        const matchingData = {
+            id: 'MATCH-' + Date.now(),
+            timestamp: new Date().toISOString(),
+            user_id: currentState.urlParams.id,
+            
+            transaction: {
+                type: currentState.transactionType,
+                data: transactionData
+            },
+            
+            expense: {
+                type: currentState.expenseType === 'manual-expense' ? 'manual' : currentState.expenseType,
+                data: expenseData
+            },
+            
+            notes: document.getElementById('matchingNotes').value,
+            status: 'completed',
+            submittedAt: new Date().toISOString()
+        };
+        
+        const submitBtn = document.querySelector('.confirm-btn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+        submitBtn.disabled = true;
+        
+        try {
+            logDebug("Data yang akan dikirim:", matchingData);
+            
+            const response = await fetch(WEBHOOK_URLS.submitMatching, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                mode: 'cors',
+                body: JSON.stringify(matchingData, null, 2)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const responseText = await response.text();
+            
+            currentState.matchingHistory.unshift(matchingData);
+            
+            showNotification('Matching pengeluaran berhasil disimpan!', 'success');
+            
+            resetMatching();
+            setTimeout(() => {
+                switchPage('review-page');
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Error submitting matching:', error);
+            showNotification('Gagal menyimpan matching: ' + error.message, 'error');
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    }
+
+    /* ========================================================================= */
+    /* POPUP DETAILS */
+    /* ========================================================================= */
+    function showDetailPopup(matchId) {
+        logDebug("Showing detail popup for ID:", matchId);
+        
+        document.getElementById('popupTransactionSummary').innerHTML = 
+            '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data...</p></div>';
+        document.getElementById('popupExpenseSummary').innerHTML = 
+            '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Memuat data...</p></div>';
+        
+        let matchData = null;
+        
+        matchData = currentState.matchingHistory.find(m => m.id === matchId);
+        
+        if (!matchData && currentState.historyData) {
+            matchData = currentState.historyData.find(h => h.id === matchId);
+        }
+        
+        if (matchData) {
+            displayMatchDetail(matchData);
+            document.getElementById('detailPopup').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        } else {
+            fetchMatchDetail(matchId);
+        }
+    }
+    
+    function closeDetailPopup() {
+        document.getElementById('detailPopup').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
+    function displayMatchDetail(matchData) {
+        document.getElementById('popupMatchId').textContent = matchData.id || 'N/A';
+        document.getElementById('popupMatchDate').textContent = new Date(matchData.timestamp).toLocaleString('id-ID') || 'N/A';
+        document.getElementById('popupUserId').textContent = matchData.user_id || 'Tidak tersedia';
+        
+        const trxType = matchData.transaction?.type === 'bank' ? 'Bank' : 'Manual';
+        const expType = matchData.expense?.type === 'po' ? 'PO' : 'Manual';
+        document.getElementById('popupMatchType').textContent = `${trxType} → ${expType}`;
+        
+        displayTransactionDetail(matchData);
+        displayExpenseDetail(matchData);
+        
+        document.getElementById('popupNotes').textContent = matchData.notes || 'Tidak ada catatan';
+        
+        const amount = matchData.transaction?.data?.nominal_transfer || 
+                       matchData.transaction?.data?.amount || 0;
+        document.getElementById('popupTotalAmount').textContent = `Rp ${parseCurrency(amount).toLocaleString('id-ID')}`;
+    }
+    
+    function displayTransactionDetail(matchData) {
+        const transactionSummary = document.getElementById('popupTransactionSummary');
+        const trxData = matchData.transaction?.data;
+        const trxType = matchData.transaction?.type;
+        
+        if (trxType === 'bank' && trxData) {
+            transactionSummary.innerHTML = `
+                <div class="summary-item-popup">
+                    <span class="summary-label">Bank:</span>
+                    <span class="summary-value">${trxData.bank_dan_rekening || 'Tidak tersedia'}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Penerima:</span>
+                    <span class="summary-value">${trxData.penerima || trxData.tujuan_transass || 'Tidak tersedia'}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Nominal:</span>
+                    <span class="summary-value">Rp ${parseCurrency(trxData.nominal_transfer || trxData.bombial_longfer).toLocaleString('id-ID')}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Tanggal:</span>
+                    <span class="summary-value">${trxData.tanggal || 'Tidak tersedia'}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Referensi:</span>
+                    <span class="summary-value">${trxData.no_referensi || 'Tidak ada'}</span>
+                </div>
+            `;
+        } else if (trxType === 'manual' && trxData) {
+            transactionSummary.innerHTML = `
+                <div class="summary-item-popup">
+                    <span class="summary-label">Jenis:</span>
+                    <span class="summary-value">Manual Input</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Nominal:</span>
+                    <span class="summary-value">Rp ${parseCurrency(trxData.amount).toLocaleString('id-ID')}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Metode:</span>
+                    <span class="summary-value">${trxData.method || 'Tidak tersedia'}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Keterangan:</span>
+                    <span class="summary-value">${trxData.description || 'Tidak ada'}</span>
+                </div>
+            `;
+        } else {
+            transactionSummary.innerHTML = '<div class="empty-state">Data transaksi tidak tersedia</div>';
+        }
+    }
+    
+    function displayExpenseDetail(matchData) {
+        const expenseSummary = document.getElementById('popupExpenseSummary');
+        const expenseData = matchData.expense?.data;
+        const expenseType = matchData.expense?.type;
+        const itemsSection = document.getElementById('popupItemsSection');
+        
+        if (expenseType === 'po' && expenseData) {
+            const totalAmount = getTotalAmount(expenseData);
+            const paidAmount = expenseData.paidAmount || 0;
+            const items = parseItems(expenseData.items);
+            
+            expenseSummary.innerHTML = `
+                <div class="summary-item-popup">
+                    <span class="summary-label">Jenis:</span>
+                    <span class="summary-value">Purchase Order</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">PO Number:</span>
+                    <span class="summary-value">${expenseData.poNumber || 'Tidak tersedia'}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Supplier:</span>
+                    <span class="summary-value">${expenseData.supplier || 'Tidak tersedia'}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Total:</span>
+                    <span class="summary-value">Rp ${totalAmount.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Paid:</span>
+                    <span class="summary-value">Rp ${paidAmount.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Remaining:</span>
+                    <span class="summary-value">Rp ${(totalAmount - paidAmount).toLocaleString('id-ID')}</span>
+                </div>
+                ${expenseData.description ? `
+                <div class="summary-item-popup">
+                    <span class="summary-label">Keterangan:</span>
+                    <span class="summary-value">${expenseData.description}</span>
+                </div>
+                ` : ''}
+            `;
+            
+            if (items && items.length > 0) {
+                itemsSection.classList.remove('hidden');
+                displayItemsTable(items);
+            } else {
+                itemsSection.classList.add('hidden');
+            }
+            
+        } else if (expenseType === 'manual' && expenseData) {
+            expenseSummary.innerHTML = `
+                <div class="summary-item-popup">
+                    <span class="summary-label">Jenis:</span>
+                    <span class="summary-value">Manual Expense</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Kategori:</span>
+                    <span class="summary-value">${expenseData.categoryText || expenseData.category || 'Tidak ada kategori'}</span>
+                </div>
+                <div class="summary-item-popup">
+                    <span class="summary-label">Keterangan:</span>
+                    <span class="summary-value">${expenseData.description || 'Tidak ada keterangan'}</span>
+                </div>
+            `;
+            itemsSection.classList.add('hidden');
+        } else {
+            expenseSummary.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Data pengeluaran tidak tersedia</p>
+                </div>
+            `;
+            itemsSection.classList.add('hidden');
+        }
+    }
+    
+    function displayItemsTable(items) {
+        const itemsTable = document.getElementById('popupItemsTable');
+        
+        itemsTable.innerHTML = items.map(item => {
+            const itemName = item.name || item.item_name || 'Item';
+            const sku = item.sku || 'N/A';
+            const quantity = item.quantity || 0;
+            const price = item.price || 0;
+            const subtotal = item.subtotal || (quantity * price);
+            const unit = item.unit || 'pcs';
+            
+            return `
+                <tr>
+                    <td>${itemName}</td>
+                    <td>${sku}</td>
+                    <td>${quantity} ${unit}</td>
+                    <td>Rp ${price.toLocaleString('id-ID')}</td>
+                    <td>Rp ${subtotal.toLocaleString('id-ID')}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    async function fetchMatchDetail(matchId) {
+        // Logika fetch detail data jika tidak ada di local state.
+        // Disederhanakan untuk contoh, hanya melakukan call loadHistoryData() lagi.
+        await loadHistoryData(); 
+        
+        const record = currentState.historyData.find(h => h.id === matchId);
+        
+        if (record) {
+            displayMatchDetail(record);
+            document.getElementById('detailPopup').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.getElementById('popupTransactionSummary').innerHTML = 
+                '<div class="empty-state">Data tidak ditemukan untuk ID: ' + matchId + '</div>';
+            document.getElementById('popupExpenseSummary').innerHTML = 
+                '<div class="empty-state">Data tidak ditemukan di server</div>';
+            document.getElementById('detailPopup').classList.remove('hidden');
+            showNotification('Data detail tidak ditemukan di server', 'error');
+        }
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !document.getElementById('detailPopup').classList.contains('hidden')) {
+            closeDetailPopup();
+        }
+    });
+
+    document.getElementById('detailPopup')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDetailPopup();
+        }
+    });
+
+    /* ========================================================================= */
+    /* FILTERING & SEARCH */
+    /* ========================================================================= */
+    document.getElementById('searchBank')?.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const selectedDate = document.getElementById('bankDateFilter')?.value || '';
+        
+        document.querySelectorAll('#bankList .data-card').forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const cardDate = card.getAttribute('data-transaction-date');
+            const cardDateFormatted = cardDate ? new Date(cardDate).toISOString().split('T')[0] : '';
+            
+            const matchesSearch = text.includes(searchTerm);
+            const matchesDate = !selectedDate || cardDateFormatted === selectedDate;
+            
+            card.style.display = (matchesSearch && matchesDate) ? 'block' : 'none';
+        });
+    });
+    
+    document.getElementById('searchPO')?.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const selectedDate = document.getElementById('poDateFilter')?.value || '';
+        
+        document.querySelectorAll('#poList .data-card').forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const cardDate = card.getAttribute('data-purchase-date');
+            const cardDateFormatted = cardDate ? new Date(cardDate).toISOString().split('T')[0] : '';
+            
+            const matchesSearch = text.includes(searchTerm);
+            const matchesDate = !selectedDate || cardDateFormatted === selectedDate;
+            
+            card.style.display = (matchesSearch && matchesDate) ? 'block' : 'none';
+        });
+    });
+
+    document.getElementById('searchReview')?.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        document.querySelectorAll('#reviewTableBody tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+        document.querySelectorAll('#reviewMobileView .card-row').forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+        });
+    });
+
+    document.querySelectorAll('[data-review-tab]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.dataset.reviewTab;
+            
+            document.querySelectorAll('[data-review-tab]').forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            filterReviewTable(tabName);
+        });
+    });
+
+    function filterReviewTable(tabName) {
+        const rows = document.querySelectorAll('#reviewTableBody tr');
+        const mobileCards = document.querySelectorAll('#reviewMobileView .card-row');
+        
+        rows.forEach(row => {
+            if (tabName === 'all') {
+                row.style.display = '';
+            } else {
+                const typeCell = row.cells[1].textContent.toLowerCase();
+                row.style.display = typeCell.includes(tabName) ? '' : 'none';
+            }
+        });
+        
+        mobileCards.forEach(card => {
+            if (tabName === 'all') {
+                card.style.display = 'block';
+            } else {
+                const typeText = card.querySelector('.card-field:nth-child(2) .card-value')?.textContent.toLowerCase() || '';
+                card.style.display = typeText.includes(tabName) ? 'block' : 'none';
+            }
+        });
+    }
+
+    function updateBankDateFilter(transactions) {
+        const dates = transactions.map(t => t.tanggal || t.transaction_date || t.date)
+            .filter(date => date)
+            .map(date => new Date(date))
+            .filter(date => !isNaN(date.getTime()))
+            .sort((a, b) => b - a);
+        
+        if (dates.length === 0) return;
+        
+        const uniqueDates = [...new Set(dates.map(d => d.toISOString().split('T')[0]))];
+        
+        if (!document.getElementById('bankDateFilter')) {
+            const searchBox = document.querySelector('#bank-tab .search-box');
+            const dateFilterHtml = `
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="bankDateFilter" style="font-size: 14px;">
+                        <i class="fas fa-calendar-alt"></i> Filter Berdasarkan Tanggal
+                    </label>
+                    <select id="bankDateFilter" class="date-filter">
+                        <option value="">Semua Tanggal</option>
+                        ${uniqueDates.map(date => `
+                            <option value="${date}">${formatDateForDisplay(date)}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            `;
+            searchBox.insertAdjacentHTML('afterend', dateFilterHtml);
+            
+            document.getElementById('bankDateFilter').addEventListener('change', function() {
+                filterBankByDate(this.value);
+            });
+        }
+    }
+
+    function updatePODateFilter(purchaseOrders) {
+        const dates = purchaseOrders.map(po => po.purchaseDate || po.created_date || po.date)
+            .filter(date => date)
+            .map(date => new Date(date))
+            .filter(date => !isNaN(date.getTime()))
+            .sort((a, b) => b - a);
+        
+        if (dates.length === 0) return;
+        
+        const uniqueDates = [...new Set(dates.map(d => d.toISOString().split('T')[0]))];
+        
+        if (!document.getElementById('poDateFilter')) {
+            const searchBox = document.querySelector('#po-tab .search-box');
+            const dateFilterHtml = `
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="poDateFilter" style="font-size: 14px;">
+                        <i class="fas fa-calendar-alt"></i> Filter Berdasarkan Tanggal Pembelian
+                    </label>
+                    <select id="poDateFilter" class="date-filter">
+                        <option value="">Semua Tanggal</option>
+                        ${uniqueDates.map(date => `
+                            <option value="${date}">${formatDateForDisplay(date)}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            `;
+            searchBox.insertAdjacentHTML('afterend', dateFilterHtml);
+            
+            document.getElementById('poDateFilter').addEventListener('change', function() {
+                filterPOByDate(this.value);
+            });
+        }
+    }
+    
+    function filterBankByDate(selectedDate) {
+        const cards = document.querySelectorAll('#bankList .data-card');
+        cards.forEach(card => {
+            const cardDate = card.getAttribute('data-transaction-date');
+            const cardDateFormatted = cardDate ? new Date(cardDate).toISOString().split('T')[0] : '';
+            card.style.display = (!selectedDate || cardDateFormatted === selectedDate) ? 'block' : 'none';
+        });
+    }
+    
+    function filterPOByDate(selectedDate) {
+        const cards = document.querySelectorAll('#poList .data-card');
+        cards.forEach(card => {
+            const cardDate = card.getAttribute('data-purchase-date');
+            const cardDateFormatted = cardDate ? new Date(cardDate).toISOString().split('T')[0] : '';
+            card.style.display = (!selectedDate || cardDateFormatted === selectedDate) ? 'block' : 'none';
+        });
+    }
+
+    /* ========================================================================= */
+    /* INITIALIZATION */
+    /* ========================================================================= */
+    document.addEventListener('DOMContentLoaded', function() {
+        if (currentState.urlParams.id) {
+            logDebug(`User ID dari URL: ${currentState.urlParams.id}`);
+            showNotification(`Selamat datang! User ID: ${currentState.urlParams.id}`, 'success');
+        } else {
+            logDebug('Tidak ada ID user di URL');
+            showNotification('Selamat datang! Silakan gunakan form pengeluaran.', 'info');
+        }
+        
+        setTimeout(() => {
+            loadBankData();
+            loadPOData();
+            setupManualInputHandlers();
+            updateMatchingSummary();
+        }, 100);
+        
+        // Photo Upload setup
+        document.getElementById('manualPhotoUpload')?.addEventListener('click', function() {
+            document.getElementById('manualPhotoInput').click();
+        });
+
+        document.getElementById('manualPhotoInput')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('manualPhotoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    
+                    if (!currentState.manualTransaction) {
+                        currentState.manualTransaction = {};
+                    }
+                    currentState.manualTransaction.photo = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Debug Button
+        const debugButton = document.createElement('button');
+        debugButton.innerHTML = '<i class="fas fa-bug"></i> Debug Data';
+        debugButton.style.position = 'fixed';
+        debugButton.style.bottom = '20px';
+        debugButton.style.right = '20px';
+        debugButton.style.zIndex = '1000';
+        debugButton.className = 'btn back-btn';
+        debugButton.onclick = function() {
+            console.group('🔍 DEBUG CURRENT STATE');
+            console.log('Bank Transactions:', currentState.bankTransactions);
+            console.log('Purchase Orders:', currentState.purchaseOrders);
+            console.log('Selected Bank:', currentState.selectedBankTransaction);
+            console.log('Selected PO:', currentState.selectedPO);
+            console.log('Matching History:', currentState.matchingHistory);
+            console.log('History Data (from webhook):', currentState.historyData);
+            console.groupEnd();
+            showNotification('Data state telah di-log ke console', 'info');
+        };
+        document.body.appendChild(debugButton);
+    });
+</script>
+</body>
+</html>
