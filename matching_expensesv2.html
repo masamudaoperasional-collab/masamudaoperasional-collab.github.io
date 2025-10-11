@@ -1678,11 +1678,11 @@
         transactionType: 'bank',
         selectedBankTransaction: null,
         manualTransaction: null,
-        expenseType: 'manual-expense', // Diperbaiki, harus sesuai dengan id div
+        expenseType: 'manual-expense', // Mengikuti ID tab awal
         selectedPO: null,
         manualExpense: null,
         matchingHistory: [],
-        historyData: [],
+        historyData: [], 
         bankTransactions: [],
         purchaseOrders: [],
         urlParams: getUrlParams()
@@ -1811,6 +1811,80 @@
         return categoryMap[categoryValue] || categoryValue;
     }
     
+    // FUNGSI UTAMA: Konversi data dari webhook ke format yang diharapkan popup - DIPERBAIKI
+    function convertWebhookDataToMatchFormat(webhookData) {
+        console.log("🔄 Converting webhook data:", webhookData);
+        
+        let expenseType = 'manual'; 
+        let expenseData = {};
+        
+        // >>> PERBAIKAN UTAMA DI SINI <<<
+        // PO ASLI: po_type adalah 'purchase_order' ATAU po_number ada dan BUKAN placeholder MANUAL-EXP-
+        const isRealPO = webhookData.po_type === 'purchase_order' || 
+                         (webhookData.po_number && !String(webhookData.po_number).startsWith('MANUAL-EXP-'));
+
+        if (isRealPO) {
+            expenseType = 'po';
+            expenseData = {
+                poNumber: webhookData.po_number,
+                supplier: webhookData.supplier || webhookData.nama_supplier,
+                purchaseType: webhookData.po_type,
+                totalAmount: webhookData.total_amount || webhookData.totalAmount,
+                paidAmount: webhookData.paid_amount || webhookData.paidAmount,
+                items: webhookData.items_json ? parseItems(webhookData.items_json) : 
+                       webhookData.items ? parseItems(webhookData.items) : [],
+                category: webhookData.tujuan_transaksi || webhookData.expense_category,
+                categoryText: webhookData.tujuan_transaksi || webhookData.expense_category,
+                description: webhookData.keterangan_transfer || webhookData.notes || webhookData.description
+            };
+        } else {
+            // Ini adalah Manual Expense
+            expenseType = 'manual';
+            expenseData = {
+                category: webhookData.tujuan_transaksi || webhookData.expense_category || webhookData.category,
+                categoryText: getCategoryDisplayText(webhookData.tujuan_transaksi || webhookData.expense_category || webhookData.category),
+                description: webhookData.keterangan_transfer || webhookData.notes || webhookData.description || 'Tidak ada keterangan'
+            };
+            if (webhookData.po_number) {
+                 expenseData.poNumber = webhookData.po_number;
+            }
+        }
+        
+        let trxType = webhookData.trx_type || (webhookData.bank_dan_rekening ? 'bank' : 'manual');
+
+        const convertedData = {
+            id: webhookData.id || webhookData.match_id,
+            timestamp: webhookData.timestamp || webhookData.date || webhookData.created_at,
+            user_id: webhookData.user_id || 'N/A',
+            transaction: {
+                type: trxType,
+                data: {
+                    bank_dan_rekening: webhookData.bank_dan_rekening,
+                    penerima: webhookData.penerima,
+                    nominal_transfer: webhookData.nominal_transfer,
+                    bombial_longfer: webhookData.bombial_longfer,
+                    tanggal: webhookData.tanggal_transfer || webhookData.tanggal,
+                    no_referensi: webhookData.no_referensi,
+                    tujuan_transaksi: webhookData.tujuan_transaksi,
+                    keterangan: webhookData.keterangan_transfer,
+                    amount: webhookData.nominal_transfer || webhookData.amount,
+                    method: webhookData.payment_method,
+                    description: webhookData.keterangan_transfer || webhookData.description
+                }
+            },
+            expense: {
+                type: expenseType, 
+                data: expenseData
+            },
+            notes: webhookData.notes || webhookData.matching_notes,
+            status: webhookData.status || 'completed'
+        };
+        
+        console.log("✅ Converted data (fixed):", convertedData);
+        return convertedData;
+    }
+
+
     /* ========================================================================= */
     /* NAVIGATION & TAB SWITCHING */
     /* ========================================================================= */
@@ -2142,64 +2216,6 @@
         }
     }
     
-    function convertWebhookDataToMatchFormat(webhookData) {
-        let expenseType = 'manual';
-        let expenseData = {};
-        
-        if (webhookData.po_type === 'purchase_order' || webhookData.po_number) {
-            expenseType = 'po';
-            expenseData = {
-                poNumber: webhookData.po_number,
-                supplier: webhookData.supplier || webhookData.nama_supplier,
-                purchaseType: webhookData.po_type,
-                totalAmount: webhookData.total_amount || webhookData.totalAmount,
-                paidAmount: webhookData.paid_amount || webhookData.paidAmount,
-                items: webhookData.items_json ? parseItems(webhookData.items_json) : 
-                       webhookData.items ? parseItems(webhookData.items) : [],
-                category: webhookData.tujuan_transaksi || webhookData.expense_category,
-                categoryText: webhookData.tujuan_transaksi || webhookData.expense_category,
-                description: webhookData.keterangan_transfer || webhookData.notes || webhookData.description
-            };
-        } else {
-            expenseType = 'manual';
-            expenseData = {
-                category: webhookData.tujuan_transaksi || webhookData.expense_category || webhookData.category,
-                categoryText: getCategoryDisplayText(webhookData.tujuan_transaksi || webhookData.expense_category || webhookData.category),
-                description: webhookData.keterangan_transfer || webhookData.notes || webhookData.description || 'Tidak ada keterangan'
-            };
-        }
-        
-        const convertedData = {
-            id: webhookData.id || webhookData.match_id,
-            timestamp: webhookData.timestamp || webhookData.date || webhookData.created_at,
-            user_id: webhookData.user_id || 'N/A',
-            transaction: {
-                type: webhookData.trx_type || (webhookData.bank_dan_rekening ? 'bank' : 'manual'),
-                data: {
-                    bank_dan_rekening: webhookData.bank_dan_rekening,
-                    penerima: webhookData.penerima,
-                    nominal_transfer: webhookData.nominal_transfer,
-                    bombial_longfer: webhookData.bombial_longfer,
-                    tanggal: webhookData.tanggal_transfer || webhookData.tanggal,
-                    no_referensi: webhookData.no_referensi,
-                    tujuan_transaksi: webhookData.tujuan_transaksi,
-                    keterangan: webhookData.keterangan_transfer,
-                    amount: webhookData.nominal_transfer || webhookData.amount,
-                    method: webhookData.payment_method,
-                    description: webhookData.keterangan_transfer || webhookData.description
-                }
-            },
-            expense: {
-                type: expenseType,
-                data: expenseData
-            },
-            notes: webhookData.notes || webhookData.matching_notes,
-            status: webhookData.status || 'completed'
-        };
-        
-        return convertedData;
-    }
-
     async function loadHistoryData() {
         const tableBody = document.getElementById('reviewTableBody');
         const mobileView = document.getElementById('reviewMobileView');
@@ -2249,6 +2265,7 @@
                 }
             }
             
+            // Konversi data dari webhook dengan logika perbaikan
             currentState.historyData = historyArray.map(record => convertWebhookDataToMatchFormat(record));
             
             if (!historyArray || historyArray.length === 0) {
@@ -2263,32 +2280,28 @@
                 const dateB = new Date(b.timestamp || b.date || 0);
                 return dateB - dateA;
             });
-            
-            tableBody.innerHTML = historyArray.map(record => {
-                const date = new Date(record.timestamp || record.date).toLocaleDateString('id-ID');
-                const amount = parseCurrency(record.nominal_transfer || record.amount || 0);
+
+            // Menggunakan currentState.historyData (yang sudah di-convert) untuk rendering
+            tableBody.innerHTML = currentState.historyData.map(record => {
+                const date = new Date(record.timestamp).toLocaleDateString('id-ID');
+                const amount = parseCurrency(record.transaction?.data?.nominal_transfer || record.transaction?.data?.amount || 0);
                 
-                let type = 'Unknown';
-                if (record.trx_type === 'bank') {
-                    type = 'Bank Matching';
-                } else if (record.trx_type === 'manual') {
-                    type = 'Manual Input';
-                }
+                const trxType = record.transaction?.type === 'bank' ? 'Bank Matching' : 'Manual Input';
                 
-                const from = record.trx_type === 'bank' 
-                    ? `Bank: ${record.bank_dan_rekening || 'N/A'}` 
-                    : `Manual: ${record.payment_method || 'N/A'}`;
+                const from = record.transaction?.type === 'bank' 
+                    ? `Bank: ${record.transaction.data.bank_dan_rekening || 'N/A'}` 
+                    : `Manual: ${record.transaction.data.method || 'N/A'}`;
                 
-                const to = record.po_type === 'purchase_order' 
-                    ? `PO: ${record.po_number || 'N/A'}`
-                    : `Manual: ${record.tujuan_transaksi || 'N/A'}`;
+                const to = record.expense?.type === 'po' 
+                    ? `PO: ${record.expense.data.poNumber || 'N/A'}`
+                    : `Manual: ${record.expense.data.categoryText || 'N/A'}`;
                 
                 const recordId = record.id || 'N/A';
                 
                 return ` 
                     <tr>
                         <td>${date}</td>
-                        <td>${type}</td>
+                        <td>${trxType}</td>
                         <td>Rp ${amount.toLocaleString('id-ID')}</td>
                         <td>${from}</td>
                         <td>${to}</td>
@@ -2302,24 +2315,19 @@
                 `;
             }).join('');
             
-            mobileView.innerHTML = historyArray.map(record => {
-                const date = new Date(record.timestamp || record.date).toLocaleDateString('id-ID');
-                const amount = parseCurrency(record.nominal_transfer || record.amount || 0);
+            mobileView.innerHTML = currentState.historyData.map(record => {
+                const date = new Date(record.timestamp).toLocaleDateString('id-ID');
+                const amount = parseCurrency(record.transaction?.data?.nominal_transfer || record.transaction?.data?.amount || 0);
                 
-                let type = 'Unknown';
-                if (record.trx_type === 'bank') {
-                    type = 'Bank Matching';
-                } else if (record.trx_type === 'manual') {
-                    type = 'Manual Input';
-                }
+                const trxType = record.transaction?.type === 'bank' ? 'Bank Matching' : 'Manual Input';
                 
-                const from = record.trx_type === 'bank' 
-                    ? `Bank: ${record.bank_dan_rekening || 'N/A'}` 
-                    : `Manual: ${record.payment_method || 'N/A'}`;
+                const from = record.transaction?.type === 'bank' 
+                    ? `Bank: ${record.transaction.data.bank_dan_rekening || 'N/A'}` 
+                    : `Manual: ${record.transaction.data.method || 'N/A'}`;
                 
-                const to = record.po_type === 'purchase_order' 
-                    ? `PO: ${record.po_number || 'N/A'}`
-                    : `Manual: ${record.tujuan_transaksi || 'N/A'}`;
+                const to = record.expense?.type === 'po' 
+                    ? `PO: ${record.expense.data.poNumber || 'N/A'}`
+                    : `Manual: ${record.expense.data.categoryText || 'N/A'}`;
                 
                 const recordId = record.id || 'N/A';
                 
@@ -2331,7 +2339,7 @@
                         </div>
                         <div class="card-field">
                             <span class="card-label">Jenis</span>
-                            <span class="card-value">${type}</span>
+                            <span class="card-value">${trxType}</span>
                         </div>
                         <div class="card-field">
                             <span class="card-label">Amount</span>
@@ -2358,7 +2366,7 @@
                 `;
             }).join('');
             
-            showNotification(`Berhasil memuat ${historyArray.length} data history`, 'success');
+            showNotification(`Berhasil memuat ${currentState.historyData.length} data history`, 'success');
             
         } catch (error) {
             console.error('Error loading history data:', error);
@@ -2638,6 +2646,7 @@
         summaryEl.innerHTML = html;
     }
 
+    // Reset Functions
     function resetTransactionSelection() {
         currentState.selectedBankTransaction = null;
         currentState.manualTransaction = null;
@@ -2717,8 +2726,9 @@
         if (currentState.expenseType === 'manual-expense' && currentState.manualExpense) {
             expenseData = { ...currentState.manualExpense };
             
+            // PENTING: Mengatur poNumber dengan prefix MANUAL-EXP- agar bisa diidentifikasi saat dibaca kembali.
             expenseData.purchaseType = "manual_expense";
-            expenseData.poNumber = `MANUAL-EXP-${Date.now()}`;
+            expenseData.poNumber = `MANUAL-EXP-${Date.now()}`; 
             expenseData.supplier = "Manual Expense";
             expenseData.purchaseDate = new Date().toISOString().split('T')[0];
             expenseData.paymentMethod = "manual";
@@ -2728,12 +2738,14 @@
             expenseData.totalAmount = 0;
             expenseData.notes = currentState.manualExpense.description || "";
             expenseData.items = [];
+            
+            logDebug("Expense data manual setelah diperbaiki:", expenseData);
         }
         
         const matchingData = {
             id: 'MATCH-' + Date.now(),
             timestamp: new Date().toISOString(),
-            user_id: currentState.urlParams.id,
+            user_id: currentState.urlParams.id, 
             
             transaction: {
                 type: currentState.transactionType,
@@ -2741,6 +2753,7 @@
             },
             
             expense: {
+                // PERBAIKAN: Mengirim tipe 'manual' jika tab yang dipilih adalah 'manual-expense'
                 type: currentState.expenseType === 'manual-expense' ? 'manual' : currentState.expenseType,
                 data: expenseData
             },
@@ -2808,7 +2821,8 @@
         matchData = currentState.matchingHistory.find(m => m.id === matchId);
         
         if (!matchData && currentState.historyData) {
-            matchData = currentState.historyData.find(h => h.id === matchId);
+            // Mengambil dari data yang sudah di-convert
+            matchData = currentState.historyData.find(h => h.id === matchId); 
         }
         
         if (matchData) {
@@ -2896,13 +2910,14 @@
         }
     }
     
+    // PERBAIKAN: Fungsi ini sekarang akan menerima tipe yang benar ('po' atau 'manual')
     function displayExpenseDetail(matchData) {
         const expenseSummary = document.getElementById('popupExpenseSummary');
         const expenseData = matchData.expense?.data;
-        const expenseType = matchData.expense?.type;
+        const finalExpenseType = matchData.expense?.type;
         const itemsSection = document.getElementById('popupItemsSection');
         
-        if (expenseType === 'po' && expenseData) {
+        if (finalExpenseType === 'po' && expenseData) {
             const totalAmount = getTotalAmount(expenseData);
             const paidAmount = expenseData.paidAmount || 0;
             const items = parseItems(expenseData.items);
@@ -2947,7 +2962,7 @@
                 itemsSection.classList.add('hidden');
             }
             
-        } else if (expenseType === 'manual' && expenseData) {
+        } else if (finalExpenseType === 'manual' && expenseData) {
             expenseSummary.innerHTML = `
                 <div class="summary-item-popup">
                     <span class="summary-label">Jenis:</span>
@@ -2998,8 +3013,6 @@
     }
     
     async function fetchMatchDetail(matchId) {
-        // Logika fetch detail data jika tidak ada di local state.
-        // Disederhanakan untuk contoh, hanya melakukan call loadHistoryData() lagi.
         await loadHistoryData(); 
         
         const record = currentState.historyData.find(h => h.id === matchId);
@@ -3216,9 +3229,16 @@
             loadPOData();
             setupManualInputHandlers();
             updateMatchingSummary();
+            
+            // Inisialisasi tab expense manual
+            const manualExpenseTab = document.querySelector('.tab-btn[data-tab="manual-expense"]');
+            if (manualExpenseTab && !manualExpenseTab.classList.contains('active')) {
+                // Panggil switchTab agar state currentState.expenseType terisi dengan benar
+                switchTab('expense', 'manual-expense'); 
+            }
         }, 100);
         
-        // Photo Upload setup
+        // Photo Upload
         document.getElementById('manualPhotoUpload')?.addEventListener('click', function() {
             document.getElementById('manualPhotoInput').click();
         });
@@ -3255,6 +3275,7 @@
             console.log('Purchase Orders:', currentState.purchaseOrders);
             console.log('Selected Bank:', currentState.selectedBankTransaction);
             console.log('Selected PO:', currentState.selectedPO);
+            console.log('Manual Expense:', currentState.manualExpense); // Tambahkan log manual expense
             console.log('Matching History:', currentState.matchingHistory);
             console.log('History Data (from webhook):', currentState.historyData);
             console.groupEnd();
