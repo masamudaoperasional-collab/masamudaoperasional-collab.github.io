@@ -340,28 +340,36 @@
 
         <main class="main-content">
             <header class="content-header">
-                <h1 id="page-title">Dashboard Utama</h1>
-                <div class="filter-container">
-                    <select id="date-range-selector" class="form-control">
-                        <option value="all" selected>Semua Waktu</option>
-                        <option value="30d">30 Hari Terakhir</option>
-                        <option value="15d">15 Hari Terakhir</option>
-                        <option value="7d">7 Hari Terakhir</option>
-                        <option value="last_month">Bulan Lalu</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                    <div id="custom-date-filter" class="date-filter">
-                        <input type="date" id="start-date" class="form-control">
-                        <input type="date" id="end-date" class="form-control">
-                    </div>
-                    <button id="apply-filter" class="btn btn-primary">
-                        <i class="fas fa-filter"></i> Terapkan
-                    </button>
-                    <button id="refresh-data" class="btn btn-secondary">
-                        <i class="fas fa-sync-alt"></i> Refresh Data
-                    </button>
-                </div>
-            </header>
+    <h1 id="page-title">Dashboard Utama</h1>
+    <div class="filter-container">
+        <select id="date-range-selector" class="form-control">
+            <option value="all" selected>Semua Waktu</option>
+            <option value="30d">30 Hari Terakhir</option>
+            <option value="15d">15 Hari Terakhir</option>
+            <option value="7d">7 Hari Terakhir</option>
+            <option value="this_month">Bulan Ini</option> <!-- TAMBAHAN -->
+            <option value="last_month">Bulan Lalu</option>
+            <option value="custom">Custom</option>
+        </select>
+        <div id="custom-date-filter" class="date-filter">
+            <input type="date" id="start-date" class="form-control">
+            <input type="date" id="end-date" class="form-control">
+        </div>
+        <button id="apply-filter" class="btn btn-primary">
+            <i class="fas fa-filter"></i> Terapkan
+        </button>
+        <button id="refresh-data" class="btn btn-secondary">
+            <i class="fas fa-sync-alt"></i> Refresh Data
+        </button>
+        <!-- TOMBOL CETAK BARU (disembunyikan secara default) -->
+        <button id="print-dashboard-btn" class="btn btn-secondary" style="display: none;">
+            <i class="fas fa-print"></i> Cetak Dashboard
+        </button>
+        <button id="print-neraca-btn" class="btn btn-secondary" style="display: none;">
+            <i class="fas fa-print"></i> Cetak Neraca
+        </button>
+    </div>
+</header>
 
             <div id="error-container"></div>
 
@@ -851,61 +859,67 @@
         }
         
         function setupEventListeners() {
-            document.querySelectorAll('.nav-link').forEach(link => 
-                link.addEventListener('click', e => navigateTo(e.currentTarget.dataset.page))
-            );
-            
-            document.getElementById('date-range-selector').addEventListener('change', handleDateRangeChange);
-            document.getElementById('apply-filter').addEventListener('click', applyFiltersAndRender);
-            document.getElementById('refresh-data').addEventListener('click', refreshData);
-            
-            const modal = document.getElementById('modal');
-            document.getElementById('modal-close-btn').addEventListener('click', () => modal.classList.remove('show'));
-            modal.addEventListener('click', e => { 
-                if (e.target === modal) modal.classList.remove('show'); 
-            });
-            
-            document.body.addEventListener('click', handleDynamicClicks);
-        }
+    document.querySelectorAll('.nav-link').forEach(link => 
+        link.addEventListener('click', e => navigateTo(e.currentTarget.dataset.page))
+    );
+    
+    document.getElementById('date-range-selector').addEventListener('change', handleDateRangeChange);
+    document.getElementById('apply-filter').addEventListener('click', applyFiltersAndRender);
+    document.getElementById('refresh-data').addEventListener('click', refreshData);
+    
+    const modal = document.getElementById('modal');
+    document.getElementById('modal-close-btn').addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', e => { 
+        if (e.target === modal) modal.classList.remove('show'); 
+    });
+    
+    document.body.addEventListener('click', handleDynamicClicks);
+
+    setupPrintListeners(); // <-- TAMBAHKAN BARIS INI
+}
 
         function handleDateRangeChange() {
-            const selector = document.getElementById('date-range-selector');
-            const customFilter = document.getElementById('custom-date-filter');
-            const startDateInput = document.getElementById('start-date');
-            const endDateInput = document.getElementById('end-date');
-            
-            const value = selector.value;
-            const today = new Date();
-            let startDate = new Date();
-            let endDate = new Date();
+    const selector = document.getElementById('date-range-selector');
+    const customFilter = document.getElementById('custom-date-filter');
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    
+    const value = selector.value;
+    const today = new Date();
+    let startDate = new Date();
+    let endDate = new Date();
 
-            if (value === 'custom') {
-                customFilter.style.display = 'flex';
-                return; 
-            } else {
-                customFilter.style.display = 'none';
-            }
+    if (value === 'custom') {
+        customFilter.style.display = 'flex';
+        return; 
+    } else {
+        customFilter.style.display = 'none';
+    }
 
-            endDate = new Date(new Date().setHours(23, 59, 59, 999));
+    endDate = new Date(new Date().setHours(23, 59, 59, 999));
 
-            if (value === '7d') {
-                startDate.setDate(today.getDate() - 7);
-            } else if (value === '15d') {
-                startDate.setDate(today.getDate() - 15);
-            } else if (value === '30d') {
-                startDate.setDate(today.getDate() - 30);
-            } else if (value === 'last_month') {
-                const now = new Date();
-                startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-            } else if (value === 'all') {
-                startDate = new Date('2000-01-01'); // Cukup jauh di masa lalu
-                endDate = new Date('2100-01-01');   // Cukup jauh di masa depan
-            }
-            
-            startDateInput.valueAsDate = startDate;
-            endDateInput.valueAsDate = endDate;
-        }
+    if (value === '7d') {
+        startDate.setDate(today.getDate() - 7);
+    } else if (value === '15d') {
+        startDate.setDate(today.getDate() - 15);
+    } else if (value === '30d') {
+        startDate.setDate(today.getDate() - 30);
+    } else if (value === 'this_month') { // <-- LOGIKA BARU
+        const now = new Date();
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    } else if (value === 'last_month') {
+        const now = new Date();
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    } else if (value === 'all') {
+        startDate = new Date('2000-01-01');
+        endDate = new Date('2100-01-01');
+    }
+    
+    startDateInput.valueAsDate = startDate;
+    endDateInput.valueAsDate = endDate;
+}
         
         async function refreshData() {
             await fetchAllData();
@@ -932,20 +946,36 @@
         }
         
         function navigateTo(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(`page-${pageId}`).classList.add('active');
-            
-            document.querySelectorAll('.nav-link').forEach(l => 
-                l.classList.toggle('active', l.dataset.page === pageId)
-            );
-            
-            const pageTitleEl = document.querySelector(`.nav-link[data-page="${pageId}"] span`);
-            if (pageTitleEl) {
-                document.getElementById('page-title').textContent = pageTitleEl.textContent;
-            }
-            
-            renderActivePage();
-        }
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${pageId}`).classList.add('active');
+    
+    document.querySelectorAll('.nav-link').forEach(l => 
+        l.classList.toggle('active', l.dataset.page === pageId)
+    );
+    
+    const pageTitleEl = document.querySelector(`.nav-link[data-page="${pageId}"] span`);
+    if (pageTitleEl) {
+        document.getElementById('page-title').textContent = pageTitleEl.textContent;
+    }
+
+    // --- LOGIKA BARU UNTUK MENAMPILKAN TOMBOL CETAK ---
+    const printDashboardBtn = document.getElementById('print-dashboard-btn');
+    const printNeracaBtn = document.getElementById('print-neraca-btn');
+
+    // Sembunyikan semua tombol cetak terlebih dahulu
+    printDashboardBtn.style.display = 'none';
+    printNeracaBtn.style.display = 'none';
+
+    // Tampilkan tombol yang sesuai dengan halaman
+    if (pageId === 'dashboard') {
+        printDashboardBtn.style.display = 'inline-flex';
+    } else if (pageId === 'neraca') {
+        printNeracaBtn.style.display = 'inline-flex';
+    }
+    // --- AKHIR LOGIKA BARU ---
+    
+    renderActivePage();
+}
         
         function renderActivePage() {
             const activePageId = document.querySelector('.page.active')?.id;
@@ -1525,6 +1555,85 @@
                 notification.classList.remove('show'); 
             }, 4000);
         }
+        
+        // =================================================================================
+// --- FUNGSI BARU UNTUK EKSPOR PDF/PRINT ---
+// =================================================================================
+function setupPrintListeners() {
+    document.getElementById('print-dashboard-btn').addEventListener('click', () => {
+        printContent('page-dashboard', 'Dashboard Keuangan');
+    });
+    document.getElementById('print-neraca-btn').addEventListener('click', () => {
+        printContent('page-neraca', 'Laporan Neraca');
+    });
+}
+
+function printContent(elementId, documentTitle) {
+    const printElement = document.getElementById(elementId);
+    if (!printElement) return;
+
+    // Simpan judul halaman asli
+    const originalTitle = document.title;
+    document.title = documentTitle;
+
+    // Buat style khusus untuk mencetak
+    const printStyles = `
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 20mm;
+            }
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background-color: #fff !important;
+            }
+            /* Sembunyikan semua elemen yang tidak perlu */
+            .sidebar, .main-content > .content-header, .modal {
+                display: none !important;
+            }
+            /* Tampilkan hanya konten yang ingin dicetak */
+            .main-content {
+                padding: 0 !important;
+            }
+            .page {
+                display: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            #${elementId} {
+                display: block !important;
+            }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid; /* Hindari card terpotong antar halaman */
+            }
+            canvas {
+                 max-width: 100% !important;
+                 max-height: 180mm !important; /* Batasi tinggi grafik agar pas */
+            }
+             h1, h2, h3 {
+                color: #000 !important;
+            }
+            .text-success { color: #198754 !important; }
+            .text-danger { color: #dc3545 !important; }
+        }
+    `;
+
+    const styleSheet = document.createElement('style');
+    styleSheet.type = 'text/css';
+    styleSheet.media = 'print';
+    styleSheet.innerText = printStyles;
+    document.head.appendChild(styleSheet);
+    
+    // Tampilkan dialog cetak browser
+    window.print();
+    
+    // Kembalikan seperti semula setelah mencetak
+    document.head.removeChild(styleSheet);
+    document.title = originalTitle;
+}
 
         // --- Mulai Aplikasi ---
         initializeApp();
