@@ -1580,8 +1580,8 @@ function printContent(elementId, documentTitle) {
     const printStyles = `
         @media print {
             @page {
-                size: A4 landscape;
-                margin: 20mm;
+                size: tabloid potrait;
+                margin: 10mm;
             }
             body {
                 -webkit-print-color-adjust: exact !important;
@@ -1610,8 +1610,8 @@ function printContent(elementId, documentTitle) {
                 page-break-inside: avoid; /* Hindari card terpotong antar halaman */
             }
             canvas {
-                 max-width: 100% !important;
-                 max-height: 180mm !important; /* Batasi tinggi grafik agar pas */
+                 max-width: 90% !important;
+                 max-height: 100mm !important; /* Batasi tinggi grafik agar pas */
             }
              h1, h2, h3 {
                 color: #000 !important;
