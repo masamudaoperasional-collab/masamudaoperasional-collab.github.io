@@ -44,7 +44,6 @@
         /* --- Struktur Layout Utama --- */
         .app-layout { 
             display: none; /* Sembunyikan dulu, akan ditampilkan setelah login */
-            display: flex; /* Ubah ini menjadi flex */
             min-height: 100vh; 
         }
 
@@ -238,50 +237,483 @@
             transition: transform 0.3s ease;
             max-width: 400px;
         }
-        .notification.show { transform: translateX(0); }
-        .notification.success { background-color: var(--success-color); }
-        .notification.error { background-color: var(--danger-color); }
-        .notification.warning { background-color: var(--warning-color); color: var(--text-dark); }
+        .notification.show {
+            transform: translateX(0);
+        }
+        .notification.success {
+            background-color: var(--success-color);
+        }
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+        .notification.warning {
+            background-color: var(--warning-color);
+            color: var(--text-dark);
+        }
 
         /* --- Login Page Styling --- */
         .login-page {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
             font-family: var(--font-family);
         }
-        .login-container { width: 100%; max-width: 400px; padding: 20px; }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
         .login-card {
-            background-color: var(--card-bg); border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow); padding: 40px 30px; text-align: center;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 40px 30px;
+            text-align: center;
             animation: slideUp 0.5s ease;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .login-header { margin-bottom: 30px; }
-        .login-header i { font-size: 3rem; color: var(--primary-color); margin-bottom: 15px; }
-        .login-header h2 { color: var(--text-dark); margin-bottom: 10px; font-weight: 700; }
-        .login-header p { color: var(--text-light); font-size: 0.9rem; }
-        .login-form { text-align: left; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-dark); }
-        .password-input-container { position: relative; display: flex; align-items: center; }
-        .password-input-container .form-control { padding-right: 45px; width: 100%; }
-        .toggle-password {
-            position: absolute; right: 12px; background: none; border: none;
-            color: var(--text-light); cursor: pointer; padding: 5px; border-radius: 4px; transition: color 0.2s;
-        }
-        .toggle-password:hover { color: var(--primary-color); background-color: rgba(67, 97, 238, 0.1); }
-        .login-btn { width: 100%; padding: 12px; font-size: 1rem; margin-top: 10px; }
-        .error-message {
-            background-color: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.2);
-            border-radius: 8px; padding: 12px; margin-top: 15px; display: flex;
-            align-items: center; gap: 10px; color: var(--danger-color); font-size: 0.9rem;
-        }
-        .error-message i { font-size: 1rem; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        .shake { animation: shake 0.3s ease-in-out; }
 
-        /* --- Media Queries --- */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .login-header h2 {
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .login-form {
+            text-align: left;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .password-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-input-container .form-control {
+            padding-right: 45px;
+            width: 100%;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary-color);
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--danger-color);
+            font-size: 0.9rem;
+        }
+
+        .error-message i {
+            font-size: 1rem;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        /* Responsive design untuk login page */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 15px;
+            }
+            
+            .login-card {
+                padding: 30px 20px;
+            }
+            
+            .login-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* --- Tombol Print --- */
+        .print-btn {
+            background-color: #17a2b8 !important;
+            color: white !important;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition-speed);
+        }
+
+        .print-btn:hover {
+            background-color: #138496 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.2);
+        }
+
+        /* --- Enhanced Print Styles --- */
+        @media print {
+            @page {
+                size: tabloid portrait;
+                margin: 15mm 20mm;
+            }
+            
+            /* Sembunyikan elemen yang tidak perlu dicetak */
+            .sidebar, .content-header, .nav-link, .filter-container, 
+            #logout-btn, .btn, .notification, .modal,
+            #login-page, .loading-overlay {
+                display: none !important;
+            }
+            
+            /* Layout untuk print */
+            .app-layout {
+                display: flex !important;
+                flex-direction: column;
+            }
+            
+            .main-content {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            
+            /* Enhanced header */
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 25px;
+                padding-bottom: 15px;
+                border-bottom: 3px solid #333;
+                background: linear-gradient(to right, #f8f9fa, #e9ecef) !important;
+                padding: 20px;
+                margin: -15mm -20mm 25px -20mm;
+                border-bottom: 4px double #333;
+            }
+
+            .print-title {
+                font-size: 24pt;
+                font-weight: bold;
+                margin-bottom: 8px;
+                color: #2c3e50 !important;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .print-subtitle {
+                font-size: 16pt;
+                margin-bottom: 8px;
+                color: #34495e !important;
+                font-weight: 600;
+            }
+
+            .print-date {
+                font-size: 11pt;
+                color: #7f8c8d !important;
+                font-style: italic;
+            }
+
+            .print-summary {
+                background: #f8f9fa !important;
+                border: 1px solid #ddd !important;
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 5px;
+                page-break-inside: avoid;
+            }
+
+            /* Enhanced cards */
+            .card {
+                box-shadow: none !important;
+                border: 2px solid #333 !important;
+                margin-bottom: 25px !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                background: white !important;
+            }
+
+            .card-header {
+                background: linear-gradient(to right, #2c3e50, #34495e) !important;
+                color: white !important;
+                border-bottom: 3px solid #000 !important;
+                font-size: 14pt !important;
+                font-weight: bold;
+                padding: 12px 20px !important;
+            }
+
+            .card-body {
+                padding: 20px !important;
+                background: white !important;
+            }
+
+            /* Enhanced metrics */
+            .metric-item {
+                box-shadow: none !important;
+                border: 2px solid #bdc3c7 !important;
+                background: white !important;
+                padding: 20px 15px !important;
+                text-align: center;
+                position: relative;
+                break-inside: avoid;
+            }
+
+            .metric-item::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(to right, #3498db, #2ecc71);
+            }
+
+            .metric-item p {
+                font-size: 10pt !important;
+                margin-bottom: 8px !important;
+                color: #7f8c8d !important;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .metric-item h2 {
+                font-size: 18pt !important;
+                margin-top: 5px !important;
+                color: #2c3e50 !important;
+                font-weight: bold;
+            }
+
+            /* Enhanced tables */
+            .table {
+                border: 2px solid #333 !important;
+                font-size: 9pt !important;
+                page-break-inside: avoid;
+            }
+
+            .table th {
+                background: linear-gradient(to right, #34495e, #2c3e50) !important;
+                color: white !important;
+                border-bottom: 2px solid #000 !important;
+                font-weight: bold;
+                padding: 10px 8px !important;
+                text-align: center;
+            }
+
+            .table td {
+                border: 1px solid #ddd !important;
+                padding: 8px !important;
+                vertical-align: middle;
+            }
+
+            .table tbody tr:nth-child(even) {
+                background-color: #f8f9fa !important;
+            }
+
+            /* Enhanced charts */
+            .card-body canvas {
+                max-height: 400px !important;
+                height: 400px !important;
+                background: white !important;
+                border: 1px solid #ddd !important;
+                padding: 10px;
+            }
+
+            /* Grid improvements */
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 15px !important;
+                margin-bottom: 20px !important;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+
+            /* KPI highlights */
+            .kpi-positive {
+                background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
+                border-color: #28a745 !important;
+            }
+
+            .kpi-negative {
+                background: linear-gradient(135deg, #f8d7da, #f1b0b7) !important;
+                border-color: #dc3545 !important;
+            }
+
+            .kpi-neutral {
+                background: linear-gradient(135deg, #fff3cd, #ffeaa7) !important;
+                border-color: #ffc107 !important;
+            }
+
+            /* Page break controls */
+            .page-break-before {
+                page-break-before: always;
+            }
+
+            .page-break-after {
+                page-break-after: always;
+            }
+
+            .avoid-break {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            /* Executive summary section */
+            .executive-summary {
+                background: #f8f9fa !important;
+                border-left: 6px solid #3498db !important;
+                padding: 20px;
+                margin: 20px 0;
+                page-break-inside: avoid;
+            }
+
+            .executive-summary h4 {
+                color: #2c3e50 !important;
+                margin-bottom: 15px;
+                font-size: 14pt;
+            }
+
+            .executive-summary p {
+                margin-bottom: 10px;
+                line-height: 1.6;
+            }
+
+            /* Financial highlights */
+            .financial-highlights {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .highlight-item {
+                text-align: center;
+                padding: 15px;
+                border: 2px solid #bdc3c7;
+                border-radius: 8px;
+                background: white;
+            }
+
+            .highlight-value {
+                font-size: 16pt;
+                font-weight: bold;
+                color: #2c3e50;
+                margin: 8px 0;
+            }
+
+            .highlight-label {
+                font-size: 9pt;
+                color: #7f8c8d;
+                text-transform: uppercase;
+                font-weight: 600;
+            }
+
+            /* Watermark untuk draft */
+            .watermark {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-45deg);
+                font-size: 80pt;
+                color: rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+                pointer-events: none;
+                font-weight: bold;
+            }
+
+            /* Improved typography */
+            body {
+                font-family: "Arial", "Helvetica", sans-serif !important;
+                font-size: 11pt;
+                line-height: 1.4;
+                color: #000 !important;
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            h1, h2, h3, h4 {
+                color: #000 !important;
+                font-family: "Arial", sans-serif !important;
+            }
+        }
+
+        /* --- Media Queries untuk Responsivitas --- */
         @media (max-width: 1200px) { .chart-grid, .analysis-grid { grid-template-columns: 1fr; } }
         @media (max-width: 992px) {
             .app-layout { flex-direction: column; }
@@ -297,127 +729,6 @@
             .filter-container { width: 100%; flex-direction: column; align-items: stretch; }
             .detail-grid { grid-template-columns: 1fr; }
         }
-        @media (max-width: 480px) {
-            .login-container { padding: 15px; }
-            .login-card { padding: 30px 20px; }
-            .login-header h2 { font-size: 1.5rem; }
-        }
-        
-        /* --- Tombol Print --- */
-        .print-btn {
-            background-color: #17a2b8; color: white;
-        }
-        .print-btn:hover {
-            background-color: #138496;
-        }
-
-        /* --- === PRINT STYLES === --- */
-        .print-header, .watermark, .financial-highlights, .executive-summary {
-            display: none; /* Sembunyikan secara default */
-        }
-
-        @media print {
-            /* Aturan @page untuk header dan footer */
-            @page {
-                size: A4 portrait;
-                margin: 20mm 15mm;
-                
-                @top-center {
-                    content: "Laporan Keuangan Internal";
-                    font-size: 9pt; color: #666;
-                    font-family: 'Arial', sans-serif;
-                }
-                @bottom-right {
-                    content: "Halaman " counter(page) " dari " counter(pages);
-                    font-size: 9pt; color: #666;
-                    font-family: 'Arial', sans-serif;
-                }
-            }
-
-            /* Reset & Gaya Body untuk Print */
-            body {
-                font-family: "Arial", "Helvetica", sans-serif !important;
-                font-size: 10pt; line-height: 1.4; color: #000 !important;
-                background: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            /* Sembunyikan elemen yang tidak perlu */
-            .sidebar, .content-header, .nav-link, .btn, .notification, .modal, .login-page, .loading-overlay {
-                display: none !important;
-            }
-
-            /* Tampilkan layout utama dengan benar */
-            .app-layout, .main-content {
-                display: block !important;
-                padding: 0 !important; margin: 0 !important;
-                width: 100% !important;
-            }
-
-            /* Tampilkan header cetak */
-            .print-header {
-                display: block !important; text-align: center;
-                margin-bottom: 25px; padding-bottom: 15px;
-                border-bottom: 3px double #333;
-            }
-            .print-title { font-size: 20pt; font-weight: bold; margin-bottom: 8px; color: #2c3e50 !important; }
-            .print-subtitle { font-size: 14pt; margin-bottom: 8px; color: #34495e !important; }
-            .print-date { font-size: 10pt; color: #7f8c8d !important; font-style: italic; }
-            .print-summary { background: #f8f9fa !important; border: 1px solid #ddd !important; padding: 15px; margin: 15px 0; border-radius: 5px; page-break-inside: avoid; }
-
-            /* Watermark */
-            .watermark {
-                display: block !important; position: fixed;
-                top: 50%; left: 50%;
-                transform: translate(-50%, -50%) rotate(-45deg);
-                font-size: 70pt; color: rgba(0, 0, 0, 0.08);
-                z-index: -1; pointer-events: none; font-weight: bold;
-            }
-            
-            /* Executive Summary & Highlights */
-            .executive-summary, .financial-highlights { display: block !important; page-break-inside: avoid; }
-            .executive-summary { background: #f8f9fa !important; border-left: 5px solid #3498db !important; padding: 15px; margin: 20px 0; }
-            .executive-summary h4 { color: #2c3e50 !important; margin-bottom: 10px; font-size: 12pt; }
-            .financial-highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
-            .highlight-item { text-align: center; padding: 15px; border: 1px solid #bdc3c7; border-radius: 8px; background: white; }
-            .highlight-value { font-size: 14pt; font-weight: bold; color: #2c3e50; margin: 8px 0; }
-            .highlight-label { font-size: 9pt; color: #7f8c8d; text-transform: uppercase; font-weight: 600; }
-
-            /* Styling Card */
-            .card {
-                box-shadow: none !important; border: 1px solid #333 !important;
-                margin-bottom: 20px !important; page-break-inside: avoid; break-inside: avoid;
-                background: white !important;
-            }
-            .card-header {
-                background: #e9ecef !important; color: #000 !important;
-                border-bottom: 2px solid #000 !important; font-size: 12pt !important;
-                font-weight: bold; padding: 10px 15px !important;
-            }
-            .card-body { padding: 15px !important; }
-
-            /* Styling Grid */
-            .card-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 15px !important; }
-            .chart-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
-
-            /* Styling Metric Item */
-            .metric-item {
-                border: 1px solid #bdc3c7 !important; padding: 15px !important;
-            }
-            .metric-item p { font-size: 10pt !important; font-weight: 600; }
-            .metric-item h2 { font-size: 16pt !important; }
-
-            /* Styling Tabel */
-            .table { border: 1px solid #333 !important; font-size: 9pt !important; }
-            .table th { background: #f1f1f1 !important; color: #000 !important; border-bottom: 2px solid #000 !important; font-weight: bold; padding: 8px !important; }
-            .table td { border: 1px solid #ddd !important; padding: 6px !important; }
-            .table tbody tr:nth-child(even) { background-color: #f8f9fa !important; }
-            
-            /* Tweak warna agar terbaca */
-            .text-success, .text-danger { color: #000 !important; font-weight: bold; }
-        }
-
     </style>
 </head>
 <body>
@@ -429,7 +740,7 @@
     <div id="notification" class="notification"></div>
     
     <!-- Halaman Login -->
-    <div id="login-page" class="login-page">
+    <div id="login-page" class="login-page" style="display: flex;">
         <div class="login-container">
             <div class="login-card">
                 <div class="login-header">
@@ -462,7 +773,7 @@
         </div>
     </div>
 
-    <!-- Layout Dashboard -->
+    <!-- Layout Dashboard (akan ditampilkan setelah login) -->
     <div class="app-layout">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -499,46 +810,111 @@
                         <input type="date" id="end-date" class="form-control">
                     </div>
                     <button id="apply-filter" class="btn btn-primary"><i class="fas fa-filter"></i> Terapkan</button>
-                    <button id="refresh-data" class="btn btn-secondary"><i class="fas fa-sync-alt"></i> Refresh</button>
-                    <button id="print-page" class="btn print-btn" style="display: none;"><i class="fas fa-print"></i> Print Laporan</button>
+                    <button id="refresh-data" class="btn btn-secondary"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                    <!-- TAMBAHKAN TOMBOL PRINT DI SINI -->
+                    <button id="print-page" class="btn print-btn" style="display: none;"><i class="fas fa-print"></i> Print</button>
                 </div>
             </header>
 
             <div id="error-container"></div>
 
             <div class="page-container">
-                <!-- Semua div .page akan diisi oleh JavaScript -->
                 <div id="page-dashboard" class="page active">
-                    <section class="card-grid" id="dashboard-kpi-container"></section>
+                    <section class="card-grid" id="dashboard-kpi-container">
+                        <div class="metric-item"><p>Total Pendapatan</p><h2 class="loading-placeholder"></h2></div>
+                        <div class="metric-item"><p>Total Pengeluaran</p><h2 class="loading-placeholder"></h2></div>
+                        <div class="metric-item"><p>Laba / Rugi</p><h2 class="loading-placeholder"></h2></div>
+                        <div class="metric-item"><p>Arus Kas Bersih (Bank)</p><h2 class="loading-placeholder"></h2></div>
+                    </section>
                     <div class="chart-grid">
-                        <section class="card"><div class="card-header"><h3>Komposisi Pengeluaran</h3></div><div class="card-body" id="dashboard-expense-category-chart"></div></section>
-                        <section class="card"><div class="card-header"><h3>Tren Laba/Rugi Harian</h3></div><div class="card-body" id="dashboard-profit-trend-chart"></div></section>
+                        <section class="card">
+                            <div class="card-header"><h3>Komposisi Pengeluaran</h3></div>
+                            <div class="card-body" id="dashboard-expense-category-chart"><div class="placeholder-text">Memuat grafik...</div></div>
+                        </section>
+                        <section class="card">
+                            <div class="card-header"><h3>Tren Laba/Rugi Harian</h3></div>
+                            <div class="card-body" id="dashboard-profit-trend-chart"><div class="placeholder-text">Memuat grafik...</div></div>
+                        </section>
                     </div>
-                    <section class="card"><div class="card-header"><h3>Pengeluaran Berdasarkan Kategori</h3></div><div id="dashboard-top-expenses-table"></div></section>
+                    <section class="card">
+                         <div class="card-header"><h3>Pengeluaran Berdasarkan Kategori</h3></div>
+                         <div id="dashboard-top-expenses-table"><div class="placeholder-text">Memuat data...</div></div>
+                    </section>
                 </div>
+
                 <div id="page-neraca" class="page">
-                    <section class="card"><div class="card-header"><h3>Ringkasan Keuangan</h3></div><div class="card-body card-grid" id="neraca-summary-section1"></div></section>
-                    <section class="card"><div class="card-header"><h3>Ringkasan Aliran Kas Bank</h3></div><div class="card-body card-grid" id="neraca-summary-section2"></div></section>
-                    <section class="card"><div class="card-header"><h3>Perbandingan Pendapatan vs Kas Masuk Bank (Harian)</h3></div><div class="card-body" id="neraca-settlement-chart-container"></div></section>
-                    <section class="card"><div class="card-header"><h3>Grafik Neraca Keuangan (Akumulatif)</h3></div><div class="card-body" id="neraca-chart-section3"></div></section>
+                    <section class="card">
+                        <div class="card-header"><h3>Ringkasan Keuangan</h3></div>
+                        <div class="card-body card-grid" id="neraca-summary-section1"><div class="placeholder-text">Memuat data ringkasan...</div></div>
+                    </section>
+                     <section class="card">
+                        <div class="card-header"><h3>Ringkasan Aliran Kas Bank</h3></div>
+                        <div class="card-body card-grid" id="neraca-summary-section2"><div class="placeholder-text">Memuat data ringkasan...</div></div>
+                    </section>
+                    <section class="card">
+                        <div class="card-header"><h3>Perbandingan Pendapatan Penjualan vs Kas Masuk Bank (Harian)</h3></div>
+                        <div class="card-body" id="neraca-settlement-chart-container">
+                            <div class="placeholder-text">Memuat grafik perbandingan...</div>
+                        </div>
+                    </section>
+                     <section class="card">
+                        <div class="card-header"><h3>Grafik Neraca Keuangan (Akumulatif)</h3></div>
+                        <div class="card-body" id="neraca-chart-section3"><div class="placeholder-text">Memuat grafik...</div></div>
+                    </section>
                 </div>
+
                 <div id="page-arus-kas" class="page">
-                    <section class="card"><div class="card-header"><h3>Grafik Tren Penjualan vs Aliran Kas Harian</h3></div><div class="card-body" id="arus-kas-chart-container"></div></section>
-                    <section class="card"><div class="card-header"><h3>Ringkasan Metode Pembayaran & Kalkulator Komisi</h3></div><div class="card-body" id="payment-method-summary-container"></div></section>
-                    <section class="card"><div class="card-header"><h3>Tabel Data Penjualan (Closing Sales)</h3></div><div class="table-responsive" id="arus-kas-table-container"></div></section>
+                    <section class="card">
+                        <div class="card-header"><h3>Grafik Tren Penjualan vs Aliran Kas Harian</h3></div>
+                        <div class="card-body" id="arus-kas-chart-container"><div class="placeholder-text">Memuat grafik...</div></div>
+                    </section>
+                    <section class="card">
+                        <div class="card-header"><h3>Ringkasan Metode Pembayaran & Kalkulator Komisi</h3></div>
+                        <div class="card-body" id="payment-method-summary-container">
+                           <div class="placeholder-text">Memuat data metode pembayaran...</div>
+                        </div>
+                    </section>
+                    <section class="card">
+                        <div class="card-header"><h3>Tabel Data Penjualan (Closing Sales)</h3></div>
+                        <div class="table-responsive" id="arus-kas-table-container"><div class="placeholder-text">Memuat data...</div></div>
+                    </section>
                 </div>
+
                 <div id="page-transaksi-bank" class="page">
-                    <section class="card"><div class="card-header"><h3>Ringkasan Kredit/Debit/Balance</h3></div><div class="card-body card-grid" id="transaksi-bank-summary-container"></div></section>
-                    <section class="card"><div class="card-header"><h3>Pengelompokan Berdasarkan Tipe</h3></div><div class="card-body" id="transaksi-bank-grouped-container"></div></section>
-                    <section class="card"><div class="card-header"><h3>Tabel Data E-Statement</h3></div><div class="table-responsive" id="transaksi-bank-table-container"></div></section>
+                    <section class="card">
+                        <div class="card-header"><h3>Ringkasan Kredit/Debit/Balance</h3></div>
+                        <div class="card-body card-grid" id="transaksi-bank-summary-container"><div class="placeholder-text">Memuat data ringkasan...</div></div>
+                    </section>
+                    <section class="card">
+                        <div class="card-header"><h3>Pengelompokan Berdasarkan Tipe</h3></div>
+                        <div class="card-body" id="transaksi-bank-grouped-container"><div class="placeholder-text">Memuat data...</div></div>
+                    </section>
+                     <section class="card">
+                        <div class="card-header"><h3>Tabel Data E-Statement</h3></div>
+                        <div class="table-responsive" id="transaksi-bank-table-container"><div class="placeholder-text">Memuat data...</div></div>
+                    </section>
                 </div>
+
                 <div id="page-pengeluaran" class="page">
-                    <section class="card"><div class="card-header"><h3>Pengelompokan per Penerima</h3></div><div class="card-body" id="pengeluaran-grouped-container"></div></section>
-                    <section class="card"><div class="card-header"><h3>Tabel Data Pengeluaran (Bank Transaction)</h3></div><div class="table-responsive" id="pengeluaran-table-container"></div></section>
+                    <section class="card">
+                        <div class="card-header"><h3>Pengelompokan per Penerima</h3></div>
+                        <div class="card-body" id="pengeluaran-grouped-container"><div class="placeholder-text">Memuat data...</div></div>
+                    </section>
+                    <section class="card">
+                        <div class="card-header"><h3>Tabel Data Pengeluaran (Bank Transaction)</h3></div>
+                        <div class="table-responsive" id="pengeluaran-table-container"><div class="placeholder-text">Memuat data...</div></div>
+                    </section>
                 </div>
+
                 <div id="page-detail-pengeluaran" class="page">
-                    <section class="card"><div class="card-header"><h3>Kategori Pengeluaran</h3></div><div class="card-body" id="detail-pengeluaran-summary-container"></div></section>
-                    <section class="card"><div class="card-header"><h3>Tabel Data Detail Pengeluaran (Expense Match)</h3></div><div class="table-responsive" id="detail-pengeluaran-table-container"></div></section>
+                    <section class="card">
+                        <div class="card-header"><h3>Kategori Pengeluaran</h3></div>
+                        <div class="card-body" id="detail-pengeluaran-summary-container"><div class="placeholder-text">Memuat data ringkasan...</div></div>
+                    </section>
+                    <section class="card">
+                        <div class="card-header"><h3>Tabel Data Detail Pengeluaran (Expense Match)</h3></div>
+                        <div class="table-responsive" id="detail-pengeluaran-table-container"><div class="placeholder-text">Memuat data...</div></div>
+                    </section>
                 </div>
             </div>
         </main>
@@ -553,434 +929,1273 @@
             <div id="modal-body" class="modal-body"></div>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- KODE JAVASCRIPT AKAN DITEMPATKAN DI SINI -->
+
     <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // =================================================================================
-    // --- PENGATURAN UTAMA & STATE APLIKASI ---
-    // =================================================================================
-    const WEBHOOK_URLS = {
-        sales: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/closing-sales-summary',
-        estatement: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/e_statement',
-        bankTransaction: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hookbanktransaction',
-        expenseMatch: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/read-output-formexpense-match'
-    };
-    
-    let masterData = {};
-    let filteredData = {};
-    let chartInstances = {};
-    let currentPaymentSummary = {};
-    const VALID_PASSWORD = "admin123";
+    document.addEventListener('DOMContentLoaded', () => {
+        // =================================================================================
+        // --- PENGATURAN UTAMA ---
+        const WEBHOOK_URLS = {
+            sales: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/closing-sales-summary',
+            estatement: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/e_statement',
+            bankTransaction: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hookbanktransaction',
+            expenseMatch: 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/read-output-formexpense-match'
+        };
+        
+        // State aplikasi
+        let masterData = {};
+        let filteredData = {};
+        let chartInstances = {};
+        let currentPaymentSummary = {};
 
-    // =================================================================================
-    // --- SISTEM AUTENTIKASI ---
-    // =================================================================================
-    function setupAuth() {
-        const loginForm = document.getElementById('login-form');
-        const passwordInput = document.getElementById('password');
-        const errorDiv = document.getElementById('login-error');
-        const toggleBtn = document.getElementById('toggle-password');
+        // =================================================================================
+        // --- SISTEM AUTHENTIKASI ---
+        // =================================================================================
 
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                this.querySelector('i').className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+        const VALID_PASSWORD = "admin123";
+
+        function checkPassword(inputPassword) {
+            return inputPassword === VALID_PASSWORD;
+        }
+
+        function showLoginPage() {
+            document.getElementById('login-page').style.display = 'flex';
+            document.querySelector('.app-layout').style.display = 'none';
+            document.getElementById('password').value = '';
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('password').focus();
+        }
+
+        function hideLoginPage() {
+            document.getElementById('login-page').style.display = 'none';
+            document.querySelector('.app-layout').style.display = 'flex';
+        }
+
+        function setupPasswordToggle() {
+            const toggleBtn = document.getElementById('toggle-password');
+            const passwordInput = document.getElementById('password');
+            
+            if (toggleBtn && passwordInput) {
+                toggleBtn.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    const icon = this.querySelector('i');
+                    icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+                });
+            }
+        }
+
+        function setupLoginForm() {
+            const loginForm = document.getElementById('login-form');
+            const passwordInput = document.getElementById('password');
+            const errorDiv = document.getElementById('login-error');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const password = passwordInput.value.trim();
+                    
+                    if (!password) {
+                        errorDiv.querySelector('span').textContent = 'Password tidak boleh kosong';
+                        errorDiv.style.display = 'flex';
+                        return;
+                    }
+                    
+                    if (checkPassword(password)) {
+                        // Login berhasil
+                        sessionStorage.setItem('isAuthenticated', 'true');
+                        hideLoginPage();
+                        showNotification('Login berhasil!', 'success');
+                        
+                        // Inisialisasi aplikasi utama
+                        await initializeMainApp();
+                    } else {
+                        errorDiv.querySelector('span').textContent = 'Password salah. Silakan coba lagi.';
+                        errorDiv.style.display = 'flex';
+                        passwordInput.value = '';
+                        passwordInput.focus();
+                        
+                        // Efek shake
+                        loginForm.classList.add('shake');
+                        setTimeout(() => {
+                            loginForm.classList.remove('shake');
+                        }, 500);
+                    }
+                });
+            }
+        }
+
+        function checkAuthStatus() {
+            const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
+            console.log('Status autentikasi:', isAuthenticated);
+            
+            if (isAuthenticated) {
+                hideLoginPage();
+                initializeMainApp();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('isAuthenticated');
+            showLoginPage();
+            showNotification('Anda telah logout', 'warning');
+        }
+
+        // =================================================================================
+        // --- FUNGSI PRINT ---
+        // =================================================================================
+
+        function setupPrintFunctionality() {
+            const printBtn = document.getElementById('print-page');
+            if (printBtn) {
+                printBtn.addEventListener('click', function() {
+                    const activePage = document.querySelector('.page.active');
+                    
+                    if (activePage.id === 'page-dashboard') {
+                        printDashboard();
+                    } else if (activePage.id === 'page-neraca') {
+                        printNeraca();
+                    }
+                });
+            }
+        }
+
+        function togglePrintButton() {
+            const printBtn = document.getElementById('print-page');
+            const activePage = document.querySelector('.page.active');
+            
+            // Tampilkan tombol print hanya untuk dashboard dan neraca
+            if (activePage && (activePage.id === 'page-dashboard' || activePage.id === 'page-neraca')) {
+                printBtn.style.display = 'inline-flex';
+            } else {
+                printBtn.style.display = 'none';
+            }
+        }
+
+        function getCurrentDateRange() {
+            const startDate = document.getElementById('start-date').valueAsDate;
+            const endDate = document.getElementById('end-date').valueAsDate;
+            
+            if (startDate && endDate) {
+                return `${startDate.toLocaleDateString('id-ID')} - ${endDate.toLocaleDateString('id-ID')}`;
+            }
+            
+            const selector = document.getElementById('date-range-selector');
+            const textMap = {
+                'all': 'Semua Periode',
+                '30d': '30 Hari Terakhir',
+                '15d': '15 Hari Terakhir',
+                '7d': '7 Hari Terakhir',
+                'this_month': 'Bulan Ini',
+                'last_month': 'Bulan Lalu'
+            };
+            
+            return textMap[selector.value] || 'Custom Period';
+        }
+
+        function printDashboard() {
+            const originalTitle = document.title;
+            
+            // Enhanced print header dengan summary
+            const printHeader = createEnhancedPrintHeader(
+                'LAPORAN DASHBOARD KEUANGAN', 
+                'Dashboard Utama & Performance Overview',
+                generateDashboardSummary()
+            );
+            
+            const dashboardPage = document.getElementById('page-dashboard');
+            dashboardPage.insertBefore(printHeader, dashboardPage.firstChild);
+            
+            // Add watermark untuk draft (opsional)
+            addWatermark('LAPORAN RESMI');
+            
+            // Add financial highlights
+            addFinancialHighlights();
+            
+            // Add executive summary
+            addExecutiveSummary();
+            
+            document.title = `Laporan Dashboard Keuangan - ${new Date().toLocaleDateString('id-ID')}`;
+            
+            setTimeout(() => {
+                window.print();
+                
+                setTimeout(() => {
+                    printHeader.remove();
+                    removeWatermark();
+                    removeFinancialHighlights();
+                    removeExecutiveSummary();
+                    document.title = originalTitle;
+                }, 100);
+            }, 800);
+        }
+
+        function printNeraca() {
+            const originalTitle = document.title;
+            
+            const printHeader = createEnhancedPrintHeader(
+                'LAPORAN NERACA KEUANGAN', 
+                'Laporan Posisi Keuangan & Analisis',
+                generateNeracaSummary()
+            );
+            
+            const neracaPage = document.getElementById('page-neraca');
+            neracaPage.insertBefore(printHeader, neracaPage.firstChild);
+            
+            addWatermark('LAPORAN KEUANGAN');
+            addFinancialHighlights();
+            addExecutiveSummary();
+            
+            document.title = `Laporan Neraca Keuangan - ${new Date().toLocaleDateString('id-ID')}`;
+            
+            setTimeout(() => {
+                window.print();
+                
+                setTimeout(() => {
+                    printHeader.remove();
+                    removeWatermark();
+                    removeFinancialHighlights();
+                    removeExecutiveSummary();
+                    document.title = originalTitle;
+                }, 100);
+            }, 800);
+        }
+
+        function createEnhancedPrintHeader(title, subtitle, summary) {
+            const header = document.createElement('div');
+            header.className = 'print-header';
+            header.innerHTML = `
+                <div class="print-title">${title}</div>
+                <div class="print-subtitle">${subtitle}</div>
+                <div class="print-date">
+                    Periode: ${getCurrentDateRange()} | 
+                    Dicetak: ${new Date().toLocaleDateString('id-ID', { 
+                        day: 'numeric', 
+                        month: 'long', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}
+                </div>
+                ${summary ? `<div class="print-summary">${summary}</div>` : ''}
+            `;
+            return header;
+        }
+
+        function generateDashboardSummary() {
+            const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+            const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+            const labaRugi = totalPendapatan - totalPengeluaran;
+            const margin = totalPendapatan > 0 ? ((labaRugi / totalPendapatan) * 100).toFixed(1) : 0;
+            
+            return `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; font-size: 10pt;">
+                    <div><strong>Total Pendapatan:</strong> ${formatCurrency(totalPendapatan)}</div>
+                    <div><strong>Total Pengeluaran:</strong> ${formatCurrency(totalPengeluaran)}</div>
+                    <div><strong>Laba/Rugi Bersih:</strong> <span style="color: ${labaRugi >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${formatCurrency(labaRugi)}</span></div>
+                    <div><strong>Margin Profit:</strong> <span style="color: ${margin >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${margin}%</span></div>
+                </div>
+            `;
+        }
+
+        function generateNeracaSummary() {
+            const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+            const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+            const labaRugi = totalPendapatan - totalPengeluaran;
+            const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+            const totalDebit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
+            const arusKasBersih = totalKredit - totalDebit;
+            
+            return `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; font-size: 10pt;">
+                    <div><strong>Laba/Rugi Operasional:</strong> ${formatCurrency(labaRugi)}</div>
+                    <div><strong>Arus Kas Bersih:</strong> ${formatCurrency(arusKasBersih)}</div>
+                    <div><strong>Efisiensi Operasional:</strong> ${totalPendapatan > 0 ? ((totalPengeluaran / totalPendapatan) * 100).toFixed(1) + '%' : 'N/A'}</div>
+                    <div><strong>Rasio Likuiditas:</strong> ${arusKasBersih > 0 ? 'Baik' : 'Perhatian'}</div>
+                </div>
+            `;
+        }
+
+        function addFinancialHighlights() {
+            const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+            const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+            const labaRugi = totalPendapatan - totalPengeluaran;
+            const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+            
+            const highlights = document.createElement('div');
+            highlights.className = 'financial-highlights avoid-break';
+            highlights.innerHTML = `
+                <div class="highlight-item">
+                    <div class="highlight-label">Total Pendapatan</div>
+                    <div class="highlight-value">${formatCurrency(totalPendapatan)}</div>
+                </div>
+                <div class="highlight-item">
+                    <div class="highlight-label">Laba/Rugi</div>
+                    <div class="highlight-value" style="color: ${labaRugi >= 0 ? '#28a745' : '#dc3545'}">${formatCurrency(labaRugi)}</div>
+                </div>
+                <div class="highlight-item">
+                    <div class="highlight-label">Kas Masuk Bank</div>
+                    <div class="highlight-value">${formatCurrency(totalKredit)}</div>
+                </div>
+            `;
+            
+            const activePage = document.querySelector('.page.active');
+            const firstCard = activePage.querySelector('.card');
+            if (firstCard) {
+                activePage.insertBefore(highlights, firstCard);
+            }
+        }
+
+        function addExecutiveSummary() {
+            const summary = document.createElement('div');
+            summary.className = 'executive-summary avoid-break';
+            
+            const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+            const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+            const labaRugi = totalPendapatan - totalPengeluaran;
+            const margin = totalPendapatan > 0 ? ((labaRugi / totalPendapatan) * 100).toFixed(1) : 0;
+            
+            summary.innerHTML = `
+                <h4>📊 Ringkasan Eksekutif</h4>
+                <p><strong>Kinerja Keuangan:</strong> Perusahaan ${labaRugi >= 0 ? 'mencapai profit' : 'mengalami kerugian'} sebesar ${formatCurrency(Math.abs(labaRugi))} dengan margin ${margin}% selama periode laporan.</p>
+                <p><strong>Analisis Tren:</strong> ${getTrendAnalysis()}</p>
+                <p><strong>Rekomendasi:</strong> ${getRecommendations()}</p>
+            `;
+            
+            const activePage = document.querySelector('.page.active');
+            const firstCard = activePage.querySelector('.card');
+            if (firstCard) {
+                activePage.insertBefore(summary, firstCard);
+            }
+        }
+
+        function addWatermark(text) {
+            const watermark = document.createElement('div');
+            watermark.className = 'watermark';
+            watermark.textContent = text;
+            watermark.id = 'print-watermark';
+            document.body.appendChild(watermark);
+        }
+
+        function removeWatermark() {
+            const watermark = document.getElementById('print-watermark');
+            if (watermark) watermark.remove();
+        }
+
+        function removeFinancialHighlights() {
+            const highlights = document.querySelector('.financial-highlights');
+            if (highlights) highlights.remove();
+        }
+
+        function removeExecutiveSummary() {
+            const summary = document.querySelector('.executive-summary');
+            if (summary) summary.remove();
+        }
+
+        function getTrendAnalysis() {
+            // Analisis sederhana berdasarkan data
+            const salesCount = filteredData.sales?.length || 0;
+            const expenseCount = filteredData.expenseMatch?.length || 0;
+            
+            if (salesCount > expenseCount * 2) {
+                return "Pertumbuhan pendapatan menunjukkan tren positif dengan volume penjualan yang sehat.";
+            } else if (salesCount > expenseCount) {
+                return "Operasional berjalan stabil dengan kontrol pengeluaran yang memadai.";
+            } else {
+                return "Diperlukan evaluasi terhadap efisiensi operasional dan strategi penjualan.";
+            }
+        }
+
+        function getRecommendations() {
+            const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+            const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+            const labaRugi = totalPendapatan - totalPengeluaran;
+            
+            if (labaRugi < 0) {
+                return "Disarankan untuk mengevaluasi pengeluaran operasional dan meningkatkan efisiensi biaya.";
+            } else if ((totalPengeluaran / totalPendapatan) > 0.7) {
+                return "Optimalkan struktur biaya untuk meningkatkan margin profit.";
+            } else {
+                return "Pertahankan kinerja positif dan eksplorasi peluang pertumbuhan revenue.";
+            }
+        }
+
+        // =================================================================================
+        // --- APLIKASI UTAMA ---
+        // =================================================================================
+
+        async function initializeMainApp() {
+            console.log('Menginisialisasi aplikasi utama...');
+            showLoading(true);
+            
+            try {
+                setupEventListeners();
+                setupPrintFunctionality();
+                handleDateRangeChange();
+                togglePrintButton();
+                await fetchAllData();
+                applyFiltersAndRender();
+                
+                showNotification('Dashboard berhasil dimuat', 'success');
+                
+            } catch (error) {
+                console.error('Error inisialisasi aplikasi:', error);
+                showNotification('Gagal memuat dashboard: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.id !== 'logout-btn') {
+                    link.addEventListener('click', e => navigateTo(e.currentTarget.dataset.page));
+                }
+            });
+            
+            // Filter dan controls
+            document.getElementById('date-range-selector').addEventListener('change', handleDateRangeChange);
+            document.getElementById('apply-filter').addEventListener('click', applyFiltersAndRender);
+            document.getElementById('refresh-data').addEventListener('click', async () => {
+                await fetchAllData();
+                applyFiltersAndRender();
+            });
+            
+            // Dynamic clicks
+            document.body.addEventListener('click', handleDynamicClicks);
+            document.body.addEventListener('input', handleCommissionInputChange);
+            
+            // Modal
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-close-btn').addEventListener('click', () => modal.classList.remove('show'));
+            modal.addEventListener('click', e => { 
+                if (e.target === modal) modal.classList.remove('show'); 
+            });
+            
+            // Logout
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+            }
+        }
+
+        // =================================================================================
+        // --- FUNGSI HELPER PARSING & FETCH ---
+        // =================================================================================
+
+        function parseCurrency(val) {
+            if (val == null) return 0;
+            if (typeof val === 'number') return val;
+            const str = String(val).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(str) || 0;
+        }
+
+        function parseDateString(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return null;
+            const parts = dateStr.split('T')[0].split('-');
+            if (parts.length === 3) {
+                const [y, m, d] = parts.map(p => parseInt(p, 10));
+                if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+                    return new Date(Date.UTC(y, m - 1, d));
+                }
+            }
+            return new Date(NaN);
+        }
+
+        async function fetchData(url) {
+            console.log(`Fetching data dari: ${url}`);
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const res = await fetch(url, { 
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log(`Response status: ${res.status}`);
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                
+                const text = await res.text();
+                let data;
+                
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    const cleanedText = text.replace(/[^\x20-\x7E\n\r]/g, '');
+                    data = JSON.parse(cleanedText);
+                }
+                
+                if (Array.isArray(data)) return data;
+                if (data && typeof data === 'object') {
+                    return data.data || data.records || (data[0] && data[0].data) || [data];
+                }
+                return [];
+            } catch (e) {
+                console.error(`Fetch error dari ${url}:`, e);
+                showNotification(`Gagal memuat dari ${url}`, 'error');
+                return generateFallbackData(url);
+            }
+        }
+
+        function generateFallbackData(url) {
+            console.log('Menggunakan data fallback untuk:', url);
+            
+            if (url.includes('closing-sales-summary')) {
+                return [
+                    {
+                        tanggal: '2023-10-01',
+                        outlet: 'Outlet A',
+                        total_penjualan: 'Rp 5.000.000',
+                        total_diharapkan: 'Rp 4.800.000',
+                        'kas_ masukkeluar': 'Rp 4.800.000',
+                        subtotal: 'Rp 5.200.000',
+                        diskon_bill: 'Rp 200.000',
+                        kas_penjualan: 'Rp 4.800.000',
+                        kas_akhir: 'Rp 4.800.000',
+                        metode_pembayaran_json: JSON.stringify([
+                            { method: 'Cash', amount: 'Rp 2.000.000' },
+                            { method: 'Transfer', amount: 'Rp 2.800.000' }
+                        ]),
+                        item_aruskas: JSON.stringify([
+                            { item: 'Penjualan Tunai', amount: 'Rp 2.000.000' },
+                            { item: 'Penjualan Transfer', amount: 'Rp 2.800.000' }
+                        ])
+                    }
+                ];
+            } else if (url.includes('e_statement')) {
+                return [
+                    {
+                        date: '2023-10-01',
+                        description: 'Transfer Masuk - Customer A',
+                        type: 'CR',
+                        amount: 'Rp 2.800.000',
+                        balance: 'Rp 15.000.000',
+                        amount_numeric: 2800000,
+                        balance_numeric: 15000000
+                    }
+                ];
+            } else if (url.includes('hookbanktransaction')) {
+                return [
+                    {
+                        tanggal: '2023-10-01',
+                        penerima: 'Supplier Bahan',
+                        bank_dan_rekening: 'BCA - 1234567890',
+                        nominal_transfer: 'Rp 1.500.000',
+                        biaya_transfer: 'Rp 6.500',
+                        total_transaksi: 'Rp 1.506.500',
+                        no_referensi: 'TRX001',
+                        jam: '10:30'
+                    }
+                ];
+            } else if (url.includes('expense-match')) {
+                return [
+                    {
+                        trx_date: '2023-10-01',
+                        exp_type: 'Pembelian',
+                        exp_ref_id: 'EXP001',
+                        exp_category: 'Bahan Baku',
+                        exp_total_amount: 'Rp 1.500.000',
+                        trx_amount: 'Rp 1.500.000',
+                        exp_items_json: JSON.stringify([
+                            { item: 'Bahan A', amount: 'Rp 800.000' },
+                            { item: 'Bahan B', amount: 'Rp 700.000' }
+                        ])
+                    }
+                ];
+            }
+            
+            return [];
+        }
+        
+        async function fetchAllData() {
+            console.log('Memulai fetch semua data...');
+            showLoading(true);
+            try {
+                const [sales, estatement, bankTransaction, expenseMatch] = await Promise.all([
+                    fetchData(WEBHOOK_URLS.sales),
+                    fetchData(WEBHOOK_URLS.estatement),
+                    fetchData(WEBHOOK_URLS.bankTransaction),
+                    fetchData(WEBHOOK_URLS.expenseMatch)
+                ]);
+                
+                console.log('Data berhasil difetch:', {
+                    sales: sales?.length || 0,
+                    estatement: estatement?.length || 0,
+                    bankTransaction: bankTransaction?.length || 0,
+                    expenseMatch: expenseMatch?.length || 0
+                });
+                
+                masterData = {
+                    sales: parseSalesData(sales),
+                    estatement: parseEstatementData(estatement),
+                    bankTransaction: parseBankTransactionData(bankTransaction),
+                    expenseMatch: parseExpenseMatchData(expenseMatch),
+                };
+                
+                showNotification('Data berhasil dimuat', 'success');
+            } catch (e) {
+                console.error('Error fetch semua data:', e);
+                showNotification('Gagal memuat semua data', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function parseSalesData(data) {
+            return (data || []).map(item => {
+                let metode_pembayaran_parsed = [];
+                let item_aruskas_parsed = [];
+                try {
+                    const parsedMethods = JSON.parse(item.metode_pembayaran_json || '[]');
+                    if (Array.isArray(parsedMethods)) metode_pembayaran_parsed = parsedMethods;
+                } catch (e) {}
+                try {
+                    const parsedArusKas = JSON.parse(item.item_aruskas || '[]');
+                    if (Array.isArray(parsedArusKas)) item_aruskas_parsed = parsedArusKas;
+                } catch (e) {}
+                return {
+                    ...item,
+                    date: parseDateString(item.tanggal),
+                    total_penjualan: parseCurrency(item.total_penjualan),
+                    total_diharapkan: parseCurrency(item.total_diharapkan),
+                    kas_masukkeluar: parseCurrency(item['kas_ masukkeluar']),
+                    subtotal: parseCurrency(item.subtotal),
+                    diskon_bill: parseCurrency(item.diskon_bill),
+                    kas_penjualan: parseCurrency(item.kas_penjualan),
+                    kas_akhir: parseCurrency(item.kas_akhir),
+                    metode_pembayaran_parsed,
+                    item_aruskas_parsed
+                };
             });
         }
         
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (passwordInput.value === VALID_PASSWORD) {
-                    sessionStorage.setItem('isAuthenticated', 'true');
-                    document.getElementById('login-page').style.display = 'none';
-                    document.querySelector('.app-layout').style.display = 'flex';
-                    showNotification('Login berhasil!', 'success');
-                    await initializeMainApp();
-                } else {
-                    errorDiv.style.display = 'flex';
-                    loginForm.classList.add('shake');
-                    setTimeout(() => loginForm.classList.remove('shake'), 500);
+        function parseEstatementData(data) {
+            return (data || []).map(item => ({
+                ...item,
+                date: parseDateString(item.date),
+                amount_numeric: parseCurrency(item.amount_numeric || item.amount),
+                balance_numeric: parseCurrency(item.balance_numeric)
+            }));
+        }
+
+        function parseBankTransactionData(data) {
+            return (data || []).map(item => ({
+                ...item,
+                date: parseDateString(item.tanggal),
+                nominal_transfer: parseCurrency(item.nominal_transfer),
+                biaya_transfer: parseCurrency(item.biaya_transfer),
+                total_transaksi: parseCurrency(item.total_transaksi || (parseCurrency(item.nominal_transfer) + parseCurrency(item.biaya_transfer)))
+            }));
+        }
+
+        function parseExpenseMatchData(data) {
+            return (data || []).map(item => {
+                let parsedItems = [];
+                try { parsedItems = JSON.parse(item.exp_items_json || '[]'); } catch(e) {}
+                return {
+                    ...item,
+                    date: parseDateString(item.trx_date),
+                    displayAmount: parseCurrency(item.exp_total_amount) || parseCurrency(item.trx_amount),
+                    parsedItems,
+                    displayCategory: item.exp_category || 'Bahan Baku'
+                };
+            });
+        }
+
+        // =================================================================================
+        // --- FUNGSI UTAMA APLIKASI ---
+        // =================================================================================
+
+        function handleDateRangeChange() {
+            const selector = document.getElementById('date-range-selector');
+            const customFilter = document.getElementById('custom-date-filter');
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+            
+            if (selector.value === 'custom') {
+                customFilter.style.display = 'flex';
+                return;
+            }
+            customFilter.style.display = 'none';
+
+            let startDate = new Date();
+            let endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+
+            if (selector.value === '7d') startDate.setDate(startDate.getDate() - 7);
+            else if (selector.value === '15d') startDate.setDate(startDate.getDate() - 15);
+            else if (selector.value === '30d') startDate.setDate(startDate.getDate() - 30);
+            else if (selector.value === 'this_month') startDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+            else if (selector.value === 'last_month') {
+                const now = new Date();
+                startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+            } else if (selector.value === 'all') {
+                startDate = new Date('2000-01-01');
+            }
+            
+            if (startDateInput) startDateInput.valueAsDate = startDate;
+            if (endDateInput) endDateInput.valueAsDate = endDate;
+        }
+
+        function applyFiltersAndRender() {
+            const startDate = document.getElementById('start-date').valueAsDate;
+            const endDate = document.getElementById('end-date').valueAsDate;
+            if (!startDate || !endDate) return;
+
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+
+            filteredData = {};
+            for (const key in masterData) {
+                filteredData[key] = (masterData[key] || []).filter(item => {
+                    return item.date && !isNaN(item.date) && item.date >= startDate && item.date <= endDate;
+                });
+            }
+            renderActivePage();
+        }
+
+        function navigateTo(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page === pageId));
+            document.getElementById('page-title').textContent = document.querySelector(`.nav-link.active span`)?.textContent || "Dashboard";
+            
+            // Toggle tombol print berdasarkan halaman aktif
+            togglePrintButton();
+            renderActivePage();
+        }
+        
+        function renderActivePage() {
+            const activePage = document.querySelector('.page.active');
+            if (!activePage) return;
+            
+            const pageRenderers = {
+                'page-dashboard': renderDashboardPage,
+                'page-neraca': renderNeracaPage,
+                'page-arus-kas': renderArusKasPage,
+                'page-transaksi-bank': renderTransaksiBankPage,
+                'page-pengeluaran': renderPengeluaranPage,
+                'page-detail-pengeluaran': renderDetailPengeluaranPage,
+            };
+            
+            if (pageRenderers[activePage.id]) {
+                pageRenderers[activePage.id]();
+            }
+        }
+
+        // =================================================================================
+        // --- FUNGSI RENDER HALAMAN ---
+        // =================================================================================
+        
+        function renderDashboardPage() {
+            const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+            const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+            const labaRugi = totalPendapatan - totalPengeluaran;
+            const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+            const totalDebit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
+            const arusKasBersih = totalKredit - totalDebit;
+
+            document.getElementById('dashboard-kpi-container').innerHTML = `
+                <div class="metric-item ${totalPendapatan > 0 ? 'kpi-positive' : ''}">
+                    <p>Total Pendapatan</p><h2>${formatCurrency(totalPendapatan)}</h2>
+                </div>
+                <div class="metric-item ${totalPengeluaran > totalPendapatan * 0.7 ? 'kpi-negative' : ''}">
+                    <p>Total Pengeluaran</p><h2>${formatCurrency(totalPengeluaran)}</h2>
+                </div>
+                <div class="metric-item ${labaRugi >= 0 ? 'kpi-positive' : 'kpi-negative'}">
+                    <p>Laba / Rugi</p><h2>${formatCurrency(labaRugi)}</h2>
+                </div>
+                <div class="metric-item ${arusKasBersih >= 0 ? 'kpi-positive' : 'kpi-negative'}">
+                    <p>Arus Kas Bersih (Bank)</p><h2>${formatCurrency(arusKasBersih)}</h2>
+                </div>
+            `;
+            
+            const expenseByCategory = (filteredData.expenseMatch || []).reduce((acc, item) => {
+                const category = item.displayCategory;
+                acc[category] = (acc[category] || 0) + item.displayAmount;
+                return acc;
+            }, {});
+            
+            if (Object.keys(expenseByCategory).length > 0) {
+                createOrUpdateChart('dashboard-expense-category-chart', 'doughnut', {
+                    labels: Object.keys(expenseByCategory),
+                    datasets: [{ data: Object.values(expenseByCategory), backgroundColor: ['#4361ee', '#4895ef', '#560bad', '#7209b7', '#f72585', '#ffc107', '#2ec4b6'] }]
+                });
+            } else {
+                document.getElementById('dashboard-expense-category-chart').innerHTML = '<div class="placeholder-text">Tidak ada data pengeluaran.</div>';
+            }
+            
+            const dailyProfit = {};
+            (filteredData.sales || []).forEach(s => {
+                const dateKey = s.date.toISOString().split('T')[0];
+                dailyProfit[dateKey] = (dailyProfit[dateKey] || 0) + s.total_diharapkan;
+            });
+            (filteredData.expenseMatch || []).forEach(e => {
+                const dateKey = e.date.toISOString().split('T')[0];
+                dailyProfit[dateKey] = (dailyProfit[dateKey] || 0) - e.displayAmount;
+            });
+
+            const sortedDates = Object.keys(dailyProfit).sort();
+            if (sortedDates.length > 0) {
+                createOrUpdateChart('dashboard-profit-trend-chart', 'line', {
+                    labels: sortedDates.map(d => new Date(d).toLocaleDateString('id-ID', {timeZone: 'UTC'})),
+                    datasets: [{
+                        label: 'Laba/Rugi Harian', data: sortedDates.map(d => dailyProfit[d]),
+                        borderColor: '#4361ee', backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        tension: 0.3, fill: true
+                    }]
+                });
+            } else {
+                document.getElementById('dashboard-profit-trend-chart').innerHTML = '<div class="placeholder-text">Tidak ada data tren.</div>';
+            }
+
+            const topExpensesContainer = document.getElementById('dashboard-top-expenses-table');
+            const sortedCategories = Object.entries(expenseByCategory).sort(([,a], [,b]) => b - a);
+            if(sortedCategories.length > 0) {
+                topExpensesContainer.innerHTML = sortedCategories.map(([category, amount]) => `
+                    <div class="category-list-item" data-action="view-category-expenses" data-category="${category}">
+                        <span class="category-name">${category}</span>
+                        <span class="category-amount">${formatCurrency(amount)}</span>
+                    </div>
+                `).join('');
+            } else {
+                topExpensesContainer.innerHTML = '<div class="placeholder-text">Tidak ada data pengeluaran.</div>';
+            }
+        }
+
+        function renderArusKasPage() {
+            const salesData = filteredData.sales || [];
+            if (salesData.length > 0) {
+                createOrUpdateChart('arus-kas-chart-container', 'bar', {
+                    labels: salesData.map(s => s.date.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'numeric', year: '2-digit', timeZone: 'UTC' })),
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Tren Penjualan (Total Diharapkan)',
+                            data: salesData.map(s => s.total_diharapkan),
+                            borderColor: '#ffc107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                            tension: 0.3, fill: false, yAxisID: 'y'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Kas Masuk/Keluar',
+                            data: salesData.map(s => s.kas_masukkeluar),
+                            backgroundColor: '#198754',
+                            yAxisID: 'y'
+                        }
+                    ]
+                });
+            } else {
+                document.getElementById('arus-kas-chart-container').innerHTML = '<div class="placeholder-text">Tidak ada data penjualan.</div>';
+            }
+
+            const paymentSummary = salesData.reduce((acc, sale) => {
+                (sale.metode_pembayaran_parsed || []).forEach(p => {
+                    const method = p.method?.toUpperCase() || 'UNKNOWN';
+                    acc[method] = (acc[method] || 0) + parseCurrency(p.amount);
+                });
+                return acc;
+            }, {});
+            currentPaymentSummary = paymentSummary;
+            
+            const summaryContainer = document.getElementById('payment-method-summary-container');
+            if (Object.keys(paymentSummary).length > 0) {
+                summaryContainer.innerHTML = `<div class="analysis-grid"><div id="payment-method-chart-container" style="min-height: 300px;"></div><div class="table-responsive" id="payment-method-calculator-container"></div></div>`;
+                renderPaymentMethodCalculator(paymentSummary);
+                renderPaymentMethodChart(paymentSummary);
+            } else {
+                summaryContainer.innerHTML = '<div class="placeholder-text">Tidak ada data metode pembayaran.</div>';
+            }
+
+            if (salesData.length > 0) {
+                document.getElementById('arus-kas-table-container').innerHTML = createTable(
+                    ['Tanggal', 'Outlet', 'Total Penjualan', 'Diskon', 'Kas Akhir', 'Total Diharapkan', 'Aksi'],
+                    [...salesData].sort((a,b) => b.date - a.date),
+                    i => [
+                        i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.outlet||'N/A', 
+                        formatCurrency(i.total_penjualan), formatCurrency(i.diskon_bill), 
+                        formatCurrency(i.kas_akhir), formatCurrency(i.total_diharapkan), 
+                        `<button class="btn btn-primary action-btn" data-action="view-sales-detail" data-aruskas='${encodeURIComponent(JSON.stringify(i.item_aruskas_parsed))}' data-pembayaran='${encodeURIComponent(JSON.stringify(i.metode_pembayaran_parsed))}'><i class="fas fa-eye"></i></button>`
+                    ],
+                    true
+                );
+            } else {
+                document.getElementById('arus-kas-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data penjualan.</div>';
+            }
+        }
+        
+        function renderNeracaPage() {
+            const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+            const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+            document.getElementById('neraca-summary-section1').innerHTML = `
+                <div class="metric-item"><p>Pendapatan</p><h2 class="text-success">${formatCurrency(totalPendapatan)}</h2></div>
+                <div class="metric-item"><p>Pengeluaran</p><h2 class="text-danger">${formatCurrency(totalPengeluaran)}</h2></div>
+                <div class="metric-item"><p>Laba/Rugi</p><h2 class="${(totalPendapatan-totalPengeluaran) >= 0 ? 'text-success':'text-danger'}">${formatCurrency(totalPendapatan-totalPengeluaran)}</h2></div>
+            `;
+            
+            const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+            const totalDebit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
+            const latestStatement = (filteredData.estatement || []).length > 0 ? [...filteredData.estatement].sort((a,b) => b.date - a.date || b.no - a.no)[0] : null;
+            document.getElementById('neraca-summary-section2').innerHTML = `
+                <div class="metric-item"><p>Kas Masuk Bank</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div>
+                <div class="metric-item"><p>Kas Keluar Bank</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div>
+                <div class="metric-item"><p>Saldo Bank</p><h2>${formatCurrency(latestStatement?.balance_numeric)}</h2></div>
+            `;
+
+            const dailyComparison = {};
+            (filteredData.sales || []).forEach(s => {
+                const dateKey = s.date.toISOString().split('T')[0];
+                dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
+                dailyComparison[dateKey].sales += s.total_diharapkan;
+            });
+            (filteredData.estatement || []).forEach(e => {
+                if (((e.type?.toUpperCase() === 'CR') || e.sign === '+') && e.date) {
+                    const dateKey = e.date.toISOString().split('T')[0];
+                    dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
+                    dailyComparison[dateKey].bankInflow += e.amount_numeric;
+                }
+            });
+            
+            const sortedComparisonDates = Object.keys(dailyComparison).sort();
+            if (sortedComparisonDates.length > 0) {
+                createOrUpdateChart('neraca-settlement-chart-container', 'line', {
+                    labels: sortedComparisonDates.map(d => new Date(d).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' })),
+                    datasets: [
+                        { label: 'Pendapatan Penjualan', data: sortedComparisonDates.map(d => dailyComparison[d].sales), borderColor: '#4361ee', fill: false, tension: 0.1 },
+                        { label: 'Kas Masuk Bank (Settlement)', data: sortedComparisonDates.map(d => dailyComparison[d].bankInflow), borderColor: '#198754', fill: false, tension: 0.1 }
+                    ]
+                });
+            } else {
+                document.getElementById('neraca-settlement-chart-container').innerHTML = '<div class="placeholder-text">Tidak ada data untuk perbandingan.</div>';
+            }
+
+            const cumulativeData = {};
+            let cumulativeProfit = 0;
+            const allDates = [...new Set([...(filteredData.sales || []).map(s => s.date.toISOString().split('T')[0]), ...(filteredData.expenseMatch || []).map(e => e.date.toISOString().split('T')[0])])].sort();
+            allDates.forEach(date => {
+                const salesOnDate = (filteredData.sales || []).filter(s => s.date.toISOString().split('T')[0] === date).reduce((sum, s) => sum + s.total_diharapkan, 0);
+                const expensesOnDate = (filteredData.expenseMatch || []).filter(e => e.date.toISOString().split('T')[0] === date).reduce((sum, e) => sum + e.displayAmount, 0);
+                cumulativeProfit += salesOnDate - expensesOnDate;
+                cumulativeData[date] = cumulativeProfit;
+            });
+            if (Object.keys(cumulativeData).length > 0) {
+                createOrUpdateChart('neraca-chart-section3', 'line', {
+                    labels: Object.keys(cumulativeData).map(d => new Date(d).toLocaleDateString('id-ID', {timeZone: 'UTC'})),
+                    datasets: [{ label: 'Akumulasi Laba/Rugi', data: Object.values(cumulativeData), borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', fill: true, tension: 0.3 }]
+                });
+            } else {
+                document.getElementById('neraca-chart-section3').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+            }
+        }
+    
+        function renderTransaksiBankPage() {
+            const estatement = filteredData.estatement || [];
+            const totalKredit = estatement.filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+            const totalDebit = estatement.filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
+            const latestStatement = estatement.length > 0 ? [...estatement].sort((a,b) => b.date - a.date || b.no - a.no)[0] : null;
+            
+            document.getElementById('transaksi-bank-summary-container').innerHTML = `
+                <div class="metric-item"><p>Total Kredit</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div>
+                <div class="metric-item"><p>Total Debit</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div>
+                <div class="metric-item"><p>Saldo Akhir</p><h2>${formatCurrency(latestStatement?.balance_numeric)}</h2></div>
+            `;
+            
+            const groupedByType = {
+                'Kredit': estatement.filter(i => (i.type?.toUpperCase() === 'CR') || i.sign === '+').sort((a,b) => a.date - b.date),
+                'Debit': estatement.filter(i => (i.type?.toUpperCase() === 'DB') || i.sign === '-').sort((a,b) => a.date - b.date)
+            };
+            const groupedContainer = document.getElementById('transaksi-bank-grouped-container');
+            if (estatement.length > 0) {
+                groupedContainer.innerHTML = Object.entries(groupedByType).map(([type, items]) =>
+                    createAccordionItem(`${type} (${items.length} transaksi)`,
+                        createTable(['Tanggal', 'Deskripsi', 'Jumlah'], items, i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.description, formatCurrency(i.amount_numeric)], true)
+                    )
+                ).join('');
+            } else {
+                groupedContainer.innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+            }
+            
+            if (estatement.length > 0) {
+                document.getElementById('transaksi-bank-table-container').innerHTML = createTable(
+                    ['No', 'Tanggal', 'Deskripsi', 'Tipe', 'Jumlah', 'Saldo'],
+                    estatement,
+                    i => [i.no, i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.description, `<span class="${(i.type?.toUpperCase()==='CR')||i.sign==='+'?'text-success':'text-danger'}">${i.type||i.sign}</span>`, formatCurrency(i.amount_numeric), formatCurrency(i.balance_numeric)],
+                    true
+                );
+            } else {
+                document.getElementById('transaksi-bank-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+            }
+        }
+
+        function renderPengeluaranPage() {
+            const bankTransactions = filteredData.bankTransaction || [];
+            const groupedByRecipient = bankTransactions.reduce((acc, i) => {
+                const recipient = i.penerima || 'Tidak Diketahui';
+                (acc[recipient] = acc[recipient] || []).push(i);
+                return acc;
+            }, {});
+
+            const groupedContainer = document.getElementById('pengeluaran-grouped-container');
+            if (Object.keys(groupedByRecipient).length > 0) {
+                groupedContainer.innerHTML = Object.entries(groupedByRecipient).map(([name, items]) =>
+                    createAccordionItem(name,
+                        createTable(['Tanggal', 'Jam', 'Nominal', 'Total', 'Referensi'], items, i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.jam, formatCurrency(i.nominal_transfer), formatCurrency(i.total_transaksi), i.no_referensi], true)
+                    )
+                ).join('');
+            } else {
+                groupedContainer.innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+            }
+            
+            if (bankTransactions.length > 0) {
+                document.getElementById('pengeluaran-table-container').innerHTML = createTable(
+                    ['Tanggal', 'Penerima', 'Bank & Rekening', 'Nominal', 'Total', 'Referensi'],
+                    bankTransactions,
+                    i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.penerima, i.bank_dan_rekening, formatCurrency(i.nominal_transfer), formatCurrency(i.total_transaksi), i.no_referensi],
+                    true
+                );
+            } else {
+                document.getElementById('pengeluaran-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+            }
+        }
+
+        function renderDetailPengeluaranPage() {
+            const expenses = filteredData.expenseMatch || [];
+            const expenseByCategory = expenses.reduce((acc, item) => {
+                acc[item.displayCategory] = (acc[item.displayCategory] || 0) + item.displayAmount;
+                return acc;
+            }, {});
+
+            if (Object.keys(expenseByCategory).length > 0) {
+                createOrUpdateChart('detail-pengeluaran-summary-container', 'pie', {
+                    labels: Object.keys(expenseByCategory),
+                    datasets: [{ data: Object.values(expenseByCategory), backgroundColor: ['#4361ee', '#4895ef', '#560bad', '#7209b7', '#f72585', '#ffc107', '#2ec4b6'] }]
+                });
+            } else {
+                document.getElementById('detail-pengeluaran-summary-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+            }
+            
+            if (expenses.length > 0) {
+                document.getElementById('detail-pengeluaran-table-container').innerHTML = createTable(
+                    ['Tgl', 'Tipe', 'Ref ID', 'Kategori', 'Jumlah'],
+                    expenses,
+                    i => [i.date.toLocaleDateString('id-ID', {timeZone: 'UTC'}), i.exp_type, i.exp_ref_id, i.displayCategory, formatCurrency(i.displayAmount)]
+                );
+            } else {
+                document.getElementById('detail-pengeluaran-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+            }
+        }
+
+        // =================================================================================
+        // --- FUNGSI HELPER UI ---
+        // =================================================================================
+
+        function renderPaymentMethodCalculator(summary) {
+            const container = document.getElementById('payment-method-calculator-container');
+            const sortedMethods = Object.entries(summary).sort(([,a], [,b]) => b - a);
+            let tableHTML = `<table class="table" style="font-size: 0.9rem;"><thead><tr><th>Metode</th><th>Total</th><th>% Komisi</th><th>Potongan</th><th>Diterima</th></tr></thead><tbody>`;
+            for (const [method, total] of sortedMethods) {
+                const cleanId = method.replace(/[^a-zA-Z0-9]/g, '');
+                tableHTML += `<tr><td><strong>${method}</strong></td><td>${formatCurrency(total)}</td><td><input type="number" class="form-control commission-input" step="0.01" min="0" placeholder="0" data-method="${cleanId}" data-total="${total}"></td><td id="potongan-${cleanId}">${formatCurrency(0)}</td><td id="diterima-${cleanId}" class="text-success" style="font-weight: 600;">${formatCurrency(total)}</td></tr>`;
+            }
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
+
+        function renderPaymentMethodChart(summary, commissionData = {}) {
+            const labels = Object.keys(summary).sort((a, b) => summary[b] - summary[a]);
+            const dataBefore = labels.map(label => summary[label]);
+            const dataAfter = labels.map(label => {
+                const cleanLabel = label.replace(/[^a-zA-Z0-9]/g, '');
+                return commissionData[cleanLabel] !== undefined ? commissionData[cleanLabel] : summary[label];
+            });
+            
+            createOrUpdateChart('payment-method-chart-container', 'bar', {
+                labels,
+                datasets: [
+                    { label: 'Total Kotor', data: dataBefore, backgroundColor: '#4895ef' },
+                    { label: 'Total Diterima (Net)', data: dataAfter, backgroundColor: '#52b788' }
+                ]
+            }, {
+                indexAxis: 'y',
+                scales: { x: { beginAtZero: true, ticks: { callback: value => formatCurrency(value) } } }
+            });
+        }
+
+        function handleDynamicClicks(e) {
+            const target = e.target.closest('[data-action]');
+            if (!target) {
+                 const row = e.target.closest('tbody tr:not(.no-hover)');
+                 if(row && document.querySelector('.page.active')?.id === 'page-detail-pengeluaran') {
+                     const index = Array.from(row.parentElement.children).indexOf(row);
+                     const expenseData = filteredData.expenseMatch?.[index];
+                     if(expenseData) showExpenseDetail(expenseData);
+                 }
+                return;
+            }
+
+            const { action, aruskas, pembayaran, category } = target.dataset;
+
+            if (action === 'view-sales-detail') {
+                try {
+                    const arusKasData = JSON.parse(decodeURIComponent(aruskas || '[]'));
+                    const pembayaranData = JSON.parse(decodeURIComponent(pembayaran || '[]'));
+                    let content = '<h4>Metode Pembayaran</h4>';
+                    content += (pembayaranData?.length > 0) ? createTable(['Metode', 'Jumlah'], pembayaranData, p => [p.method || 'N/A', formatCurrency(p.amount || 0)], true) : '<p class="placeholder-text">Tidak ada data.</p>';
+                    content += '<h4 style="margin-top: 24px;">Detail Arus Kas Toko</h4>';
+                    content += (arusKasData?.length > 0) ? createTable(['Item', 'Jumlah'], arusKasData, item => [item.item || 'N/A', formatCurrency(item.amount || 0)], true) : '<p class="placeholder-text">Tidak ada data.</p>';
+                    showModal('Detail Transaksi Penjualan', content);
+                } catch(err) {
+                    showModal('Error', '<p>Gagal menampilkan detail.</p>');
+                }
+            } else if (action === 'view-category-expenses') {
+                showCategoryExpensePopup(category);
+            } else if (action === 'toggle-accordion') {
+                target.classList.toggle('active');
+                const content = target.nextElementSibling;
+                content.style.maxHeight = content.style.maxHeight ? null : `${content.scrollHeight}px`;
+            }
+        }
+        
+        function showCategoryExpensePopup(category) {
+            const items = (filteredData.expenseMatch || []).filter(item => item.displayCategory === category);
+            const content = createTable(
+                ['Tanggal', 'Ref ID', 'Tipe', 'Jumlah'],
+                items,
+                item => [item.date.toLocaleDateString('id-ID', {timeZone: 'UTC'}), item.exp_ref_id || '-', item.exp_type || '-', formatCurrency(item.displayAmount)],
+                true
+            );
+            showModal(`Transaksi Kategori: ${category}`, content);
+        }
+        
+        function showExpenseDetail(data) {
+            const content = `
+                <div class="detail-section"><h4>Informasi Transaksi</h4><div class="detail-grid">
+                    <div class="detail-item"><span class="detail-label">Tanggal</span><span class="detail-value">${data.date.toLocaleDateString('id-ID', {timeZone:'UTC'})}</span></div>
+                    <div class="detail-item"><span class="detail-label">Jumlah</span><span class="detail-value">${formatCurrency(data.displayAmount)}</span></div>
+                    <div class="detail-item"><span class="detail-label">Kategori</span><span class="detail-value">${data.displayCategory}</span></div>
+                    <div class="detail-item"><span class="detail-label">Tipe Pengeluaran</span><span class="detail-value">${data.exp_type || '-'}</span></div>
+                </div></div>
+            `;
+            showModal('Detail Pengeluaran', content);
+        }
+
+        function handleCommissionInputChange(e) {
+            if (!e.target.classList.contains('commission-input')) return;
+            const input = e.target;
+            const methodId = input.dataset.method;
+            const total = parseFloat(input.dataset.total);
+            const percentage = parseFloat(input.value) || 0;
+            const potongan = total * (percentage / 100);
+            const diterima = total - potongan;
+
+            document.getElementById(`potongan-${methodId}`).textContent = formatCurrency(potongan);
+            document.getElementById(`diterima-${methodId}`).textContent = formatCurrency(diterima);
+
+            const allCommissionData = {};
+            document.querySelectorAll('.commission-input').forEach(inp => {
+                const mid = inp.dataset.method;
+                const tot = parseFloat(inp.dataset.total);
+                const pct = parseFloat(inp.value) || 0;
+                allCommissionData[mid] = tot - (tot * (pct / 100));
+            });
+            renderPaymentMethodChart(currentPaymentSummary, allCommissionData);
+        }
+
+        function showModal(title, content) {
+            const modal = document.getElementById('modal');
+            modal.querySelector('.modal-title').textContent = title;
+            modal.querySelector('.modal-body').innerHTML = content;
+            modal.classList.add('show');
+        }
+
+        function createTable(headers, data, rowMapper, noHover = false) {
+            if (!data || data.length === 0) return `<div class="placeholder-text">Tidak ada data.</div>`;
+            const hoverClass = noHover ? 'class="no-hover"' : '';
+            return `<div class="table-responsive"><table class="table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(item => `<tr ${hoverClass}>${rowMapper(item).map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+        }
+        
+        function createAccordionItem(header, content) {
+            return `<div class="accordion-item"><button class="accordion-header" data-action="toggle-accordion">${header}</button><div class="accordion-content">${content}</div></div>`;
+        }
+
+        function createOrUpdateChart(containerId, type, data, options = {}) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            if (chartInstances[containerId]) {
+                chartInstances[containerId].destroy();
+            }
+            
+            container.innerHTML = `<canvas style="min-height: 200px;"></canvas>`;
+            
+            const ctx = container.querySelector('canvas').getContext('2d');
+            chartInstances[containerId] = new Chart(ctx, { 
+                type, 
+                data, 
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    const value = (type === 'line' || type === 'bar') ? context.parsed.y : context.parsed;
+                                    label += formatCurrency(value);
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    ...options
                 }
             });
         }
-    }
-
-    function checkAuthStatus() {
-        if (sessionStorage.getItem('isAuthenticated') === 'true') {
-            document.getElementById('login-page').style.display = 'none';
-            document.querySelector('.app-layout').style.display = 'flex';
-            initializeMainApp();
-        } else {
-            document.getElementById('login-page').style.display = 'flex';
-            document.querySelector('.app-layout').style.display = 'none';
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
         }
-    }
+        
+        function showLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            if (!notification) return;
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            setTimeout(() => { notification.classList.remove('show'); }, 4000);
+        }
 
-    function logout() {
-        sessionStorage.removeItem('isAuthenticated');
+        // =================================================================================
+        // --- INISIALISASI APLIKASI ---
+        // =================================================================================
+
+        // Setup authentication
+        setupPasswordToggle();
+        setupLoginForm();
         checkAuthStatus();
-        showNotification('Anda telah logout', 'warning');
-    }
 
-    // =================================================================================
-    // --- INISIALISASI APLIKASI UTAMA ---
-    // =================================================================================
-    async function initializeMainApp() {
-        showLoading(true);
-        setupEventListeners();
-        handleDateRangeChange(); // Set tanggal default
-        await fetchAllData();
-        applyFiltersAndRender();
-        showLoading(false);
-    }
-
-    function setupEventListeners() {
-        document.querySelectorAll('.nav-link').forEach(link => {
-            if (link.id !== 'logout-btn') {
-                link.addEventListener('click', e => navigateTo(e.currentTarget.dataset.page));
-            }
-        });
-        document.getElementById('logout-btn').addEventListener('click', logout);
-        document.getElementById('date-range-selector').addEventListener('change', handleDateRangeChange);
-        document.getElementById('apply-filter').addEventListener('click', applyFiltersAndRender);
-        document.getElementById('refresh-data').addEventListener('click', async () => {
-            await fetchAllData();
-            applyFiltersAndRender();
-        });
-        document.getElementById('print-page').addEventListener('click', handlePrint);
-        
-        document.body.addEventListener('click', handleDynamicClicks);
-        document.body.addEventListener('input', e => {
-            if (e.target.classList.contains('commission-input')) handleCommissionInputChange(e);
-        });
-
-        const modal = document.getElementById('modal');
-        document.getElementById('modal-close-btn').addEventListener('click', () => modal.classList.remove('show'));
-        modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
-    }
-
-    // =================================================================================
-    // --- FETCH & PARSE DATA ---
-    // =================================================================================
-    async function fetchData(url) {
-        try {
-            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            return Array.isArray(data) ? data : data.data || [data];
-        } catch (e) {
-            console.error(`Fetch error dari ${url}:`, e);
-            showNotification(`Gagal memuat dari ${url}`, 'error');
-            return [];
-        }
-    }
-
-    async function fetchAllData() {
-        showLoading(true);
-        const [sales, estatement, bankTransaction, expenseMatch] = await Promise.all([
-            fetchData(WEBHOOK_URLS.sales), fetchData(WEBHOOK_URLS.estatement),
-            fetchData(WEBHOOK_URLS.bankTransaction), fetchData(WEBHOOK_URLS.expenseMatch)
-        ]);
-        masterData = {
-            sales: parseSalesData(sales), estatement: parseEstatementData(estatement),
-            bankTransaction: parseBankTransactionData(bankTransaction), expenseMatch: parseExpenseMatchData(expenseMatch),
-        };
-        showNotification('Data berhasil dimuat ulang', 'success');
-        showLoading(false);
-    }
-    
-    // Fungsi-fungsi parsing (parseSalesData, parseEstatementData, dll.)
-    const parseCurrency = val => parseFloat(String(val).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
-    const parseDate = dateStr => {
-        if (!dateStr || typeof dateStr !== 'string') return null;
-        const [y, m, d] = dateStr.split('T')[0].split('-').map(p => parseInt(p, 10));
-        return (!isNaN(y) && !isNaN(m) && !isNaN(d)) ? new Date(Date.UTC(y, m - 1, d)) : null;
-    };
-
-    function parseSalesData(data) {
-        return (data || []).map(item => ({...item, date: parseDate(item.tanggal), total_penjualan: parseCurrency(item.total_penjualan), total_diharapkan: parseCurrency(item.total_diharapkan), kas_masukkeluar: parseCurrency(item['kas_ masukkeluar']), diskon_bill: parseCurrency(item.diskon_bill), kas_akhir: parseCurrency(item.kas_akhir), metode_pembayaran_parsed: JSON.parse(item.metode_pembayaran_json || '[]'), item_aruskas_parsed: JSON.parse(item.item_aruskas || '[]') }));
-    }
-    function parseEstatementData(data) {
-        return (data || []).map(item => ({...item, date: parseDate(item.date), amount_numeric: parseCurrency(item.amount_numeric || item.amount), balance_numeric: parseCurrency(item.balance_numeric) }));
-    }
-    function parseBankTransactionData(data) {
-        return (data || []).map(item => ({...item, date: parseDate(item.tanggal), nominal_transfer: parseCurrency(item.nominal_transfer), biaya_transfer: parseCurrency(item.biaya_transfer), total_transaksi: parseCurrency(item.total_transaksi) }));
-    }
-    function parseExpenseMatchData(data) {
-        return (data || []).map(item => ({...item, date: parseDate(item.trx_date), displayAmount: parseCurrency(item.exp_total_amount) || parseCurrency(item.trx_amount), parsedItems: JSON.parse(item.exp_items_json || '[]'), displayCategory: item.exp_category || 'Lainnya' }));
-    }
-
-    // =================================================================================
-    // --- LOGIKA UTAMA APLIKASI (Filter, Navigasi, Render) ---
-    // =================================================================================
-    function handleDateRangeChange() {
-        const selector = document.getElementById('date-range-selector');
-        document.getElementById('custom-date-filter').style.display = selector.value === 'custom' ? 'flex' : 'none';
-        if (selector.value === 'custom') return;
-
-        let startDate = new Date();
-        let endDate = new Date();
-        if (selector.value === '7d') startDate.setDate(startDate.getDate() - 7);
-        else if (selector.value === '30d') startDate.setDate(startDate.getDate() - 30);
-        else if (selector.value === 'this_month') startDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-        else if (selector.value === 'last_month') {
-            startDate = new Date(startDate.getFullYear(), startDate.getMonth() - 1, 1);
-            endDate = new Date(endDate.getFullYear(), endDate.getMonth(), 0);
-        } else if (selector.value === 'all') {
-            startDate = new Date('2000-01-01');
-        }
-        document.getElementById('start-date').valueAsDate = startDate;
-        document.getElementById('end-date').valueAsDate = endDate;
-    }
-
-    function applyFiltersAndRender() {
-        const startDate = document.getElementById('start-date').valueAsDate;
-        const endDate = document.getElementById('end-date').valueAsDate;
-        if (!startDate || !endDate) return;
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
-        
-        filteredData = {};
-        for (const key in masterData) {
-            filteredData[key] = (masterData[key] || []).filter(item => item.date && item.date >= startDate && item.date <= endDate);
-        }
-        renderActivePage();
-    }
-
-    function navigateTo(pageId) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(`page-${pageId}`).classList.add('active');
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page === pageId));
-        document.getElementById('page-title').textContent = document.querySelector(`.nav-link.active span`)?.textContent || "Dashboard";
-        togglePrintButton();
-        renderActivePage();
-    }
-        
-    function renderActivePage() {
-        const activePageId = document.querySelector('.page.active')?.id;
-        if (!activePageId) return;
-
-        const pageRenderers = {
-            'page-dashboard': renderDashboardPage, 'page-neraca': renderNeracaPage,
-            'page-arus-kas': renderArusKasPage, 'page-transaksi-bank': renderTransaksiBankPage,
-            'page-pengeluaran': renderPengeluaranPage, 'page-detail-pengeluaran': renderDetailPengeluaranPage,
-        };
-
-        if (pageRenderers[activePageId]) {
-            pageRenderers[activePageId]();
-        }
-    }
-
-    // =================================================================================
-    // --- FUNGSI-FUNGSI RENDER HALAMAN ---
-    // =================================================================================
-    function renderDashboardPage() {
-        const totalPendapatan = filteredData.sales?.reduce((s, i) => s + i.total_diharapkan, 0) || 0;
-        const totalPengeluaran = filteredData.expenseMatch?.reduce((s, i) => s + i.displayAmount, 0) || 0;
-        const labaRugi = totalPendapatan - totalPengeluaran;
-        const arusKasBersih = (filteredData.estatement?.filter(t => t.type?.toUpperCase() === 'CR').reduce((s, t) => s + t.amount_numeric, 0) || 0) - (filteredData.estatement?.filter(t => t.type?.toUpperCase() === 'DB').reduce((s, t) => s + t.amount_numeric, 0) || 0);
-
-        document.getElementById('dashboard-kpi-container').innerHTML = `
-            <div class="metric-item"><p>Total Pendapatan</p><h2>${formatCurrency(totalPendapatan)}</h2></div>
-            <div class="metric-item"><p>Total Pengeluaran</p><h2>${formatCurrency(totalPengeluaran)}</h2></div>
-            <div class="metric-item"><p>Laba / Rugi</p><h2 class="${labaRugi >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(labaRugi)}</h2></div>
-            <div class="metric-item"><p>Arus Kas Bersih (Bank)</p><h2 class="${arusKasBersih >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(arusKasBersih)}</h2></div>`;
-
-        const expenseByCategory = (filteredData.expenseMatch || []).reduce((acc, item) => {
-            acc[item.displayCategory] = (acc[item.displayCategory] || 0) + item.displayAmount;
-            return acc;
-        }, {});
-        
-        createOrUpdateChart('dashboard-expense-category-chart', 'doughnut', { labels: Object.keys(expenseByCategory), datasets: [{ data: Object.values(expenseByCategory) }] });
-        
-        const dailyProfit = {};
-        (filteredData.sales || []).forEach(s => { const k = s.date.toISOString().split('T')[0]; dailyProfit[k] = (dailyProfit[k] || 0) + s.total_diharapkan; });
-        (filteredData.expenseMatch || []).forEach(e => { const k = e.date.toISOString().split('T')[0]; dailyProfit[k] = (dailyProfit[k] || 0) - e.displayAmount; });
-        const sortedDates = Object.keys(dailyProfit).sort();
-        createOrUpdateChart('dashboard-profit-trend-chart', 'line', { labels: sortedDates.map(d => new Date(d).toLocaleDateString('id-ID', {timeZone: 'UTC'})), datasets: [{ label: 'Laba/Rugi Harian', data: sortedDates.map(d => dailyProfit[d]) }] });
-        
-        const sortedCategories = Object.entries(expenseByCategory).sort(([,a], [,b]) => b - a);
-        document.getElementById('dashboard-top-expenses-table').innerHTML = sortedCategories.map(([cat, amount]) => `
-            <div class="category-list-item" data-action="view-category-expenses" data-category="${cat}">
-                <span class="category-name">${cat}</span><span class="category-amount">${formatCurrency(amount)}</span>
-            </div>`).join('');
-    }
-    
-    function renderNeracaPage() {
-        const totalPendapatan = filteredData.sales?.reduce((s, i) => s + i.total_diharapkan, 0) || 0;
-        const totalPengeluaran = filteredData.expenseMatch?.reduce((s, i) => s + i.displayAmount, 0) || 0;
-        const totalKredit = filteredData.estatement?.filter(t => t.type?.toUpperCase() === 'CR').reduce((s, t) => s + t.amount_numeric, 0) || 0;
-        const totalDebit = filteredData.estatement?.filter(t => t.type?.toUpperCase() === 'DB').reduce((s, t) => s + t.amount_numeric, 0) || 0;
-        const latestBalance = filteredData.estatement?.sort((a,b) => b.date - a.date)[0]?.balance_numeric || 0;
-
-        document.getElementById('neraca-summary-section1').innerHTML = `<div class="metric-item"><p>Pendapatan</p><h2 class="text-success">${formatCurrency(totalPendapatan)}</h2></div><div class="metric-item"><p>Pengeluaran</p><h2 class="text-danger">${formatCurrency(totalPengeluaran)}</h2></div><div class="metric-item"><p>Laba/Rugi</p><h2 class="${(totalPendapatan-totalPengeluaran) >= 0 ? 'text-success':'text-danger'}">${formatCurrency(totalPendapatan-totalPengeluaran)}</h2></div>`;
-        document.getElementById('neraca-summary-section2').innerHTML = `<div class="metric-item"><p>Kas Masuk Bank</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div><div class="metric-item"><p>Kas Keluar Bank</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div><div class="metric-item"><p>Saldo Bank</p><h2>${formatCurrency(latestBalance)}</h2></div>`;
-        
-        const dailyComparison = {};
-        (filteredData.sales || []).forEach(s => { const k = s.date.toISOString().split('T')[0]; dailyComparison[k] = {...(dailyComparison[k] || {}), sales: (dailyComparison[k]?.sales || 0) + s.total_diharapkan }; });
-        (filteredData.estatement || []).filter(e => e.type?.toUpperCase() === 'CR').forEach(e => { const k = e.date.toISOString().split('T')[0]; dailyComparison[k] = {...(dailyComparison[k] || {}), bankInflow: (dailyComparison[k]?.bankInflow || 0) + e.amount_numeric }; });
-        const sortedDates = Object.keys(dailyComparison).sort();
-        createOrUpdateChart('neraca-settlement-chart-container', 'line', { labels: sortedDates.map(d => new Date(d).toLocaleDateString('id-ID', {timeZone: 'UTC'})), datasets: [{ label: 'Pendapatan', data: sortedDates.map(d => dailyComparison[d].sales || 0) }, { label: 'Kas Masuk Bank', data: sortedDates.map(d => dailyComparison[d].bankInflow || 0) }] });
-
-        let cumulativeProfit = 0;
-        const cumulativeData = {};
-        const allDates = [...new Set([...(filteredData.sales||[]).map(s=>s.date.toISOString().split('T')[0]), ...(filteredData.expenseMatch||[]).map(e=>e.date.toISOString().split('T')[0])])].sort();
-        allDates.forEach(d => {
-            const sales = (filteredData.sales||[]).filter(s=>s.date.toISOString().split('T')[0]===d).reduce((sum,s)=>sum+s.total_diharapkan,0);
-            const expenses = (filteredData.expenseMatch||[]).filter(e=>e.date.toISOString().split('T')[0]===d).reduce((sum,e)=>sum+e.displayAmount,0);
-            cumulativeProfit += sales - expenses;
-            cumulativeData[d] = cumulativeProfit;
-        });
-        createOrUpdateChart('neraca-chart-section3', 'line', { labels: Object.keys(cumulativeData), datasets: [{ label: 'Akumulasi Laba/Rugi', data: Object.values(cumulativeData) }] });
-    }
-
-    // Render functions lainnya (ArusKas, TransaksiBank, dll. sama seperti sebelumnya)
-    function renderArusKasPage() { createOrUpdateChart('arus-kas-chart-container', 'bar', { labels: filteredData.sales.map(s => s.date.toLocaleDateString('id-ID',{timeZone:'UTC'})), datasets: [{label: 'Total Penjualan', data: filteredData.sales.map(s => s.total_diharapkan)}, {label:'Kas Masuk', data: filteredData.sales.map(s=>s.kas_masukkeluar)}]}); currentPaymentSummary = (filteredData.sales||[]).reduce((acc, sale) => {(sale.metode_pembayaran_parsed || []).forEach(p => { acc[p.method] = (acc[p.method] || 0) + parseCurrency(p.amount); }); return acc; }, {}); const summaryContainer = document.getElementById('payment-method-summary-container'); if (Object.keys(currentPaymentSummary).length > 0) { summaryContainer.innerHTML = `<div class="analysis-grid"><div id="payment-method-chart-container"></div><div id="payment-method-calculator-container"></div></div>`; renderPaymentMethodCalculator(currentPaymentSummary); renderPaymentMethodChart(currentPaymentSummary);} else { summaryContainer.innerHTML = createPlaceholder();} document.getElementById('arus-kas-table-container').innerHTML = createTable(['Tanggal', 'Outlet', 'Total Penjualan', 'Kas Akhir', 'Aksi'], filteredData.sales, i => [i.date.toLocaleDateString('id-ID',{timeZone:'UTC'}), i.outlet, formatCurrency(i.total_penjualan), formatCurrency(i.kas_akhir), `<button class="btn action-btn" data-action="view-sales-detail" data-aruskas='${encodeURIComponent(JSON.stringify(i.item_aruskas_parsed))}' data-pembayaran='${encodeURIComponent(JSON.stringify(i.metode_pembayaran_parsed))}'><i class="fas fa-eye"></i></button>`]); }
-    function renderTransaksiBankPage() { const totalKredit = filteredData.estatement?.filter(t => t.type?.toUpperCase() === 'CR').reduce((s, t) => s + t.amount_numeric, 0) || 0; const totalDebit = filteredData.estatement?.filter(t => t.type?.toUpperCase() === 'DB').reduce((s, t) => s + t.amount_numeric, 0) || 0; const latestBalance = filteredData.estatement?.sort((a,b) => b.date - a.date)[0]?.balance_numeric || 0; document.getElementById('transaksi-bank-summary-container').innerHTML = `<div class="metric-item"><p>Total Kredit</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div><div class="metric-item"><p>Total Debit</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div><div class="metric-item"><p>Saldo Akhir</p><h2>${formatCurrency(latestBalance)}</h2></div>`; const grouped = {'Kredit': filteredData.estatement.filter(i=>i.type?.toUpperCase()==='CR'), 'Debit': filteredData.estatement.filter(i=>i.type?.toUpperCase()==='DB')}; document.getElementById('transaksi-bank-grouped-container').innerHTML = Object.entries(grouped).map(([type, items]) => createAccordionItem(type, createTable(['Tgl','Deskripsi','Jumlah'], items, i=>[i.date.toLocaleDateString('id-ID',{timeZone:'UTC'}), i.description, formatCurrency(i.amount_numeric)]))).join(''); document.getElementById('transaksi-bank-table-container').innerHTML = createTable(['Tgl', 'Deskripsi', 'Tipe', 'Jumlah', 'Saldo'], filteredData.estatement, i => [i.date.toLocaleDateString('id-ID',{timeZone:'UTC'}), i.description, `<span class="${i.type?.toUpperCase()==='CR'?'text-success':'text-danger'}">${i.type}</span>`, formatCurrency(i.amount_numeric), formatCurrency(i.balance_numeric)]);}
-    function renderPengeluaranPage() {const grouped = (filteredData.bankTransaction||[]).reduce((acc, i)=>{ (acc[i.penerima] = acc[i.penerima] || []).push(i); return acc;}, {}); document.getElementById('pengeluaran-grouped-container').innerHTML = Object.entries(grouped).map(([penerima, items])=> createAccordionItem(penerima, createTable(['Tgl','Nominal','Total'], items, i=>[i.date.toLocaleDateString('id-ID',{timeZone:'UTC'}), formatCurrency(i.nominal_transfer), formatCurrency(i.total_transaksi)]))).join(''); document.getElementById('pengeluaran-table-container').innerHTML = createTable(['Tanggal', 'Penerima', 'Nominal', 'Total'], filteredData.bankTransaction, i => [i.date.toLocaleDateString('id-ID',{timeZone:'UTC'}), i.penerima, formatCurrency(i.nominal_transfer), formatCurrency(i.total_transaksi)]);}
-    function renderDetailPengeluaranPage() {const byCategory = (filteredData.expenseMatch||[]).reduce((acc, item) => { acc[item.displayCategory] = (acc[item.displayCategory] || 0) + item.displayAmount; return acc; }, {}); createOrUpdateChart('detail-pengeluaran-summary-container', 'pie', {labels: Object.keys(byCategory), datasets: [{data: Object.values(byCategory)}]}); document.getElementById('detail-pengeluaran-table-container').innerHTML = createTable(['Tgl', 'Kategori', 'Jumlah'], filteredData.expenseMatch, i => [i.date.toLocaleDateString('id-ID',{timeZone:'UTC'}), i.displayCategory, formatCurrency(i.displayAmount)]);}
-
-    // =================================================================================
-    // --- FUNGSI-FUNGSI PRINT (BARU & DIPERBAIKI) ---
-    // =================================================================================
-    function togglePrintButton() {
-        const activePageId = document.querySelector('.page.active')?.id;
-        const printButton = document.getElementById('print-page');
-        const printablePages = ['page-dashboard', 'page-neraca']; // Tentukan halaman mana yang bisa di-print
-        
-        printButton.style.display = printablePages.includes(activePageId) ? 'inline-flex' : 'none';
-    }
-
-    function handlePrint() {
-        const activePageId = document.querySelector('.page.active')?.id;
-        if (activePageId === 'page-dashboard') {
-            printDashboard();
-        } else if (activePageId === 'page-neraca') {
-            printNeraca();
-        }
-    }
-
-    function printWithSetup(pageElement, title, subtitle, summary, watermarkText) {
-        const originalDocTitle = document.title;
-        document.title = `${title} - ${new Date().toLocaleDateString('id-ID')}`;
-
-        // Buat dan tambahkan elemen-elemen print
-        const printHeader = createPrintHeader(title, subtitle, summary);
-        const watermark = createWatermark(watermarkText);
-        const executiveSummary = createExecutiveSummary();
-        const financialHighlights = createFinancialHighlights();
-
-        pageElement.prepend(printHeader);
-        pageElement.prepend(financialHighlights);
-        pageElement.prepend(executiveSummary);
-        document.body.appendChild(watermark);
-
-        // Tunggu sebentar agar DOM update, lalu print
-        setTimeout(() => {
-            window.print();
-            
-            // Cleanup setelah print
-            document.title = originalDocTitle;
-            printHeader.remove();
-            watermark.remove();
-            executiveSummary.remove();
-            financialHighlights.remove();
-        }, 500);
-    }
-
-    function printDashboard() {
-        const totalPendapatan = filteredData.sales?.reduce((s, i) => s + i.total_diharapkan, 0) || 0;
-        const totalPengeluaran = filteredData.expenseMatch?.reduce((s, i) => s + i.displayAmount, 0) || 0;
-        const labaRugi = totalPendapatan - totalPengeluaran;
-        const margin = totalPendapatan > 0 ? ((labaRugi / totalPendapatan) * 100).toFixed(1) : 0;
-        const summary = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 10pt;">
-                <div><strong>Total Pendapatan:</strong> ${formatCurrency(totalPendapatan)}</div>
-                <div><strong>Total Pengeluaran:</strong> ${formatCurrency(totalPengeluaran)}</div>
-                <div><strong>Laba/Rugi Bersih:</strong> <strong class="${labaRugi >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(labaRugi)}</strong></div>
-                <div><strong>Margin Profit:</strong> <strong class="${margin >= 0 ? 'text-success' : 'text-danger'}">${margin}%</strong></div>
-            </div>`;
-        printWithSetup(document.getElementById('page-dashboard'), 'Laporan Dashboard Keuangan', 'Ringkasan Kinerja Utama', summary, 'DASHBOARD');
-    }
-
-    function printNeraca() {
-        const totalPendapatan = filteredData.sales?.reduce((s, i) => s + i.total_diharapkan, 0) || 0;
-        const totalPengeluaran = filteredData.expenseMatch?.reduce((s, i) => s + i.displayAmount, 0) || 0;
-        const arusKasBersih = (filteredData.estatement?.filter(t => t.type?.toUpperCase() === 'CR').reduce((s, t) => s + t.amount_numeric, 0) || 0) - (filteredData.estatement?.filter(t => t.type?.toUpperCase() === 'DB').reduce((s, t) => s + t.amount_numeric, 0) || 0);
-        const summary = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 10pt;">
-                <div><strong>Laba/Rugi Operasional:</strong> ${formatCurrency(totalPendapatan - totalPengeluaran)}</div>
-                <div><strong>Arus Kas Bersih (Bank):</strong> ${formatCurrency(arusKasBersih)}</div>
-            </div>`;
-        printWithSetup(document.getElementById('page-neraca'), 'Laporan Neraca Keuangan', 'Analisis Posisi Keuangan', summary, 'NERACA');
-    }
-
-    // =================================================================================
-    // --- HELPER UI (Print, Modal, Tabel, Chart, Notifikasi, dll.) ---
-    // =================================================================================
-    const formatCurrency = amount => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount || 0);
-    const showLoading = show => document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
-    const createPlaceholder = (text = "Tidak ada data untuk ditampilkan.") => `<div class="placeholder-text">${text}</div>`;
-    function createTable(headers, data, rowMapper) { if (!data || data.length === 0) return createPlaceholder(); return `<div class="table-responsive"><table class="table"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${data.map(item => `<tr>${rowMapper(item).map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`; }
-    function createAccordionItem(header, content) { return `<div class="accordion-item"><button class="accordion-header" data-action="toggle-accordion">${header}</button><div class="accordion-content">${content}</div></div>`; }
-    
-    // Helper untuk membuat elemen print
-    function createPrintHeader(title, subtitle, summary) {
-        const header = document.createElement('div');
-        header.className = 'print-header';
-        header.innerHTML = `<div class="print-title">${title}</div><div class="print-subtitle">${subtitle}</div><div class="print-date">Periode: ${document.getElementById('start-date').value} s/d ${document.getElementById('end-date').value}</div>${summary ? `<div class="print-summary">${summary}</div>` : ''}`;
-        return header;
-    }
-    function createWatermark(text) { const el = document.createElement('div'); el.className = 'watermark'; el.textContent = text; return el; }
-    function createExecutiveSummary() { const el = document.createElement('div'); el.className = 'executive-summary'; el.innerHTML = `<h4>Ringkasan Eksekutif</h4><p>Laporan ini merangkum kinerja keuangan perusahaan berdasarkan data yang tersedia untuk periode yang dipilih. Analisis mencakup pendapatan, pengeluaran, dan arus kas untuk memberikan gambaran komprehensif.</p>`; return el; }
-    function createFinancialHighlights() { const totalPendapatan = filteredData.sales?.reduce((s, i) => s + i.total_diharapkan, 0) || 0; const totalPengeluaran = filteredData.expenseMatch?.reduce((s, i) => s + i.displayAmount, 0) || 0; const labaRugi = totalPendapatan-totalPengeluaran; const el = document.createElement('div'); el.className = 'financial-highlights'; el.innerHTML = `<div class="highlight-item"><div class="highlight-label">Total Pendapatan</div><div class="highlight-value">${formatCurrency(totalPendapatan)}</div></div><div class="highlight-item"><div class="highlight-label">Total Pengeluaran</div><div class="highlight-value">${formatCurrency(totalPengeluaran)}</div></div><div class="highlight-item"><div class="highlight-label">Laba/Rugi</div><div class="highlight-value" style="color: ${labaRugi >= 0 ? 'green':'red'}">${formatCurrency(labaRugi)}</div></div>`; return el; }
-
-    function handleDynamicClicks(e) {
-        const target = e.target.closest('[data-action]');
-        if (!target) return;
-        const { action, aruskas, pembayaran, category } = target.dataset;
-
-        if (action === 'view-sales-detail') {
-            const content = `<h4>Metode Pembayaran</h4>${createTable(['Metode','Jumlah'], JSON.parse(decodeURIComponent(pembayaran)), p => [p.method, formatCurrency(p.amount)])}<h4>Detail Arus Kas</h4>${createTable(['Item','Jumlah'], JSON.parse(decodeURIComponent(aruskas)), i=>[i.item, formatCurrency(i.amount)])}`;
-            showModal('Detail Transaksi Penjualan', content);
-        } else if (action === 'view-category-expenses') {
-            const items = filteredData.expenseMatch.filter(item => item.displayCategory === category);
-            showModal(`Transaksi Kategori: ${category}`, createTable(['Tanggal', 'Jumlah'], items, item => [item.date.toLocaleDateString('id-ID',{timeZone:'UTC'}), formatCurrency(item.displayAmount)]));
-        } else if (action === 'toggle-accordion') {
-            target.classList.toggle('active');
-            const content = target.nextElementSibling;
-            content.style.maxHeight = content.style.maxHeight ? null : `${content.scrollHeight}px`;
-        }
-    }
-    function handleCommissionInputChange(e) { const input = e.target; const methodId = input.dataset.method; const total = parseFloat(input.dataset.total); const pct = parseFloat(input.value) || 0; const potongan = total * (pct / 100); const diterima = total - potongan; document.getElementById(`potongan-${methodId}`).textContent = formatCurrency(potongan); document.getElementById(`diterima-${methodId}`).textContent = formatCurrency(diterima); const commissionData = {}; document.querySelectorAll('.commission-input').forEach(inp => { const mid = inp.dataset.method; const tot = parseFloat(inp.dataset.total); const p = parseFloat(inp.value) || 0; commissionData[mid] = tot - (tot * (p / 100)); }); renderPaymentMethodChart(currentPaymentSummary, commissionData); }
-    function showModal(title, content) { const modal = document.getElementById('modal'); modal.querySelector('.modal-title').textContent = title; modal.querySelector('.modal-body').innerHTML = content; modal.classList.add('show'); }
-    function showNotification(message, type = 'success') { const notification = document.getElementById('notification'); notification.textContent = message; notification.className = `notification ${type} show`; setTimeout(() => notification.classList.remove('show'), 4000); }
-    function renderPaymentMethodCalculator(summary) { const container = document.getElementById('payment-method-calculator-container'); const sortedMethods = Object.entries(summary).sort(([, a], [, b]) => b - a); container.innerHTML = `<table class="table"><thead><tr><th>Metode</th><th>Total</th><th>% Komisi</th><th>Potongan</th><th>Diterima</th></tr></thead><tbody>${sortedMethods.map(([method, total]) => { const cleanId = method.replace(/[^a-zA-Z0-9]/g, ''); return `<tr><td><strong>${method}</strong></td><td>${formatCurrency(total)}</td><td><input type="number" class="form-control commission-input" data-method="${cleanId}" data-total="${total}"></td><td id="potongan-${cleanId}">${formatCurrency(0)}</td><td id="diterima-${cleanId}">${formatCurrency(total)}</td></tr>`; }).join('')}</tbody></table>`; }
-    function renderPaymentMethodChart(summary, commissionData = {}) { const labels = Object.keys(summary).sort((a, b) => summary[b] - summary[a]); createOrUpdateChart('payment-method-chart-container', 'bar', { labels, datasets: [{ label: 'Total Kotor', data: labels.map(l => summary[l]) }, { label: 'Total Diterima', data: labels.map(l => commissionData[l.replace(/[^a-zA-Z0-9]/g, '')] ?? summary[l]) }] }, { indexAxis: 'y' }); }
-    function createOrUpdateChart(containerId, type, data, options = {}) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        if (chartInstances[containerId]) chartInstances[containerId].destroy();
-        if (Object.keys(data).length === 0 || data.datasets.every(ds => ds.data.length === 0)) { container.innerHTML = createPlaceholder("Data tidak cukup untuk menampilkan grafik."); return; }
-        container.innerHTML = `<canvas></canvas>`;
-        const chartColors = ['#4361ee', '#4895ef', '#560bad', '#7209b7', '#f72585', '#ffc107', '#2ec4b6', '#06d6a0'];
-        data.datasets.forEach((dataset, index) => {
-            dataset.backgroundColor = dataset.backgroundColor || (type === 'doughnut' || type === 'pie' ? chartColors : chartColors[index % chartColors.length]);
-            dataset.borderColor = dataset.borderColor || chartColors[index % chartColors.length];
-            dataset.tension = 0.3;
-        });
-        chartInstances[containerId] = new Chart(container.querySelector('canvas').getContext('2d'), { type, data, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label || ''}: ${formatCurrency(ctx.parsed.y || ctx.parsed)}` } } }, ...options } });
-    }
-
-    // =================================================================================
-    // --- INISIALISASI ---
-    // =================================================================================
-    setupAuth();
-    checkAuthStatus();
-});
-</script>
+    });
+    </script>
 </body>
 </html>
