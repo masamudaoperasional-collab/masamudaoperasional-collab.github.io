@@ -621,7 +621,293 @@
         font-weight: bold;
     }
 }
-        
+        /* --- Enhanced Print Styles --- */
+@media print {
+    @page {
+        size: tabloid portrait;
+        margin: 15mm 20mm;
+        marks: crop cross;
+    }
+    
+    /* Header dan footer untuk print */
+    @page {
+        @top-left {
+            content: "Laporan Keuangan";
+            font-size: 10pt;
+            color: #666;
+        }
+        @top-right {
+            content: "Halaman " counter(page) " dari " counter(pages);
+            font-size: 10pt;
+            color: #666;
+        }
+        @bottom-center {
+            content: "Dokumen Rahasia & Konfidensial";
+            font-size: 9pt;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 5mm;
+        }
+    }
+
+    /* Improved typography */
+    body {
+        font-family: "Arial", "Helvetica", sans-serif !important;
+        font-size: 11pt;
+        line-height: 1.4;
+        color: #000 !important;
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Enhanced header */
+    .print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #333;
+        background: linear-gradient(to right, #f8f9fa, #e9ecef) !important;
+        padding: 20px;
+        margin: -15mm -20mm 25px -20mm;
+        border-bottom: 4px double #333;
+    }
+
+    .print-title {
+        font-size: 24pt;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #2c3e50 !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .print-subtitle {
+        font-size: 16pt;
+        margin-bottom: 8px;
+        color: #34495e !important;
+        font-weight: 600;
+    }
+
+    .print-date {
+        font-size: 11pt;
+        color: #7f8c8d !important;
+        font-style: italic;
+    }
+
+    .print-summary {
+        background: #f8f9fa !important;
+        border: 1px solid #ddd !important;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+        page-break-inside: avoid;
+    }
+
+    /* Enhanced cards */
+    .card {
+        box-shadow: none !important;
+        border: 2px solid #333 !important;
+        margin-bottom: 25px !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        background: white !important;
+    }
+
+    .card-header {
+        background: linear-gradient(to right, #2c3e50, #34495e) !important;
+        color: white !important;
+        border-bottom: 3px solid #000 !important;
+        font-size: 14pt !important;
+        font-weight: bold;
+        padding: 12px 20px !important;
+    }
+
+    .card-body {
+        padding: 20px !important;
+        background: white !important;
+    }
+
+    /* Enhanced metrics */
+    .metric-item {
+        box-shadow: none !important;
+        border: 2px solid #bdc3c7 !important;
+        background: white !important;
+        padding: 20px 15px !important;
+        text-align: center;
+        position: relative;
+        break-inside: avoid;
+    }
+
+    .metric-item::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(to right, #3498db, #2ecc71);
+    }
+
+    .metric-item p {
+        font-size: 10pt !important;
+        margin-bottom: 8px !important;
+        color: #7f8c8d !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .metric-item h2 {
+        font-size: 18pt !important;
+        margin-top: 5px !important;
+        color: #2c3e50 !important;
+        font-weight: bold;
+    }
+
+    /* Enhanced tables */
+    .table {
+        border: 2px solid #333 !important;
+        font-size: 9pt !important;
+        page-break-inside: avoid;
+    }
+
+    .table th {
+        background: linear-gradient(to right, #34495e, #2c3e50) !important;
+        color: white !important;
+        border-bottom: 2px solid #000 !important;
+        font-weight: bold;
+        padding: 10px 8px !important;
+        text-align: center;
+    }
+
+    .table td {
+        border: 1px solid #ddd !important;
+        padding: 8px !important;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:nth-child(even) {
+        background-color: #f8f9fa !important;
+    }
+
+    /* Enhanced charts */
+    .card-body canvas {
+        max-height: 400px !important;
+        height: 400px !important;
+        background: white !important;
+        border: 1px solid #ddd !important;
+        padding: 10px;
+    }
+
+    /* Grid improvements */
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .chart-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    /* KPI highlights */
+    .kpi-positive {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
+        border-color: #28a745 !important;
+    }
+
+    .kpi-negative {
+        background: linear-gradient(135deg, #f8d7da, #f1b0b7) !important;
+        border-color: #dc3545 !important;
+    }
+
+    .kpi-neutral {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7) !important;
+        border-color: #ffc107 !important;
+    }
+
+    /* Page break controls */
+    .page-break-before {
+        page-break-before: always;
+    }
+
+    .page-break-after {
+        page-break-after: always;
+    }
+
+    .avoid-break {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* Executive summary section */
+    .executive-summary {
+        background: #f8f9fa !important;
+        border-left: 6px solid #3498db !important;
+        padding: 20px;
+        margin: 20px 0;
+        page-break-inside: avoid;
+    }
+
+    .executive-summary h4 {
+        color: #2c3e50 !important;
+        margin-bottom: 15px;
+        font-size: 14pt;
+    }
+
+    .executive-summary p {
+        margin-bottom: 10px;
+        line-height: 1.6;
+    }
+
+    /* Financial highlights */
+    .financial-highlights {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    .highlight-item {
+        text-align: center;
+        padding: 15px;
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        background: white;
+    }
+
+    .highlight-value {
+        font-size: 16pt;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 8px 0;
+    }
+
+    .highlight-label {
+        font-size: 9pt;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+}
+
+/* Watermark untuk draft */
+@media print {
+    .watermark {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 80pt;
+        color: rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        pointer-events: none;
+        font-weight: bold;
+    }
+}
     </style>
 </head>
 <body>
@@ -1322,11 +1608,19 @@
             const arusKasBersih = totalKredit - totalDebit;
 
             document.getElementById('dashboard-kpi-container').innerHTML = `
-                <div class="metric-item"><p>Total Pendapatan</p><h2>${formatCurrency(totalPendapatan)}</h2></div>
-                <div class="metric-item"><p>Total Pengeluaran</p><h2>${formatCurrency(totalPengeluaran)}</h2></div>
-                <div class="metric-item"><p>Laba / Rugi</p><h2 class="${labaRugi >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(labaRugi)}</h2></div>
-                <div class="metric-item"><p>Arus Kas Bersih (Bank)</p><h2 class="${arusKasBersih >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(arusKasBersih)}</h2></div>
-            `;
+        <div class="metric-item ${totalPendapatan > 0 ? 'kpi-positive' : ''}">
+            <p>Total Pendapatan</p><h2>${formatCurrency(totalPendapatan)}</h2>
+        </div>
+        <div class="metric-item ${totalPengeluaran > totalPendapatan * 0.7 ? 'kpi-negative' : ''}">
+            <p>Total Pengeluaran</p><h2>${formatCurrency(totalPengeluaran)}</h2>
+        </div>
+        <div class="metric-item ${labaRugi >= 0 ? 'kpi-positive' : 'kpi-negative'}">
+            <p>Laba / Rugi</p><h2>${formatCurrency(labaRugi)}</h2>
+        </div>
+        <div class="metric-item ${arusKasBersih >= 0 ? 'kpi-positive' : 'kpi-negative'}">
+            <p>Arus Kas Bersih (Bank)</p><h2>${formatCurrency(arusKasBersih)}</h2>
+        </div>
+    `;
             
             const expenseByCategory = (filteredData.expenseMatch || []).reduce((acc, item) => {
                 const category = item.displayCategory;
@@ -1790,118 +2084,230 @@
         
         
         // =================================================================================
-// --- FUNGSI PRINT ---
+// --- ENHANCED PRINT FUNCTIONS ---
 // =================================================================================
 
-function setupPrintFunctionality() {
-    const printBtn = document.getElementById('print-page');
-    
-    printBtn.addEventListener('click', function() {
-        const activePage = document.querySelector('.page.active');
-        
-        if (activePage.id === 'page-dashboard') {
-            printDashboard();
-        } else if (activePage.id === 'page-neraca') {
-            printNeraca();
-        }
-    });
-}
-
 function printDashboard() {
-    // Simpan state asli
     const originalTitle = document.title;
     
-    // Tambahkan print header
-    const printHeader = createPrintHeader('LAPORAN DASHBOARD KEUANGAN', 'Dashboard Utama');
+    // Enhanced print header dengan summary
+    const printHeader = createEnhancedPrintHeader(
+        'LAPORAN DASHBOARD KEUANGAN', 
+        'Dashboard Utama & Performance Overview',
+        generateDashboardSummary()
+    );
+    
     const dashboardPage = document.getElementById('page-dashboard');
     dashboardPage.insertBefore(printHeader, dashboardPage.firstChild);
     
-    // Update title untuk print
-    document.title = 'Laporan Dashboard Keuangan - ' + new Date().toLocaleDateString('id-ID');
+    // Add watermark untuk draft (opsional)
+    addWatermark('LAPORAN RESMI');
     
-    // Trigger print setelah delay kecil
+    // Add financial highlights
+    addFinancialHighlights();
+    
+    // Add executive summary
+    addExecutiveSummary();
+    
+    document.title = `Laporan Dashboard Keuangan - ${new Date().toLocaleDateString('id-ID')}`;
+    
     setTimeout(() => {
         window.print();
         
-        // Cleanup setelah print
         setTimeout(() => {
             printHeader.remove();
+            removeWatermark();
+            removeFinancialHighlights();
+            removeExecutiveSummary();
             document.title = originalTitle;
         }, 100);
-    }, 500);
+    }, 800);
 }
 
 function printNeraca() {
-    // Simpan state asli
     const originalTitle = document.title;
     
-    // Tambahkan print header
-    const printHeader = createPrintHeader('LAPORAN NERACA KEUANGAN', 'Neraca & Laporan Keuangan');
+    const printHeader = createEnhancedPrintHeader(
+        'LAPORAN NERACA KEUANGAN', 
+        'Laporan Posisi Keuangan & Analisis',
+        generateNeracaSummary()
+    );
+    
     const neracaPage = document.getElementById('page-neraca');
     neracaPage.insertBefore(printHeader, neracaPage.firstChild);
     
-    // Update title untuk print
-    document.title = 'Laporan Neraca Keuangan - ' + new Date().toLocaleDateString('id-ID');
+    addWatermark('LAPORAN KEUANGAN');
+    addFinancialHighlights();
+    addExecutiveSummary();
     
-    // Trigger print setelah delay kecil
+    document.title = `Laporan Neraca Keuangan - ${new Date().toLocaleDateString('id-ID')}`;
+    
     setTimeout(() => {
         window.print();
         
-        // Cleanup setelah print
         setTimeout(() => {
             printHeader.remove();
+            removeWatermark();
+            removeFinancialHighlights();
+            removeExecutiveSummary();
             document.title = originalTitle;
         }, 100);
-    }, 500);
+    }, 800);
 }
 
-function createPrintHeader(title, subtitle) {
+function createEnhancedPrintHeader(title, subtitle, summary) {
     const header = document.createElement('div');
     header.className = 'print-header';
     header.innerHTML = `
         <div class="print-title">${title}</div>
         <div class="print-subtitle">${subtitle}</div>
-        <div class="print-date">Periode: ${getCurrentDateRange()} | Dicetak: ${new Date().toLocaleDateString('id-ID', { 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })}</div>
+        <div class="print-date">
+            Periode: ${getCurrentDateRange()} | 
+            Dicetak: ${new Date().toLocaleDateString('id-ID', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })} |
+            Halaman: <span class="page-number"></span>
+        </div>
+        ${summary ? `<div class="print-summary">${summary}</div>` : ''}
     `;
     return header;
 }
 
-function getCurrentDateRange() {
-    const startDate = document.getElementById('start-date').valueAsDate;
-    const endDate = document.getElementById('end-date').valueAsDate;
+function generateDashboardSummary() {
+    const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+    const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+    const labaRugi = totalPendapatan - totalPengeluaran;
+    const margin = totalPendapatan > 0 ? ((labaRugi / totalPendapatan) * 100).toFixed(1) : 0;
     
-    if (startDate && endDate) {
-        return `${startDate.toLocaleDateString('id-ID')} - ${endDate.toLocaleDateString('id-ID')}`;
-    }
-    
-    const selector = document.getElementById('date-range-selector');
-    const textMap = {
-        'all': 'Semua Periode',
-        '30d': '30 Hari Terakhir',
-        '15d': '15 Hari Terakhir',
-        '7d': '7 Hari Terakhir',
-        'this_month': 'Bulan Ini',
-        'last_month': 'Bulan Lalu'
-    };
-    
-    return textMap[selector.value] || 'Custom Period';
+    return `
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; font-size: 10pt;">
+            <div><strong>Total Pendapatan:</strong> ${formatCurrency(totalPendapatan)}</div>
+            <div><strong>Total Pengeluaran:</strong> ${formatCurrency(totalPengeluaran)}</div>
+            <div><strong>Laba/Rugi Bersih:</strong> <span style="color: ${labaRugi >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${formatCurrency(labaRugi)}</span></div>
+            <div><strong>Margin Profit:</strong> <span style="color: ${margin >= 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${margin}%</span></div>
+        </div>
+    `;
 }
 
-function togglePrintButton() {
-    const printBtn = document.getElementById('print-page');
-    const activePage = document.querySelector('.page.active');
+function generateNeracaSummary() {
+    const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+    const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+    const labaRugi = totalPendapatan - totalPengeluaran;
+    const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+    const totalDebit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
+    const arusKasBersih = totalKredit - totalDebit;
     
-    // Tampilkan tombol print hanya untuk dashboard dan neraca
-    if (activePage && (activePage.id === 'page-dashboard' || activePage.id === 'page-neraca')) {
-        printBtn.style.display = 'inline-flex';
+    return `
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; font-size: 10pt;">
+            <div><strong>Laba/Rugi Operasional:</strong> ${formatCurrency(labaRugi)}</div>
+            <div><strong>Arus Kas Bersih:</strong> ${formatCurrency(arusKasBersih)}</div>
+            <div><strong>Efisiensi Operasional:</strong> ${totalPendapatan > 0 ? ((totalPengeluaran / totalPendapatan) * 100).toFixed(1) + '%' : 'N/A'}</div>
+            <div><strong>Rasio Likuiditas:</strong> ${arusKasBersih > 0 ? 'Baik' : 'Perhatian'}</div>
+        </div>
+    `;
+}
+
+function addFinancialHighlights() {
+    const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+    const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+    const labaRugi = totalPendapatan - totalPengeluaran;
+    const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+    
+    const highlights = document.createElement('div');
+    highlights.className = 'financial-highlights avoid-break';
+    highlights.innerHTML = `
+        <div class="highlight-item">
+            <div class="highlight-label">Total Pendapatan</div>
+            <div class="highlight-value">${formatCurrency(totalPendapatan)}</div>
+        </div>
+        <div class="highlight-item">
+            <div class="highlight-label">Laba/Rugi</div>
+            <div class="highlight-value" style="color: ${labaRugi >= 0 ? '#28a745' : '#dc3545'}">${formatCurrency(labaRugi)}</div>
+        </div>
+        <div class="highlight-item">
+            <div class="highlight-label">Kas Masuk Bank</div>
+            <div class="highlight-value">${formatCurrency(totalKredit)}</div>
+        </div>
+    `;
+    
+    const activePage = document.querySelector('.page.active');
+    const firstCard = activePage.querySelector('.card');
+    activePage.insertBefore(highlights, firstCard);
+}
+
+function addExecutiveSummary() {
+    const summary = document.createElement('div');
+    summary.className = 'executive-summary avoid-break';
+    
+    const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+    const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+    const labaRugi = totalPendapatan - totalPengeluaran;
+    const margin = totalPendapatan > 0 ? ((labaRugi / totalPendapatan) * 100).toFixed(1) : 0;
+    
+    summary.innerHTML = `
+        <h4>📊 Ringkasan Eksekutif</h4>
+        <p><strong>Kinerja Keuangan:</strong> Perusahaan ${labaRugi >= 0 ? 'mencapai profit' : 'mengalami kerugian'} sebesar ${formatCurrency(Math.abs(labaRugi))} dengan margin ${margin}% selama periode laporan.</p>
+        <p><strong>Analisis Tren:</strong> ${getTrendAnalysis()}</p>
+        <p><strong>Rekomendasi:</strong> ${getRecommendations()}</p>
+    `;
+    
+    const activePage = document.querySelector('.page.active');
+    const firstCard = activePage.querySelector('.card');
+    activePage.insertBefore(summary, firstCard);
+}
+
+function addWatermark(text) {
+    const watermark = document.createElement('div');
+    watermark.className = 'watermark';
+    watermark.textContent = text;
+    watermark.id = 'print-watermark';
+    document.body.appendChild(watermark);
+}
+
+function removeWatermark() {
+    const watermark = document.getElementById('print-watermark');
+    if (watermark) watermark.remove();
+}
+
+function removeFinancialHighlights() {
+    const highlights = document.querySelector('.financial-highlights');
+    if (highlights) highlights.remove();
+}
+
+function removeExecutiveSummary() {
+    const summary = document.querySelector('.executive-summary');
+    if (summary) summary.remove();
+}
+
+function getTrendAnalysis() {
+    // Analisis sederhana berdasarkan data
+    const salesCount = filteredData.sales?.length || 0;
+    const expenseCount = filteredData.expenseMatch?.length || 0;
+    
+    if (salesCount > expenseCount * 2) {
+        return "Pertumbuhan pendapatan menunjukkan tren positif dengan volume penjualan yang sehat.";
+    } else if (salesCount > expenseCount) {
+        return "Operasional berjalan stabil dengan kontrol pengeluaran yang memadai.";
     } else {
-        printBtn.style.display = 'none';
+        return "Diperlukan evaluasi terhadap efisiensi operasional dan strategi penjualan.";
+    }
+}
+
+function getRecommendations() {
+    const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+    const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+    const labaRugi = totalPendapatan - totalPengeluaran;
+    
+    if (labaRugi < 0) {
+        return "Disarankan untuk mengevaluasi pengeluaran operasional dan meningkatkan efisiensi biaya.";
+    } else if ((totalPengeluaran / totalPendapatan) > 0.7) {
+        return "Optimalkan struktur biaya untuk meningkatkan margin profit.";
+    } else {
+        return "Pertahankan kinerja positif dan eksplorasi peluang pertumbuhan revenue.";
     }
 }
 
