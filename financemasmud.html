@@ -420,6 +420,182 @@
             .filter-container { width: 100%; flex-direction: column; align-items: stretch; }
             .detail-grid { grid-template-columns: 1fr; }
         }
+        
+        /* --- Print Styles --- */
+@media print {
+    /* Sembunyikan elemen yang tidak perlu dicetak */
+    .sidebar, .content-header, .nav-link, .filter-container, 
+    #logout-btn, .btn, .notification, .modal,
+    #login-page, .loading-overlay {
+        display: none !important;
+    }
+    
+    /* Layout untuk print */
+    .app-layout {
+        display: flex !important;
+        flex-direction: column;
+    }
+    
+    .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+    
+    /* Card styling untuk print */
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+        margin-bottom: 20px !important;
+        page-break-inside: avoid;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa !important;
+        color: #000 !important;
+        border-bottom: 2px solid #000 !important;
+    }
+    
+    /* Metric items untuk print */
+    .metric-item {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+        background: white !important;
+    }
+    
+    /* Chart containers */
+    .card-body canvas {
+        max-height: 400px !important;
+    }
+    
+    /* Typography untuk print */
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+        color: #000 !important;
+        background: white !important;
+    }
+    
+    h1, h2, h3, h4 {
+        color: #000 !important;
+    }
+    
+    /* Table styling untuk print */
+    .table {
+        border: 1px solid #000 !important;
+    }
+    
+    .table th {
+        background-color: #f1f1f1 !important;
+        color: #000 !important;
+        border-bottom: 2px solid #000 !important;
+    }
+    
+    .table td, .table th {
+        border: 1px solid #ddd !important;
+        padding: 8px !important;
+    }
+    
+    /* Page breaks */
+    .page {
+        page-break-after: always;
+    }
+    
+    .page:last-child {
+        page-break-after: auto;
+    }
+    
+    /* Print header */
+    .print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #000;
+    }
+    
+    .print-title {
+        font-size: 24pt;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .print-subtitle {
+        font-size: 14pt;
+        margin-bottom: 5px;
+    }
+    
+    .print-date {
+        font-size: 12pt;
+        color: #666;
+    }
+}
+
+/* Tombol print untuk non-print */
+.print-btn {
+    background-color: #28a745 !important;
+    color: white !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 10px;
+}
+
+.print-btn:hover {
+    background-color: #218838 !important;
+    transform: translateY(-1px);
+}
+        
+    @media print {
+    @page {
+        size: tabloid portrait;
+        margin: 1.5cm;
+    }
+    
+    body {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px !important;
+    }
+    
+    .chart-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .analysis-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Pastikan chart cukup besar */
+    .card-body canvas {
+        height: 300px !important;
+        max-height: 300px !important;
+    }
+    
+    /* Optimalkan metric items */
+    .metric-item {
+        padding: 15px !important;
+    }
+    
+    .metric-item h2 {
+        font-size: 16pt !important;
+    }
+    
+    .metric-item p {
+        font-size: 10pt !important;
+    }
+}    
+        
     </style>
 </head>
 <body>
@@ -458,7 +634,7 @@
                     <span>Password salah. Silakan coba lagi.</span>
                 </div>
                 <div style="margin-top: 20px; font-size: 0.8rem; color: var(--text-light);">
-                    <p>Password default: <strong>admin123</strong></p>
+                    <p>Silakan masukkan password </p>
                 </div>
             </div>
         </div>
@@ -514,6 +690,7 @@
                         <div class="metric-item"><p>Total Pengeluaran</p><h2 class="loading-placeholder"></h2></div>
                         <div class="metric-item"><p>Laba / Rugi</p><h2 class="loading-placeholder"></h2></div>
                         <div class="metric-item"><p>Arus Kas Bersih (Bank)</p><h2 class="loading-placeholder"></h2></div>
+                        
                     </section>
                     <div class="chart-grid">
                         <section class="card">
@@ -529,6 +706,15 @@
                          <div class="card-header"><h3>Pengeluaran Berdasarkan Kategori</h3></div>
                          <div id="dashboard-top-expenses-table"><div class="placeholder-text">Memuat data...</div></div>
                     </section>
+                    <section class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Pengeluaran Berdasarkan Kategori</h3>
+        <button class="btn print-btn" onclick="printDashboard()">
+            <i class="fas fa-print"></i> Print Dashboard
+        </button>
+    </div>
+    <div id="dashboard-top-expenses-table"><div class="placeholder-text">Memuat data...</div></div>
+</section>
                 </div>
 
                 <div id="page-neraca" class="page">
@@ -604,6 +790,15 @@
                         <div class="card-header"><h3>Tabel Data Detail Pengeluaran (Expense Match)</h3></div>
                         <div class="table-responsive" id="detail-pengeluaran-table-container"><div class="placeholder-text">Memuat data...</div></div>
                     </section>
+                    <section class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Ringkasan Keuangan</h3>
+        <button class="btn print-btn" onclick="printNeraca()">
+            <i class="fas fa-print"></i> Print Neraca
+        </button>
+    </div>
+    <div class="card-body card-grid" id="neraca-summary-section1"><div class="placeholder-text">Memuat data ringkasan...</div></div>
+</section>
                 </div>
             </div>
         </main>
@@ -642,7 +837,7 @@
         // --- SISTEM AUTHENTIKASI - VERSI SIMPLIFIED ---
         // =================================================================================
 
-        const VALID_PASSWORD = "admin123";
+        const VALID_PASSWORD = "olsera25";
 
         function checkPassword(inputPassword) {
             return inputPassword === VALID_PASSWORD;
@@ -1842,6 +2037,94 @@
                 notification.classList.remove('show'); 
             }, 4000);
         }
+
+// =================================================================================
+// --- FUNGSI PRINT ---
+// =================================================================================
+
+function printDashboard() {
+    // Simpan state awal
+    const activePage = document.querySelector('.page.active');
+    const pageTitle = document.getElementById('page-title').textContent;
+    
+    // Sembunyikan semua halaman kecuali dashboard
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    document.getElementById('page-dashboard').classList.add('active');
+    
+    // Tambahkan print header
+    const printHeader = createPrintHeader('LAPORAN DASHBOARD KEUANGAN', 'Dashboard Utama');
+    document.getElementById('page-dashboard').insertBefore(printHeader, document.getElementById('page-dashboard').firstChild);
+    
+    // Trigger print
+    setTimeout(() => {
+        window.print();
+        
+        // Restore state setelah print
+        setTimeout(() => {
+            printHeader.remove();
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            activePage.classList.add('active');
+            document.getElementById('page-title').textContent = pageTitle;
+        }, 100);
+    }, 500);
+}
+
+function printNeraca() {
+    // Simpan state awal
+    const activePage = document.querySelector('.page.active');
+    const pageTitle = document.getElementById('page-title').textContent;
+    
+    // Sembunyikan semua halaman kecuali neraca
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    document.getElementById('page-neraca').classList.add('active');
+    
+    // Tambahkan print header
+    const printHeader = createPrintHeader('LAPORAN NERACA KEUANGAN', 'Neraca Keuangan');
+    document.getElementById('page-neraca').insertBefore(printHeader, document.getElementById('page-neraca').firstChild);
+    
+    // Trigger print
+    setTimeout(() => {
+        window.print();
+        
+        // Restore state setelah print
+        setTimeout(() => {
+            printHeader.remove();
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            activePage.classList.add('active');
+            document.getElementById('page-title').textContent = pageTitle;
+        }, 100);
+    }, 500);
+}
+
+function createPrintHeader(title, subtitle) {
+    const header = document.createElement('div');
+    header.className = 'print-header';
+    header.innerHTML = `
+        <div class="print-title">${title}</div>
+        <div class="print-subtitle">${subtitle}</div>
+        <div class="print-date">Periode: ${getCurrentDateRange()} | Dicetak: ${new Date().toLocaleDateString('id-ID')}</div>
+    `;
+    return header;
+}
+
+function getCurrentDateRange() {
+    const startDate = document.getElementById('start-date').valueAsDate;
+    const endDate = document.getElementById('end-date').valueAsDate;
+    
+    if (startDate && endDate) {
+        return `${startDate.toLocaleDateString('id-ID')} - ${endDate.toLocaleDateString('id-ID')}`;
+    }
+    
+    return 'Semua Periode';
+}
 
         // =================================================================================
         // --- INISIALISASI APLIKASI ---
