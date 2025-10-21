@@ -1600,18 +1600,84 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function parseExpenseMatchData(data) {
-        return (data || []).map(item => {
-            let parsedItems = [];
-            try { parsedItems = JSON.parse(item.exp_items_json || '[]'); } catch(e) {}
+    return (data || []).map(item => {
+        let parsedItems = [];
+        let expItemsJson = item.exp_items_json || item.items_json || item.exp_data_raw || '[]';
+        
+        console.log('Raw JSON data:', expItemsJson); // Debug log
+        
+        // PERBAIKAN: Handle berbagai format JSON berdasarkan kategori
+        try {
+            // Parse data utama terlebih dahulu
+            const mainData = JSON.parse(expItemsJson);
+            
+            // Cek tipe data berdasarkan struktur
+            if (mainData.items && typeof mainData.items === 'string') {
+                // Format untuk Bahan Baku (PO) - items sebagai string JSON
+                try {
+                    parsedItems = JSON.parse(mainData.items);
+                } catch (e) {
+                    console.warn('Gagal parse items string:', mainData.items);
+                    parsedItems = [];
+                }
+            } else if (Array.isArray(mainData)) {
+                // Format array langsung
+                parsedItems = mainData;
+            } else if (mainData.items && Array.isArray(mainData.items)) {
+                // Format object dengan property items array
+                parsedItems = mainData.items;
+            } else if (mainData.category || mainData.poNumber) {
+                // Format untuk kategori selain Bahan Baku (salary, listrik, dll)
+                // Ubah object tunggal menjadi array dengan satu item
+                parsedItems = [{
+                    item: mainData.categoryText || mainData.category || 'Item',
+                    amount: parseCurrency(mainData.total_amount || mainData.paid_amount || mainData.amount || 0),
+                    details: mainData
+                }];
+            } else {
+                parsedItems = [];
+            }
+        } catch (e) {
+            console.warn('Gagal parse exp_items_json utama:', expItemsJson, e);
+            parsedItems = [];
+        }
+
+        // PERBAIKAN: Validasi dan normalisasi hasil parsing
+        if (!Array.isArray(parsedItems)) {
+            parsedItems = [];
+        }
+
+        // Normalisasi item data untuk konsistensi tampilan
+        parsedItems = parsedItems.map(parsedItem => {
+            if (typeof parsedItem === 'string') {
+                return { 
+                    item: parsedItem, 
+                    amount: 0 
+                };
+            }
+            
+            // Handle berbagai format field name
             return {
-                ...item,
-                date: parseDateString(item.trx_date),
-                displayAmount: parseCurrency(item.exp_total_amount) || parseCurrency(item.trx_amount),
-                parsedItems,
-                displayCategory: item.exp_category || 'Bahan Baku'
+                item: parsedItem.name || parsedItem.item || parsedItem.sku || parsedItem.description || 'Item',
+                amount: parseCurrency(parsedItem.amount || parsedItem.price || parsedItem.subtotal || parsedItem.value || 0),
+                quantity: parsedItem.quantity || parsedItem.qty || 1,
+                unit: parsedItem.unit || parsedItem.uom || '',
+                details: parsedItem // Simpan detail lengkap untuk referensi
             };
         });
-    }
+
+        // Debug log untuk memeriksa hasil parsing
+        console.log('Parsed items result:', parsedItems);
+
+        return {
+            ...item,
+            date: parseDateString(item.trx_date || item.tanggal || item.date),
+            displayAmount: parseCurrency(item.exp_total_amount) || parseCurrency(item.trx_amount) || parseCurrency(item.total_amount) || 0,
+            parsedItems,
+            displayCategory: item.exp_category || item.kategori || 'Bahan Baku'
+        };
+    });
+}
 
     // =================================================================================
     // --- FUNGSI UTAMA APLIKASI ---
@@ -1822,7 +1888,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (salesData.length > 0) {
             document.getElementById('arus-kas-table-container').innerHTML = createTable(
-                ['Tanggal', 'Outlet', 'Total Penjualan', 'Diskon', 'Kas Akhir', 'Total Diharapkan', 'Aksi'],
+                ['Tanggal', 'Outlet', 'Total Penjualan', 'Diskon', 'Kas Akhir', 'Total Diharapkan', 'Payment Detail'],
                 [...salesData].sort((a,b) => b.date - a.date),
                 i => [
                     i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.outlet||'N/A', 
@@ -1837,166 +1903,356 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function renderNeracaPage() {
-        const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
-        const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
-        document.getElementById('neraca-summary-section1').innerHTML = `
-            <div class="metric-item"><p>Pendapatan</p><h2 class="text-success">${formatCurrency(totalPendapatan)}</h2></div>
-            <div class="metric-item"><p>Pengeluaran</p><h2 class="text-danger">${formatCurrency(totalPengeluaran)}</h2></div>
-            <div class="metric-item"><p>Laba/Rugi</p><h2 class="${(totalPendapatan-totalPengeluaran) >= 0 ? 'text-success':'text-danger'}">${formatCurrency(totalPendapatan-totalPengeluaran)}</h2></div>
-        `;
-        
-        const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
-        const totalDebit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
-        const latestStatement = (filteredData.estatement || []).length > 0 ? [...filteredData.estatement].sort((a,b) => b.date - a.date || b.no - a.no)[0] : null;
-        document.getElementById('neraca-summary-section2').innerHTML = `
-            <div class="metric-item"><p>Kas Masuk Bank</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div>
-            <div class="metric-item"><p>Kas Keluar Bank</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div>
-            <div class="metric-item"><p>Saldo Bank</p><h2>${formatCurrency(latestStatement?.balance_numeric)}</h2></div>
-        `;
+   function renderNeracaPage() {
+    const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
+    const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
+    
+    document.getElementById('neraca-summary-section1').innerHTML = `
+        <div class="metric-item"><p>Pendapatan</p><h2 class="text-success">${formatCurrency(totalPendapatan)}</h2></div>
+        <div class="metric-item"><p>Pengeluaran</p><h2 class="text-danger">${formatCurrency(totalPengeluaran)}</h2></div>
+        <div class="metric-item"><p>Laba/Rugi</p><h2 class="${(totalPendapatan-totalPengeluaran) >= 0 ? 'text-success':'text-danger'}">${formatCurrency(totalPendapatan-totalPengeluaran)}</h2></div>
+    `;
+    
+    const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+    const totalDebit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
+    
+    // PERBAIKAN: Ambil saldo bank terbaru berdasarkan nomor urut (no) terbesar
+    const latestStatement = getLatestBankBalance();
+    
+    const saldoBank = latestStatement?.balance_numeric || 0;
+    
+    // Hitung total cash
+    const totalCash = calculateTotalCash();
+    
+    // Hitung Saldo + Cash
+    const saldoPlusCash = saldoBank + totalCash;
+    
+    document.getElementById('neraca-summary-section2').innerHTML = `
+        <div class="metric-item">
+            <p>Saldo + Cash</p>
+            <h2 class="${saldoPlusCash >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(saldoPlusCash)}</h2>
+            <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-light);">
+                <div>Saldo Bank: ${formatCurrency(saldoBank)}</div>
+                <div>Cash: ${formatCurrency(totalCash)}</div>
+                ${latestStatement ? `<div style="font-size: 0.7rem; margin-top: 4px;">Update: ${latestStatement.date.toLocaleDateString('id-ID')} (No: ${latestStatement.no})</div>` : ''}
+            </div>
+        </div>
+        <div class="metric-item"><p>Kas Masuk Bank</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div>
+        <div class="metric-item"><p>Kas Keluar Bank</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div>
+    `;
 
-        const dailyComparison = {};
-        (filteredData.sales || []).forEach(s => {
-            const dateKey = s.date.toISOString().split('T')[0];
+    const dailyComparison = {};
+    (filteredData.sales || []).forEach(s => {
+        const dateKey = s.date.toISOString().split('T')[0];
+        dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
+        dailyComparison[dateKey].sales += s.total_diharapkan;
+    });
+    (filteredData.estatement || []).forEach(e => {
+        if (((e.type?.toUpperCase() === 'CR') || e.sign === '+') && e.date) {
+            const dateKey = e.date.toISOString().split('T')[0];
             dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
-            dailyComparison[dateKey].sales += s.total_diharapkan;
+            dailyComparison[dateKey].bankInflow += e.amount_numeric;
+        }
+    });
+    
+    const sortedComparisonDates = Object.keys(dailyComparison).sort();
+    if (sortedComparisonDates.length > 0) {
+        createOrUpdateChart('neraca-settlement-chart-container', 'line', {
+            labels: sortedComparisonDates.map(d => new Date(d).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' })),
+            datasets: [
+                { label: 'Pendapatan Penjualan', data: sortedComparisonDates.map(d => dailyComparison[d].sales), borderColor: '#4361ee', fill: false, tension: 0.1 },
+                { label: 'Kas Masuk Bank (Settlement)', data: sortedComparisonDates.map(d => dailyComparison[d].bankInflow), borderColor: '#198754', fill: false, tension: 0.1 }
+            ]
         });
-        (filteredData.estatement || []).forEach(e => {
-            if (((e.type?.toUpperCase() === 'CR') || e.sign === '+') && e.date) {
-                const dateKey = e.date.toISOString().split('T')[0];
-                dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
-                dailyComparison[dateKey].bankInflow += e.amount_numeric;
+    } else {
+        document.getElementById('neraca-settlement-chart-container').innerHTML = '<div class="placeholder-text">Tidak ada data untuk perbandingan.</div>';
+    }
+
+    const cumulativeData = {};
+    let cumulativeProfit = 0;
+    const allDates = [...new Set([...(filteredData.sales || []).map(s => s.date.toISOString().split('T')[0]), ...(filteredData.expenseMatch || []).map(e => e.date.toISOString().split('T')[0])])].sort();
+    allDates.forEach(date => {
+        const salesOnDate = (filteredData.sales || []).filter(s => s.date.toISOString().split('T')[0] === date).reduce((sum, s) => sum + s.total_diharapkan, 0);
+        const expensesOnDate = (filteredData.expenseMatch || []).filter(e => e.date.toISOString().split('T')[0] === date).reduce((sum, e) => sum + e.displayAmount, 0);
+        cumulativeProfit += salesOnDate - expensesOnDate;
+        cumulativeData[date] = cumulativeProfit;
+    });
+    if (Object.keys(cumulativeData).length > 0) {
+        createOrUpdateChart('neraca-chart-section3', 'line', {
+            labels: Object.keys(cumulativeData).map(d => new Date(d).toLocaleDateString('id-ID', {timeZone: 'UTC'})),
+            datasets: [{ label: 'Akumulasi Laba/Rugi', data: Object.values(cumulativeData), borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', fill: true, tension: 0.3 }]
+        });
+    } else {
+        document.getElementById('neraca-chart-section3').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+    }
+}
+
+// PERBAIKAN: Fungsi khusus untuk mengambil saldo bank terbaru berdasarkan nomor urut
+function getLatestBankBalance() {
+    const estatement = filteredData.estatement || [];
+    
+    if (estatement.length === 0) {
+        console.log('Tidak ada data e-statement');
+        return null;
+    }
+    
+    // Debug: tampilkan semua data e-statement untuk analisis
+    console.log('=== ALL E-STATEMENT DATA ===');
+    estatement.forEach((stmt, index) => {
+        console.log(`${index + 1}. No: ${stmt.no}, Date: ${stmt.date?.toLocaleDateString('id-ID')}, Balance: ${formatCurrency(stmt.balance_numeric)}, Type: ${stmt.type}`);
+    });
+    
+    // Urutkan berdasarkan nomor urut (no) descending
+    // Handle berbagai format nomor: string dengan angka dalam kurung, angka langsung, dll.
+    const sortedStatements = [...estatement].sort((a, b) => {
+        // Extract numeric value from no field
+        const getNumericNo = (stmt) => {
+            if (!stmt.no) return 0;
+            
+            // Handle format seperti "(99)" atau "99" atau 99
+            if (typeof stmt.no === 'string') {
+                // Extract numbers from string like "(99)"
+                const match = stmt.no.match(/\d+/);
+                return match ? parseInt(match[0]) : 0;
+            }
+            
+            // Jika sudah number, langsung return
+            return parseInt(stmt.no) || 0;
+        };
+        
+        const aNo = getNumericNo(a);
+        const bNo = getNumericNo(b);
+        
+        return bNo - aNo; // Descending order
+    });
+    
+    const latestStatement = sortedStatements[0];
+    
+    console.log('=== LATEST STATEMENT FOUND ===');
+    console.log('Latest No:', latestStatement.no);
+    console.log('Latest Balance:', formatCurrency(latestStatement.balance_numeric));
+    console.log('Latest Date:', latestStatement.date?.toLocaleDateString('id-ID'));
+    console.log('Latest Type:', latestStatement.type);
+    
+    return latestStatement;
+}
+
+// PERBAIKAN: Fungsi yang lebih komprehensif untuk menghitung total cash
+function calculateTotalCash() {
+    let totalCash = 0;
+    
+    console.log('=== CALCULATING TOTAL CASH ===');
+    
+    // SUMBER 1: Dari metode_pembayaran_parsed (data terstruktur)
+    (filteredData.sales || []).forEach((sale, saleIndex) => {
+        console.log(`Sale ${saleIndex + 1}:`, sale.metode_pembayaran_parsed);
+        
+        (sale.metode_pembayaran_parsed || []).forEach((payment, paymentIndex) => {
+            const method = String(payment.method || '').toUpperCase();
+            const amount = parseCurrency(payment.amount || payment.value || 0);
+            
+            console.log(`  Payment ${paymentIndex + 1}: ${method} = ${amount}`);
+            
+            // Identifikasi metode cash dengan berbagai kemungkinan nama
+            const cashKeywords = ['CASH', 'TUNAI', 'KAS', 'UANG', 'CASH IN', 'CASH OUT', 'PENJUALAN TUNAI'];
+            const isCash = cashKeywords.some(keyword => method.includes(keyword));
+            
+            if (isCash && amount > 0) {
+                totalCash += amount;
+                console.log(`  → DITAMBAHKAN sebagai CASH: ${formatCurrency(amount)}`);
             }
         });
-        
-        const sortedComparisonDates = Object.keys(dailyComparison).sort();
-        if (sortedComparisonDates.length > 0) {
-            createOrUpdateChart('neraca-settlement-chart-container', 'line', {
-                labels: sortedComparisonDates.map(d => new Date(d).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' })),
-                datasets: [
-                    { label: 'Pendapatan Penjualan', data: sortedComparisonDates.map(d => dailyComparison[d].sales), borderColor: '#4361ee', fill: false, tension: 0.1 },
-                    { label: 'Kas Masuk Bank (Settlement)', data: sortedComparisonDates.map(d => dailyComparison[d].bankInflow), borderColor: '#198754', fill: false, tension: 0.1 }
-                ]
+    });
+    
+    // SUMBER 2: Dari item_aruskas_parsed
+    if (totalCash === 0) {
+        console.log('Mencari cash dari item_aruskas_parsed...');
+        (filteredData.sales || []).forEach((sale, saleIndex) => {
+            (sale.item_aruskas_parsed || []).forEach((item, itemIndex) => {
+                const itemName = String(item.item || '').toUpperCase();
+                const amount = parseCurrency(item.amount || item.value || 0);
+                
+                console.log(`  Item ${itemIndex + 1}: ${itemName} = ${amount}`);
+                
+                const cashKeywords = ['CASH', 'TUNAI', 'KAS', 'UANG', 'PENJUALAN TUNAI', 'SETORAN TUNAI'];
+                const isCash = cashKeywords.some(keyword => itemName.includes(keyword));
+                
+                if (isCash && amount > 0) {
+                    totalCash += amount;
+                    console.log(`  → DITAMBAHKAN sebagai CASH: ${formatCurrency(amount)}`);
+                }
             });
-        } else {
-            document.getElementById('neraca-settlement-chart-container').innerHTML = '<div class="placeholder-text">Tidak ada data untuk perbandingan.</div>';
-        }
-
-        const cumulativeData = {};
-        let cumulativeProfit = 0;
-        const allDates = [...new Set([...(filteredData.sales || []).map(s => s.date.toISOString().split('T')[0]), ...(filteredData.expenseMatch || []).map(e => e.date.toISOString().split('T')[0])])].sort();
-        allDates.forEach(date => {
-            const salesOnDate = (filteredData.sales || []).filter(s => s.date.toISOString().split('T')[0] === date).reduce((sum, s) => sum + s.total_diharapkan, 0);
-            const expensesOnDate = (filteredData.expenseMatch || []).filter(e => e.date.toISOString().split('T')[0] === date).reduce((sum, e) => sum + e.displayAmount, 0);
-            cumulativeProfit += salesOnDate - expensesOnDate;
-            cumulativeData[date] = cumulativeProfit;
         });
-        if (Object.keys(cumulativeData).length > 0) {
-            createOrUpdateChart('neraca-chart-section3', 'line', {
-                labels: Object.keys(cumulativeData).map(d => new Date(d).toLocaleDateString('id-ID', {timeZone: 'UTC'})),
-                datasets: [{ label: 'Akumulasi Laba/Rugi', data: Object.values(cumulativeData), borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', fill: true, tension: 0.3 }]
-            });
-        } else {
-            document.getElementById('neraca-chart-section3').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
-        }
     }
+    
+    console.log('=== TOTAL CASH FINAL: ', formatCurrency(totalCash), '===');
+    
+    return totalCash;
+}
+
+// PERBAIKAN: Fungsi untuk menghitung total cash dari metode pembayaran
+function calculateTotalCash() {
+    let totalCash = 0;
+    
+    // Hitung dari data sales - metode pembayaran cash
+    (filteredData.sales || []).forEach(sale => {
+        (sale.metode_pembayaran_parsed || []).forEach(payment => {
+            const method = payment.method?.toUpperCase() || '';
+            const amount = parseCurrency(payment.amount || 0);
+            
+            // Identifikasi metode cash (tunai)
+            if (method.includes('CASH') || method.includes('TUNAI') || method === 'CASH' || method === 'TUNAI') {
+                totalCash += amount;
+            }
+        });
+    });
+    
+    // Jika tidak ditemukan metode cash spesifik, ambil dari item_aruskas_parsed
+    if (totalCash === 0) {
+        (filteredData.sales || []).forEach(sale => {
+            (sale.item_aruskas_parsed || []).forEach(item => {
+                const itemName = item.item?.toUpperCase() || '';
+                const amount = parseCurrency(item.amount || 0);
+                
+                // Identifikasi item cash/tunai
+                if (itemName.includes('CASH') || itemName.includes('TUNAI') || itemName.includes('PENJUALAN TUNAI')) {
+                    totalCash += amount;
+                }
+            });
+        });
+    }
+    
+    // Debug log untuk memeriksa perhitungan cash
+    console.log('Total Cash calculated:', totalCash);
+    
+    return totalCash;
+}
 
     function renderTransaksiBankPage() {
-        const estatement = filteredData.estatement || [];
-        const totalKredit = estatement.filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
-        const totalDebit = estatement.filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
-        const latestStatement = estatement.length > 0 ? [...estatement].sort((a,b) => b.date - a.date || b.no - a.no)[0] : null;
-        
-        document.getElementById('transaksi-bank-summary-container').innerHTML = `
-            <div class="metric-item"><p>Total Kredit</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div>
-            <div class="metric-item"><p>Total Debit</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div>
-            <div class="metric-item"><p>Saldo Akhir</p><h2>${formatCurrency(latestStatement?.balance_numeric)}</h2></div>
-        `;
-        
-        const groupedByType = {
-            'Kredit': estatement.filter(i => (i.type?.toUpperCase() === 'CR') || i.sign === '+').sort((a,b) => a.date - b.date),
-            'Debit': estatement.filter(i => (i.type?.toUpperCase() === 'DB') || i.sign === '-').sort((a,b) => a.date - b.date)
+    const estatement = filteredData.estatement || [];
+    const totalKredit = estatement.filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
+    const totalDebit = estatement.filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
+    const latestStatement = getLatestBankBalance();
+    
+    document.getElementById('transaksi-bank-summary-container').innerHTML = `
+        <div class="metric-item"><p>Total Kredit</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div>
+        <div class="metric-item"><p>Total Debit</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div>
+        <div class="metric-item"><p>Saldo Akhir</p><h2>${formatCurrency(latestStatement?.balance_numeric)}</h2></div>
+    `;
+    
+    // PERBAIKAN: Urutkan data e-statement berdasarkan NOMOR terbaru (bukan tanggal)
+    const sortedEstatement = [...estatement].sort((a, b) => {
+        const getNumericNo = (stmt) => {
+            if (!stmt.no) return 0;
+            if (typeof stmt.no === 'string') {
+                const match = stmt.no.match(/\d+/);
+                return match ? parseInt(match[0]) : 0;
+            }
+            return parseInt(stmt.no) || 0;
         };
-        const groupedContainer = document.getElementById('transaksi-bank-grouped-container');
-        if (estatement.length > 0) {
-            groupedContainer.innerHTML = Object.entries(groupedByType).map(([type, items]) =>
-                createAccordionItem(`${type} (${items.length} transaksi)`,
-                    createTable(['Tanggal', 'Deskripsi', 'Jumlah'], items, i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.description, formatCurrency(i.amount_numeric)], true)
-                )
-            ).join('');
-        } else {
-            groupedContainer.innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
-        }
         
-        if (estatement.length > 0) {
-            document.getElementById('transaksi-bank-table-container').innerHTML = createTable(
-                ['No', 'Tanggal', 'Deskripsi', 'Tipe', 'Jumlah', 'Saldo'],
-                estatement,
-                i => [i.no, i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.description, `<span class="${(i.type?.toUpperCase()==='CR')||i.sign==='+'?'text-success':'text-danger'}">${i.type||i.sign}</span>`, formatCurrency(i.amount_numeric), formatCurrency(i.balance_numeric)],
-                true
-            );
-        } else {
-            document.getElementById('transaksi-bank-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
-        }
+        const aNo = getNumericNo(a);
+        const bNo = getNumericNo(b);
+        
+        return bNo - aNo; // Descending order (nomor terbesar di atas)
+    });
+    
+    const groupedByType = {
+        'Kredit': sortedEstatement.filter(i => (i.type?.toUpperCase() === 'CR') || i.sign === '+'),
+        'Debit': sortedEstatement.filter(i => (i.type?.toUpperCase() === 'DB') || i.sign === '-')
+    };
+    
+    const groupedContainer = document.getElementById('transaksi-bank-grouped-container');
+    if (estatement.length > 0) {
+        groupedContainer.innerHTML = Object.entries(groupedByType).map(([type, items]) =>
+            createAccordionItem(`${type} (${items.length} transaksi)`,
+                createTable(['Tanggal', 'Deskripsi', 'Jumlah'], items, i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.description, formatCurrency(i.amount_numeric)], true)
+            )
+        ).join('');
+    } else {
+        groupedContainer.innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
     }
+    
+    // PERBAIKAN: Urutkan tabel e-statement berdasarkan NOMOR terbaru
+    if (sortedEstatement.length > 0) {
+        document.getElementById('transaksi-bank-table-container').innerHTML = createTable(
+            ['No', 'Tanggal', 'Deskripsi', 'Tipe', 'Jumlah', 'Saldo'],
+            sortedEstatement, // Gunakan data yang sudah diurutkan berdasarkan nomor
+            i => [i.no, i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.description, `<span class="${(i.type?.toUpperCase()==='CR')||i.sign==='+'?'text-success':'text-danger'}">${i.type||i.sign}</span>`, formatCurrency(i.amount_numeric), formatCurrency(i.balance_numeric)],
+            true
+        );
+    } else {
+        document.getElementById('transaksi-bank-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+    }
+}
 
     function renderPengeluaranPage() {
-        const bankTransactions = filteredData.bankTransaction || [];
-        const groupedByRecipient = bankTransactions.reduce((acc, i) => {
-            const recipient = i.penerima || 'Tidak Diketahui';
-            (acc[recipient] = acc[recipient] || []).push(i);
-            return acc;
-        }, {});
+    const bankTransactions = filteredData.bankTransaction || [];
+    
+    // PERBAIKAN: Urutkan bank transactions berdasarkan tanggal terbaru
+    const sortedBankTransactions = [...bankTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    const groupedByRecipient = sortedBankTransactions.reduce((acc, i) => {
+        const recipient = i.penerima || 'Tidak Diketahui';
+        (acc[recipient] = acc[recipient] || []).push(i);
+        return acc;
+    }, {});
 
-        const groupedContainer = document.getElementById('pengeluaran-grouped-container');
-        if (Object.keys(groupedByRecipient).length > 0) {
-            groupedContainer.innerHTML = Object.entries(groupedByRecipient).map(([name, items]) =>
-                createAccordionItem(name,
-                    createTable(['Tanggal', 'Jam', 'Nominal', 'Total', 'Referensi'], items, i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.jam, formatCurrency(i.nominal_transfer), formatCurrency(i.total_transaksi), i.no_referensi], true)
-                )
-            ).join('');
-        } else {
-            groupedContainer.innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
-        }
-        
-        if (bankTransactions.length > 0) {
-            document.getElementById('pengeluaran-table-container').innerHTML = createTable(
-                ['Tanggal', 'Penerima', 'Bank & Rekening', 'Nominal', 'Total', 'Referensi'],
-                bankTransactions,
-                i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.penerima, i.bank_dan_rekening, formatCurrency(i.nominal_transfer), formatCurrency(i.total_transaksi), i.no_referensi],
-                true
-            );
-        } else {
-            document.getElementById('pengeluaran-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
-        }
+    const groupedContainer = document.getElementById('pengeluaran-grouped-container');
+    if (Object.keys(groupedByRecipient).length > 0) {
+        groupedContainer.innerHTML = Object.entries(groupedByRecipient).map(([name, items]) =>
+            createAccordionItem(name,
+                createTable(['Tanggal', 'Jam', 'Nominal', 'Total', 'Referensi'], items, i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.jam, formatCurrency(i.nominal_transfer), formatCurrency(i.total_transaksi), i.no_referensi], true)
+            )
+        ).join('');
+    } else {
+        groupedContainer.innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
     }
+    
+    // PERBAIKAN: Urutkan tabel pengeluaran berdasarkan tanggal terbaru
+    if (sortedBankTransactions.length > 0) {
+        document.getElementById('pengeluaran-table-container').innerHTML = createTable(
+            ['Tanggal', 'Penerima', 'Bank & Rekening', 'Nominal', 'Total', 'Referensi'],
+            sortedBankTransactions, // Gunakan data yang sudah diurutkan
+            i => [i.date.toLocaleDateString('id-ID', {timeZone:'UTC'}), i.penerima, i.bank_dan_rekening, formatCurrency(i.nominal_transfer), formatCurrency(i.total_transaksi), i.no_referensi],
+            true
+        );
+    } else {
+        document.getElementById('pengeluaran-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+    }
+}
 
     function renderDetailPengeluaranPage() {
-        const expenses = filteredData.expenseMatch || [];
-        const expenseByCategory = expenses.reduce((acc, item) => {
-            acc[item.displayCategory] = (acc[item.displayCategory] || 0) + item.displayAmount;
-            return acc;
-        }, {});
+    const expenses = filteredData.expenseMatch || [];
+    
+    // PERBAIKAN: Urutkan expenses berdasarkan tanggal terbaru
+    const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    const expenseByCategory = sortedExpenses.reduce((acc, item) => {
+        acc[item.displayCategory] = (acc[item.displayCategory] || 0) + item.displayAmount;
+        return acc;
+    }, {});
 
-        if (Object.keys(expenseByCategory).length > 0) {
-            createOrUpdateChart('detail-pengeluaran-summary-container', 'pie', {
-                labels: Object.keys(expenseByCategory),
-                datasets: [{ data: Object.values(expenseByCategory), backgroundColor: ['#4361ee', '#4895ef', '#560bad', '#7209b7', '#f72585', '#ffc107', '#2ec4b6'] }]
-            });
-        } else {
-            document.getElementById('detail-pengeluaran-summary-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
-        }
-        
-        if (expenses.length > 0) {
-            document.getElementById('detail-pengeluaran-table-container').innerHTML = createTable(
-                ['Tgl', 'Tipe', 'Ref ID', 'Kategori', 'Jumlah'],
-                expenses,
-                i => [i.date.toLocaleDateString('id-ID', {timeZone: 'UTC'}), i.exp_type, i.exp_ref_id, i.displayCategory, formatCurrency(i.displayAmount)]
-            );
-        } else {
-            document.getElementById('detail-pengeluaran-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
-        }
+    if (Object.keys(expenseByCategory).length > 0) {
+        createOrUpdateChart('detail-pengeluaran-summary-container', 'pie', {
+            labels: Object.keys(expenseByCategory),
+            datasets: [{ data: Object.values(expenseByCategory), backgroundColor: ['#4361ee', '#4895ef', '#560bad', '#7209b7', '#f72585', '#ffc107', '#2ec4b6'] }]
+        });
+    } else {
+        document.getElementById('detail-pengeluaran-summary-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
     }
+    
+    // PERBAIKAN: Urutkan tabel detail pengeluaran berdasarkan tanggal terbaru
+    if (sortedExpenses.length > 0) {
+        document.getElementById('detail-pengeluaran-table-container').innerHTML = createTable(
+            ['Tgl', 'Tipe', 'Ref ID', 'Kategori', 'Jumlah'],
+            sortedExpenses, // Gunakan data yang sudah diurutkan
+            i => [i.date.toLocaleDateString('id-ID', {timeZone: 'UTC'}), i.exp_type, i.exp_ref_id, i.displayCategory, formatCurrency(i.displayAmount)]
+        );
+    } else {
+        document.getElementById('detail-pengeluaran-table-container').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+    }
+}
 
     // =================================================================================
     // --- FUNGSI HELPER UI ---
@@ -2154,50 +2410,113 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function showExpenseDetail(data) {
-        let content = `
-            <div class="detail-section">
-                <h4>Informasi Transaksi</h4>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Tanggal</span>
-                        <span class="detail-value">${data.date.toLocaleDateString('id-ID', {timeZone:'UTC'})}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Jumlah</span>
-                        <span class="detail-value">${formatCurrency(data.displayAmount)}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Kategori</span>
-                        <span class="detail-value">${data.displayCategory}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Tipe Pengeluaran</span>
-                        <span class="detail-value">${data.exp_type || '-'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Referensi ID</span>
-                        <span class="detail-value">${data.exp_ref_id || '-'}</span>
-                    </div>
+    let content = `
+        <div class="detail-section">
+            <h4>Informasi Transaksi</h4>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Tanggal</span>
+                    <span class="detail-value">${data.date ? data.date.toLocaleDateString('id-ID', {timeZone:'UTC'}) : '-'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Jumlah</span>
+                    <span class="detail-value">${formatCurrency(data.displayAmount)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Kategori</span>
+                    <span class="detail-value">${data.displayCategory}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Tipe Pengeluaran</span>
+                    <span class="detail-value">${data.exp_type || data.tipe || '-'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Referensi ID</span>
+                    <span class="detail-value">${data.exp_ref_id || data.ref_id || data.reference_id || '-'}</span>
                 </div>
             </div>
-        `;
+        </div>
+    `;
+    
+    // PERBAIKAN: Handle semua jenis kategori dengan logika yang sama
+    const hasValidItems = data.parsedItems && 
+                         Array.isArray(data.parsedItems) && 
+                         data.parsedItems.length > 0;
+    
+    if (hasValidItems) {
+        // Filter dan format items untuk tampilan
+        const validItems = data.parsedItems.filter(item => 
+            item && (item.item || item.amount > 0)
+        );
         
-        if (data.parsedItems && data.parsedItems.length > 0) {
+        if (validItems.length > 0) {
+            // Buat tabel dengan kolom yang sesuai
+            let tableHTML = '';
+            
+            if (data.displayCategory === 'Bahan Baku') {
+                // Format khusus untuk Bahan Baku dengan kolom lebih detail
+                tableHTML = createTable(
+                    ['Item', 'Quantity', 'Harga', 'Subtotal'],
+                    validItems,
+                    item => [
+                        item.item || 'N/A',
+                        `${item.quantity || 1} ${item.unit || ''}`.trim(),
+                        formatCurrency(item.amount / (item.quantity || 1)),
+                        formatCurrency(item.amount)
+                    ],
+                    true
+                );
+            } else {
+                // Format umum untuk kategori lain
+                tableHTML = createTable(
+                    ['Item', 'Jumlah'],
+                    validItems,
+                    item => [
+                        item.item || 'N/A', 
+                        formatCurrency(item.amount || 0)
+                    ],
+                    true
+                );
+            }
+            
             content += `
                 <div class="detail-section">
                     <h4>Detail Item Pengeluaran</h4>
-                    ${createTable(
-                        ['Item', 'Jumlah'],
-                        data.parsedItems,
-                        item => [item.item || 'N/A', formatCurrency(item.amount || 0)],
-                        true
-                    )}
+                    ${tableHTML}
+                </div>
+            `;
+        } else {
+            content += `
+                <div class="detail-section">
+                    <h4>Detail Item Pengeluaran</h4>
+                    <p class="placeholder-text">Tidak ada detail item yang valid</p>
                 </div>
             `;
         }
-        
-        showModal('Detail Pengeluaran', content);
+    } else {
+        // Fallback untuk data yang tidak bisa diparse
+        const rawJson = data.exp_items_json || data.items_json || data.exp_data_raw;
+        if (rawJson && rawJson !== '[]' && rawJson !== '""') {
+            content += `
+                <div class="detail-section">
+                    <h4>Data Mentah Transaksi</h4>
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.8em; max-height: 200px; overflow: auto;">
+                        <pre>${JSON.stringify(JSON.parse(rawJson), null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+        } else {
+            content += `
+                <div class="detail-section">
+                    <h4>Detail Item Pengeluaran</h4>
+                    <p class="placeholder-text">Tidak ada data item untuk transaksi ini</p>
+                </div>
+            `;
+        }
     }
+    
+    showModal('Detail Pengeluaran', content);
+}
 
     function handleCommissionInputChange(e) {
         if (!e.target.classList.contains('commission-input')) return;
