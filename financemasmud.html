@@ -729,6 +729,29 @@
             .filter-container { width: 100%; flex-direction: column; align-items: stretch; }
             .detail-grid { grid-template-columns: 1fr; }
         }
+        
+/* Tambahkan di bagian CSS */
+.metric-item[style*="cursor: pointer"] {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.metric-item[style*="cursor: pointer"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    border: 1px solid #4361ee;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+}
+
+.metric-item[style*="cursor: pointer"]::after {
+    content: '🔍';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
     </style>
 </head>
 <body>
@@ -1903,7 +1926,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-   function renderNeracaPage() {
+function renderNeracaPage() {
     const totalPendapatan = (filteredData.sales || []).reduce((s, i) => s + i.total_diharapkan, 0);
     const totalPengeluaran = (filteredData.expenseMatch || []).reduce((s, i) => s + i.displayAmount, 0);
     
@@ -1916,77 +1939,142 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalKredit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'CR') || t.sign === '+').reduce((s, t) => s + t.amount_numeric, 0);
     const totalDebit = (filteredData.estatement || []).filter(t => (t.type?.toUpperCase() === 'DB') || t.sign === '-').reduce((s, t) => s + t.amount_numeric, 0);
     
-    // PERBAIKAN: Ambil saldo bank terbaru berdasarkan nomor urut (no) terbesar
+    // Ambil saldo bank terbaru
     const latestStatement = getLatestBankBalance();
-    
     const saldoBank = latestStatement?.balance_numeric || 0;
     
-    // Hitung total cash
-    const totalCash = calculateTotalCash();
+    // Hitung total cash dengan perhitungan baru
+    const cashData = calculateTotalCash();
+    const netCash = cashData.netCash;
+    
+    console.log('=== NERACA DATA ===');
+    console.log('Saldo Bank:', formatCurrency(saldoBank));
+    console.log('Cash dari Pembayaran:', formatCurrency(cashData.cashFromPayments));
+    console.log('Cash dari Pengeluaran:', formatCurrency(cashData.cashFromExpenses));
+    console.log('Net Cash:', formatCurrency(netCash));
+    console.log('Saldo + Cash:', formatCurrency(saldoBank + netCash));
     
     // Hitung Saldo + Cash
-    const saldoPlusCash = saldoBank + totalCash;
+    const saldoPlusCash = saldoBank + netCash;
     
+    // Render dengan breakdown yang jelas
     document.getElementById('neraca-summary-section2').innerHTML = `
-        <div class="metric-item">
+        <div class="metric-item" id="saldo-cash-card" style="cursor: pointer;">
             <p>Saldo + Cash</p>
             <h2 class="${saldoPlusCash >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(saldoPlusCash)}</h2>
             <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-light);">
                 <div>Saldo Bank: ${formatCurrency(saldoBank)}</div>
-                <div>Cash: ${formatCurrency(totalCash)}</div>
+                <div>Payment Cash: <span class="text-success">${formatCurrency(cashData.cashFromPayments)}</span></div>
+                <div>Pengeluaran Cash: <span class="text-danger">${formatCurrency(cashData.cashFromExpenses)}</span></div>
+                <div>Net Cash: <span class="${netCash >= 0 ? 'text-success' : 'text-danger'}">${formatCurrency(netCash)}</span></div>
                 ${latestStatement ? `<div style="font-size: 0.7rem; margin-top: 4px;">Update: ${latestStatement.date.toLocaleDateString('id-ID')} (No: ${latestStatement.no})</div>` : ''}
+                <div style="font-size: 0.7rem; margin-top: 4px; color: #4361ee; font-weight: 500;">
+                    <i class="fas fa-info-circle"></i> Klik untuk detail perhitungan
+                </div>
             </div>
         </div>
         <div class="metric-item"><p>Kas Masuk Bank</p><h2 class="text-success">${formatCurrency(totalKredit)}</h2></div>
         <div class="metric-item"><p>Kas Keluar Bank</p><h2 class="text-danger">${formatCurrency(totalDebit)}</h2></div>
     `;
 
-    const dailyComparison = {};
-    (filteredData.sales || []).forEach(s => {
-        const dateKey = s.date.toISOString().split('T')[0];
-        dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
-        dailyComparison[dateKey].sales += s.total_diharapkan;
-    });
-    (filteredData.estatement || []).forEach(e => {
-        if (((e.type?.toUpperCase() === 'CR') || e.sign === '+') && e.date) {
-            const dateKey = e.date.toISOString().split('T')[0];
-            dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
-            dailyComparison[dateKey].bankInflow += e.amount_numeric;
+    // Event listener
+    setTimeout(() => {
+        const saldoCashCard = document.getElementById('saldo-cash-card');
+        if (saldoCashCard) {
+            saldoCashCard.addEventListener('click', function() {
+                showCashDetails(cashData);
+            });
         }
-    });
-    
-    const sortedComparisonDates = Object.keys(dailyComparison).sort();
-    if (sortedComparisonDates.length > 0) {
-        createOrUpdateChart('neraca-settlement-chart-container', 'line', {
-            labels: sortedComparisonDates.map(d => new Date(d).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' })),
-            datasets: [
-                { label: 'Pendapatan Penjualan', data: sortedComparisonDates.map(d => dailyComparison[d].sales), borderColor: '#4361ee', fill: false, tension: 0.1 },
-                { label: 'Kas Masuk Bank (Settlement)', data: sortedComparisonDates.map(d => dailyComparison[d].bankInflow), borderColor: '#198754', fill: false, tension: 0.1 }
-            ]
-        });
-    } else {
-        document.getElementById('neraca-settlement-chart-container').innerHTML = '<div class="placeholder-text">Tidak ada data untuk perbandingan.</div>';
-    }
+    }, 100);
 
-    const cumulativeData = {};
-    let cumulativeProfit = 0;
-    const allDates = [...new Set([...(filteredData.sales || []).map(s => s.date.toISOString().split('T')[0]), ...(filteredData.expenseMatch || []).map(e => e.date.toISOString().split('T')[0])])].sort();
-    allDates.forEach(date => {
-        const salesOnDate = (filteredData.sales || []).filter(s => s.date.toISOString().split('T')[0] === date).reduce((sum, s) => sum + s.total_diharapkan, 0);
-        const expensesOnDate = (filteredData.expenseMatch || []).filter(e => e.date.toISOString().split('T')[0] === date).reduce((sum, e) => sum + e.displayAmount, 0);
-        cumulativeProfit += salesOnDate - expensesOnDate;
-        cumulativeData[date] = cumulativeProfit;
-    });
-    if (Object.keys(cumulativeData).length > 0) {
-        createOrUpdateChart('neraca-chart-section3', 'line', {
-            labels: Object.keys(cumulativeData).map(d => new Date(d).toLocaleDateString('id-ID', {timeZone: 'UTC'})),
-            datasets: [{ label: 'Akumulasi Laba/Rugi', data: Object.values(cumulativeData), borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', fill: true, tension: 0.3 }]
+    // Render charts
+    renderNeracaCharts();
+}
+
+// PERBAIKAN: Pisahkan fungsi chart dengan error handling
+function renderNeracaCharts() {
+    try {
+        // Chart 1: Perbandingan Pendapatan vs Kas Masuk Bank
+        const dailyComparison = {};
+        (filteredData.sales || []).forEach(s => {
+            const dateKey = s.date.toISOString().split('T')[0];
+            dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
+            dailyComparison[dateKey].sales += s.total_diharapkan;
         });
-    } else {
-        document.getElementById('neraca-chart-section3').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+        (filteredData.estatement || []).forEach(e => {
+            if (((e.type?.toUpperCase() === 'CR') || e.sign === '+') && e.date) {
+                const dateKey = e.date.toISOString().split('T')[0];
+                dailyComparison[dateKey] = dailyComparison[dateKey] || { sales: 0, bankInflow: 0 };
+                dailyComparison[dateKey].bankInflow += e.amount_numeric;
+            }
+        });
+        
+        const sortedComparisonDates = Object.keys(dailyComparison).sort();
+        if (sortedComparisonDates.length > 0) {
+            createOrUpdateChart('neraca-settlement-chart-container', 'line', {
+                labels: sortedComparisonDates.map(d => new Date(d).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' })),
+                datasets: [
+                    { 
+                        label: 'Pendapatan Penjualan', 
+                        data: sortedComparisonDates.map(d => dailyComparison[d].sales), 
+                        borderColor: '#4361ee', 
+                        fill: false, 
+                        tension: 0.1 
+                    },
+                    { 
+                        label: 'Kas Masuk Bank (Settlement)', 
+                        data: sortedComparisonDates.map(d => dailyComparison[d].bankInflow), 
+                        borderColor: '#198754', 
+                        fill: false, 
+                        tension: 0.1 
+                    }
+                ]
+            });
+        } else {
+            document.getElementById('neraca-settlement-chart-container').innerHTML = '<div class="placeholder-text">Tidak ada data untuk perbandingan.</div>';
+        }
+
+        // Chart 2: Grafik Neraca Keuangan (Akumulatif)
+        const cumulativeData = {};
+        let cumulativeProfit = 0;
+        const allDates = [...new Set([
+            ...(filteredData.sales || []).map(s => s.date.toISOString().split('T')[0]), 
+            ...(filteredData.expenseMatch || []).map(e => e.date.toISOString().split('T')[0])
+        ])].sort();
+        
+        allDates.forEach(date => {
+            const salesOnDate = (filteredData.sales || []).filter(s => s.date.toISOString().split('T')[0] === date)
+                .reduce((sum, s) => sum + s.total_diharapkan, 0);
+            const expensesOnDate = (filteredData.expenseMatch || []).filter(e => e.date.toISOString().split('T')[0] === date)
+                .reduce((sum, e) => sum + e.displayAmount, 0);
+            cumulativeProfit += salesOnDate - expensesOnDate;
+            cumulativeData[date] = cumulativeProfit;
+        });
+        
+        if (Object.keys(cumulativeData).length > 0) {
+            createOrUpdateChart('neraca-chart-section3', 'line', {
+                labels: Object.keys(cumulativeData).map(d => new Date(d).toLocaleDateString('id-ID', {timeZone: 'UTC'})),
+                datasets: [{ 
+                    label: 'Akumulasi Laba/Rugi', 
+                    data: Object.values(cumulativeData), 
+                    borderColor: '#198754', 
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)', 
+                    fill: true, 
+                    tension: 0.3 
+                }]
+            });
+        } else {
+            document.getElementById('neraca-chart-section3').innerHTML = '<div class="placeholder-text">Tidak ada data.</div>';
+        }
+        
+    } catch (error) {
+        console.error('Error rendering neraca charts:', error);
+        document.getElementById('neraca-settlement-chart-container').innerHTML = '<div class="placeholder-text">Error memuat grafik.</div>';
+        document.getElementById('neraca-chart-section3').innerHTML = '<div class="placeholder-text">Error memuat grafik.</div>';
     }
 }
 
+// PERBAIKAN: Fungsi khusus untuk mengambil saldo bank terbaru berdasarkan nomor urut
 // PERBAIKAN: Fungsi khusus untuk mengambil saldo bank terbaru berdasarkan nomor urut
 function getLatestBankBalance() {
     const estatement = filteredData.estatement || [];
@@ -1996,136 +2084,139 @@ function getLatestBankBalance() {
         return null;
     }
     
-    // Debug: tampilkan semua data e-statement untuk analisis
-    console.log('=== ALL E-STATEMENT DATA ===');
-    estatement.forEach((stmt, index) => {
-        console.log(`${index + 1}. No: ${stmt.no}, Date: ${stmt.date?.toLocaleDateString('id-ID')}, Balance: ${formatCurrency(stmt.balance_numeric)}, Type: ${stmt.type}`);
-    });
-    
-    // Urutkan berdasarkan nomor urut (no) descending
-    // Handle berbagai format nomor: string dengan angka dalam kurung, angka langsung, dll.
+    // Debug: tampilkan 5 data terbaru
+    console.log('=== LATEST 5 E-STATEMENTS ===');
     const sortedStatements = [...estatement].sort((a, b) => {
-        // Extract numeric value from no field
         const getNumericNo = (stmt) => {
             if (!stmt.no) return 0;
-            
-            // Handle format seperti "(99)" atau "99" atau 99
             if (typeof stmt.no === 'string') {
-                // Extract numbers from string like "(99)"
                 const match = stmt.no.match(/\d+/);
                 return match ? parseInt(match[0]) : 0;
             }
-            
-            // Jika sudah number, langsung return
             return parseInt(stmt.no) || 0;
         };
         
         const aNo = getNumericNo(a);
         const bNo = getNumericNo(b);
         
-        return bNo - aNo; // Descending order
+        return bNo - aNo;
+    });
+    
+    sortedStatements.slice(0, 5).forEach((stmt, index) => {
+        console.log(`${index + 1}. No: ${stmt.no}, Date: ${stmt.date?.toLocaleDateString('id-ID')}, Balance: ${formatCurrency(stmt.balance_numeric)}`);
     });
     
     const latestStatement = sortedStatements[0];
     
-    console.log('=== LATEST STATEMENT FOUND ===');
+    console.log('=== LATEST STATEMENT ===');
     console.log('Latest No:', latestStatement.no);
     console.log('Latest Balance:', formatCurrency(latestStatement.balance_numeric));
     console.log('Latest Date:', latestStatement.date?.toLocaleDateString('id-ID'));
-    console.log('Latest Type:', latestStatement.type);
     
     return latestStatement;
 }
 
 // PERBAIKAN: Fungsi yang lebih komprehensif untuk menghitung total cash
+// PERBAIKAN: Fungsi untuk menghitung total cash dari SEMUA item arus kas
+// PERBAIKAN: Fungsi untuk menghitung total cash dari dua sumber
 function calculateTotalCash() {
-    let totalCash = 0;
+    let cashFromPayments = 0;    // Cash dari metode pembayaran (pemasukan)
+    let cashFromExpenses = 0;    // Cash dari item arus kas (pengeluaran)
+    const cashDetails = [];
     
-    console.log('=== CALCULATING TOTAL CASH ===');
+    console.log('=== CALCULATING TOTAL CASH FROM TWO SOURCES ===');
     
-    // SUMBER 1: Dari metode_pembayaran_parsed (data terstruktur)
+    // SUMBER 1: Cash dari METODE PEMBAYARAN (pemasukan)
+    console.log('--- Cash dari Metode Pembayaran ---');
     (filteredData.sales || []).forEach((sale, saleIndex) => {
-        console.log(`Sale ${saleIndex + 1}:`, sale.metode_pembayaran_parsed);
+        const saleDate = sale.date?.toLocaleDateString('id-ID') || 'Tanggal tidak tersedia';
+        let saleCashPayment = 0;
+        const salePaymentDetails = [];
         
         (sale.metode_pembayaran_parsed || []).forEach((payment, paymentIndex) => {
             const method = String(payment.method || '').toUpperCase();
             const amount = parseCurrency(payment.amount || payment.value || 0);
             
-            console.log(`  Payment ${paymentIndex + 1}: ${method} = ${amount}`);
-            
-            // Identifikasi metode cash dengan berbagai kemungkinan nama
-            const cashKeywords = ['CASH', 'TUNAI', 'KAS', 'UANG', 'CASH IN', 'CASH OUT', 'PENJUALAN TUNAI'];
+            // Identifikasi metode cash
+            const cashKeywords = ['CASH', 'TUNAI', 'KAS', 'UANG'];
             const isCash = cashKeywords.some(keyword => method.includes(keyword));
             
             if (isCash && amount > 0) {
-                totalCash += amount;
-                console.log(`  → DITAMBAHKAN sebagai CASH: ${formatCurrency(amount)}`);
+                cashFromPayments += amount;
+                saleCashPayment += amount;
+                salePaymentDetails.push({
+                    item: `Pembayaran ${payment.method}`,
+                    amount: amount,
+                    type: 'pemasukan'
+                });
+                console.log(`  ${saleDate} - ${payment.method}: ${formatCurrency(amount)}`);
             }
         });
+        
+        if (salePaymentDetails.length > 0) {
+            cashDetails.push({
+                date: saleDate,
+                outlet: sale.outlet || 'N/A',
+                type: 'pembayaran_cash',
+                total: saleCashPayment,
+                details: salePaymentDetails
+            });
+        }
     });
     
-    // SUMBER 2: Dari item_aruskas_parsed
-    if (totalCash === 0) {
-        console.log('Mencari cash dari item_aruskas_parsed...');
-        (filteredData.sales || []).forEach((sale, saleIndex) => {
-            (sale.item_aruskas_parsed || []).forEach((item, itemIndex) => {
-                const itemName = String(item.item || '').toUpperCase();
-                const amount = parseCurrency(item.amount || item.value || 0);
-                
-                console.log(`  Item ${itemIndex + 1}: ${itemName} = ${amount}`);
-                
-                const cashKeywords = ['CASH', 'TUNAI', 'KAS', 'UANG', 'PENJUALAN TUNAI', 'SETORAN TUNAI'];
-                const isCash = cashKeywords.some(keyword => itemName.includes(keyword));
-                
-                if (isCash && amount > 0) {
-                    totalCash += amount;
-                    console.log(`  → DITAMBAHKAN sebagai CASH: ${formatCurrency(amount)}`);
-                }
-            });
-        });
-    }
+    console.log('Total Cash dari Pembayaran:', formatCurrency(cashFromPayments));
     
-    console.log('=== TOTAL CASH FINAL: ', formatCurrency(totalCash), '===');
-    
-    return totalCash;
-}
-
-// PERBAIKAN: Fungsi untuk menghitung total cash dari metode pembayaran
-function calculateTotalCash() {
-    let totalCash = 0;
-    
-    // Hitung dari data sales - metode pembayaran cash
-    (filteredData.sales || []).forEach(sale => {
-        (sale.metode_pembayaran_parsed || []).forEach(payment => {
-            const method = payment.method?.toUpperCase() || '';
-            const amount = parseCurrency(payment.amount || 0);
+    // SUMBER 2: Cash dari ITEM ARUS KAS (pengeluaran)
+    console.log('--- Cash dari Item Arus Kas (Pengeluaran) ---');
+    (filteredData.sales || []).forEach((sale, saleIndex) => {
+        const saleDate = sale.date?.toLocaleDateString('id-ID') || 'Tanggal tidak tersedia';
+        let saleCashExpense = 0;
+        const saleExpenseDetails = [];
+        
+        // Hitung dari SEMUA item_aruskas_parsed (semua dianggap pengeluaran cash)
+        (sale.item_aruskas_parsed || []).forEach((item, itemIndex) => {
+            const amount = parseCurrency(item.amount || item.value || 0);
             
-            // Identifikasi metode cash (tunai)
-            if (method.includes('CASH') || method.includes('TUNAI') || method === 'CASH' || method === 'TUNAI') {
-                totalCash += amount;
+            // SEMUA item arus kas dianggap sebagai pengeluaran cash
+            if (amount < 0) { // Hanya yang minus (pengeluaran)
+                cashFromExpenses += Math.abs(amount); // Simpan sebagai positif untuk perhitungan
+                saleCashExpense += Math.abs(amount);
+                saleExpenseDetails.push({
+                    item: item.item || 'Pengeluaran',
+                    amount: -Math.abs(amount), // Simpan sebagai minus untuk display
+                    type: 'pengeluaran'
+                });
+                console.log(`  ${saleDate} - ${item.item}: ${formatCurrency(amount)}`);
             }
         });
+        
+        if (saleExpenseDetails.length > 0) {
+            cashDetails.push({
+                date: saleDate,
+                outlet: sale.outlet || 'N/A',
+                type: 'pengeluaran_cash',
+                total: -saleCashExpense, // Simpan sebagai minus
+                details: saleExpenseDetails
+            });
+        }
     });
     
-    // Jika tidak ditemukan metode cash spesifik, ambil dari item_aruskas_parsed
-    if (totalCash === 0) {
-        (filteredData.sales || []).forEach(sale => {
-            (sale.item_aruskas_parsed || []).forEach(item => {
-                const itemName = item.item?.toUpperCase() || '';
-                const amount = parseCurrency(item.amount || 0);
-                
-                // Identifikasi item cash/tunai
-                if (itemName.includes('CASH') || itemName.includes('TUNAI') || itemName.includes('PENJUALAN TUNAI')) {
-                    totalCash += amount;
-                }
-            });
-        });
-    }
+    console.log('Total Cash dari Pengeluaran:', formatCurrency(cashFromExpenses));
     
-    // Debug log untuk memeriksa perhitungan cash
-    console.log('Total Cash calculated:', totalCash);
+    // PERHITUNGAN FINAL: Cash Payment - Cash Expenses
+    const netCash = cashFromPayments - cashFromExpenses;
     
-    return totalCash;
+    console.log('=== PERHITUNGAN FINAL ===');
+    console.log('Cash dari Pembayaran:', formatCurrency(cashFromPayments));
+    console.log('Cash dari Pengeluaran:', formatCurrency(cashFromExpenses));
+    console.log('Net Cash:', formatCurrency(netCash));
+    
+    return {
+        cashFromPayments: cashFromPayments,
+        cashFromExpenses: cashFromExpenses,
+        netCash: netCash,
+        details: cashDetails
+    };
 }
 
     function renderTransaksiBankPage() {
@@ -2616,6 +2707,201 @@ function calculateTotalCash() {
         notification.classList.add('show');
         setTimeout(() => { notification.classList.remove('show'); }, 4000);
     }
+    
+    // Fungsi untuk menampilkan popup detail cash
+// Fungsi untuk menampilkan detail perhitungan cash
+function showCashDetails(cashData) {
+    try {
+        console.log('Showing cash calculation details:', cashData);
+        
+        if (!cashData) {
+            cashData = {
+                cashFromPayments: 0,
+                cashFromExpenses: 0,
+                netCash: 0,
+                details: []
+            };
+        }
+        
+        const details = cashData.details || [];
+        
+        let content = `
+            <div class="detail-section">
+                <h4>Detail Perhitungan Cash</h4>
+                <div style="margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 16px; border-radius: 8px;">
+                        <div style="text-align: center; margin-bottom: 12px;">
+                            <strong>RUMUS: Saldo Bank + (Payment Cash - Pengeluaran Cash)</strong>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9rem;">
+                            <div style="text-align: center;">
+                                <div>Payment Cash</div>
+                                <div class="text-success" style="font-size: 1.1rem; font-weight: 600;">${formatCurrency(cashData.cashFromPayments)}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div>Pengeluaran Cash</div>
+                                <div class="text-danger" style="font-size: 1.1rem; font-weight: 600;">${formatCurrency(cashData.cashFromExpenses)}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 12px; padding-top: 12px; border-top: 2px solid #dee2e6;">
+                            <div>Net Cash</div>
+                            <div class="${cashData.netCash >= 0 ? 'text-success' : 'text-danger'}" style="font-size: 1.2rem; font-weight: 700;">
+                                ${formatCurrency(cashData.netCash)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        `;
+        
+        if (details.length > 0) {
+            content += `<div style="max-height: 400px; overflow-y: auto;">`;
+            
+            // Kelompokkan berdasarkan type
+            const paymentDetails = details.filter(d => d.type === 'pembayaran_cash');
+            const expenseDetails = details.filter(d => d.type === 'pengeluaran_cash');
+            
+            // Tampilkan Payment Cash
+            if (paymentDetails.length > 0) {
+                content += `<h5 style="color: #198754; margin-bottom: 8px;">💰 Payment Cash</h5>`;
+                paymentDetails.forEach((sale, saleIndex) => {
+                    content += `
+                        <div style="background: #f8f9fa; margin-bottom: 8px; padding: 8px; border-radius: 6px; border-left: 4px solid #198754;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>${sale.date}</strong>
+                                <span class="text-success">${formatCurrency(sale.total)}</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-light);">Outlet: ${sale.outlet}</div>
+                    `;
+                    
+                    sale.details.forEach((item, itemIndex) => {
+                        content += `
+                            <div style="display: flex; justify-content: space-between; padding: 2px 0; font-size: 0.85rem;">
+                                <span>${item.item}</span>
+                                <span class="text-success">${formatCurrency(item.amount)}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    content += `</div>`;
+                });
+            }
+            
+            // Tampilkan Pengeluaran Cash
+            if (expenseDetails.length > 0) {
+                content += `<h5 style="color: #dc3545; margin: 16px 0 8px 0;">💸 Pengeluaran Cash</h5>`;
+                expenseDetails.forEach((sale, saleIndex) => {
+                    content += `
+                        <div style="background: #f8f9fa; margin-bottom: 8px; padding: 8px; border-radius: 6px; border-left: 4px solid #dc3545;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>${sale.date}</strong>
+                                <span class="text-danger">${formatCurrency(sale.total)}</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-light);">Outlet: ${sale.outlet}</div>
+                    `;
+                    
+                    sale.details.forEach((item, itemIndex) => {
+                        content += `
+                            <div style="display: flex; justify-content: space-between; padding: 2px 0; font-size: 0.85rem;">
+                                <span>${item.item}</span>
+                                <span class="text-danger">${formatCurrency(item.amount)}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    content += `</div>`;
+                });
+            }
+            
+            content += `</div>`;
+        } else {
+            content += `
+                <div class="placeholder-text">
+                    <i class="fas fa-info-circle"></i><br>
+                    Tidak ada data cash
+                </div>
+            `;
+        }
+        
+        content += `</div>`;
+        
+        showModal('Detail Perhitungan Cash', content);
+        
+    } catch (error) {
+        console.error('Error showing cash details:', error);
+        showModal('Error', `Gagal menampilkan detail cash: ${error.message}`);
+    }
+}
+
+// Fungsi debug untuk memeriksa detail cash
+function debugCashDetails() {
+    console.log('=== DETAILED CASH ANALYSIS ===');
+    
+    const cashData = calculateTotalCash();
+    console.log('Total Cash:', formatCurrency(cashData.total));
+    console.log('Details:', cashData.details);
+    
+    // Tampilkan detail per sale
+    cashData.details.forEach((sale, index) => {
+        console.log(`\n--- Sale ${index + 1} ---`);
+        console.log('Tanggal:', sale.date);
+        console.log('Outlet:', sale.outlet);
+        console.log('Total Cash:', formatCurrency(sale.total));
+        console.log('Items:');
+        sale.details.forEach(item => {
+            console.log(`  ${item.item}: ${formatCurrency(item.amount)} (${item.type})`);
+        });
+    });
+    
+    return cashData;
+}
+
+// Debug function untuk memeriksa semua item arus kas
+function debugAllArusKas() {
+    console.log('=== DEBUG ALL ARUS KAS ITEMS ===');
+    
+    const sales = filteredData.sales || [];
+    console.log('Total sales:', sales.length);
+    
+    let allItems = [];
+    
+    sales.forEach((sale, index) => {
+        const saleDate = sale.date?.toLocaleDateString('id-ID');
+        const items = sale.item_aruskas_parsed || [];
+        
+        console.log(`\n--- Sale ${index + 1} (${saleDate}) ---`);
+        console.log('Outlet:', sale.outlet);
+        console.log('Total items:', items.length);
+        
+        items.forEach((item, itemIndex) => {
+            const amount = parseCurrency(item.amount || 0);
+            console.log(`  ${itemIndex + 1}. ${item.item}: ${formatCurrency(amount)}`);
+            allItems.push({
+                date: saleDate,
+                item: item.item,
+                amount: amount
+            });
+        });
+    });
+    
+    // Summary
+    const totalAmount = allItems.reduce((sum, item) => sum + item.amount, 0);
+    const totalPemasukan = allItems.filter(item => item.amount > 0).reduce((sum, item) => sum + item.amount, 0);
+    const totalPengeluaran = allItems.filter(item => item.amount < 0).reduce((sum, item) => sum + item.amount, 0);
+    
+    console.log('\n=== SUMMARY ===');
+    console.log('Total Items:', allItems.length);
+    console.log('Total Pemasukan:', formatCurrency(totalPemasukan));
+    console.log('Total Pengeluaran:', formatCurrency(totalPengeluaran));
+    console.log('Net Cash:', formatCurrency(totalAmount));
+    
+    return {
+        totalItems: allItems.length,
+        totalPemasukan: totalPemasukan,
+        totalPengeluaran: totalPengeluaran,
+        netCash: totalAmount,
+        items: allItems
+    };
+}
 
     // =================================================================================
     // --- INISIALISASI APLIKASI ---
