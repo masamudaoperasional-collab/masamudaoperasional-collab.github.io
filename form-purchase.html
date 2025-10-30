@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Form Pembelian v3 (Pro) - Lengkap</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee; --primary-light: #4895ef; --secondary: #3f37c9;
+            --success: #4cc9f0; --danger: #f72585; --warning: #f8961e; --light: #f8f9fa; --dark: #212529;
+            --gray: #6c757d; --border: #e0e0e0; --bg-body: #f5f7fa;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--dark); line-height: 1.6; padding-bottom: 120px; }
+        .container { padding: 16px; }
+        .wizard-steps { display: flex; justify-content: space-around; padding: 16px; background-color: white; border-bottom: 1px solid var(--border); margin: -16px -16px 16px -16px; }
+        .step-indicator { display: flex; flex-direction: column; align-items: center; color: var(--gray); font-size: 0.8rem; font-weight: 500; }
+        .step-indicator .step-icon { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--gray); display: flex; align-items: center; justify-content: center; margin-bottom: 6px; transition: all 0.3s ease; }
+        .step-indicator.active { color: var(--primary); }
+        .step-indicator.active .step-icon { background-color: var(--primary); border-color: var(--primary); color: white; }
+        .step-indicator.completed .step-icon { background-color: var(--success); border-color: var(--success); color: white; }
+
+        .page { display: none; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; }
+        .card-header { padding: 16px; font-size: 1.1rem; font-weight: 600; color: var(--primary); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 16px; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-label { font-weight: 500; margin-bottom: 8px; display: block; }
+        .required::after { content: " *"; color: var(--danger); }
+        .form-control, .form-select { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background-color: #fdfdff; }
+        .form-control:focus, .form-select:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); }
+        .input-group { display: flex; align-items: center; gap: 8px; }
+        .input-group .form-control, .input-group .form-select { flex-grow: 1; }
+        .btn-icon { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--light); cursor: pointer; }
+
+        /* Item & Supplier Search */
+        .item-search-wrapper { position: relative; z-index: 100; }
+        #item-search-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); max-height: 250px; overflow-y: auto; z-index: 100; margin-top: 4px; }
+        .search-result-item { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        .search-result-item:hover { background-color: #f5f7fa; }
+        
+        /* Item Card */
+        .item-card { display: flex; align-items: center; padding: 12px; background: #fdfdff; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
+        .item-card-info { flex-grow: 1; cursor: pointer; }
+        .item-card-name { font-weight: 600; }
+        .item-card-price { font-size: 0.9rem; color: var(--gray); }
+        .item-card-actions { display: flex; align-items: center; gap: 8px; }
+        .quantity-input { width: 40px; text-align: center; border: none; background: #f0f3f7; font-weight: 600; padding: 6px; border-radius: 6px; }
+        .quantity-btn, .remove-item-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: #e9ecef; color: var(--dark); font-size: 1rem; cursor: pointer; }
+        .remove-item-btn { background-color: rgba(247, 37, 133, 0.1); color: var(--danger); }
+
+        /* Total Summary */
+        .total-summary { margin-top: 20px; padding: 16px; background: #f1f5fd; border-radius: 8px; }
+        .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .summary-row.total { font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal.show { display: block; animation: fadeIn 0.3s; }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 0; border: 1px solid #888; width: 95%; max-width: 500px; border-radius: var(--radius); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+        .modal-title { font-size: 1.2rem; font-weight: 600; }
+        .modal-body { padding: 16px; max-height: 60vh; overflow-y: auto; }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 16px; border-top: 1px solid var(--border); }
+        .close-btn { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; border: none; background: transparent; }
+
+        /* Bulk Item Modal List */
+        .bulk-item-list-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .bulk-item-list-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 15px; }
+
+        /* Draft List */
+        .draft-item { padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
+        .draft-item:hover { background-color: #f5f7fa; }
+        .draft-po-number { font-weight: 600; color: var(--primary); }
+        .draft-supplier { font-size: 0.9rem; color: var(--gray); }
+        .draft-items { font-size: 0.8rem; color: var(--gray); margin-top: 4px; }
+
+        /* PO Sheet Modal */
+        #po-sheet-modal .modal-content { font-family: 'Arial', sans-serif; color: #000; max-width: 800px; }
+        .po-sheet-body { padding: 20px; }
+        .po-header { text-align: center; margin-bottom: 20px; }
+        .po-header h2 { margin: 0; font-size: 1.5rem; } .po-header p { margin: 2px 0; font-size: 0.9rem; }
+        .po-meta, .po-addresses { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.9rem; }
+        .po-meta div, .po-addresses div { width: 48%; }
+        .po-addresses h4 { font-size: 1rem; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; }
+        .po-item-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 20px; }
+        .po-item-table th, .po-item-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .po-item-table th { background-color: #f2f2f2; font-weight: 600; }
+        .po-footer { margin-top: 30px; font-size: 0.9rem; text-align: center; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 16px; box-shadow: 0 -4px 12px rgba(0,0,0,0.1); z-index: 500; display: flex; gap: 10px; }
+        .bottom-nav-main { display: flex; gap: 10px; width: 100%; }
+        .bottom-nav-review { display: flex; gap: 10px; width: 100%; }
+        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; flex: 1; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-warning { background: var(--warning); color: white; }
+        .hidden { display: none; }
+
+        /* Payment Method Section */
+        .payment-method-section { margin-top: 20px; }
+        .payment-method-cards { display: flex; gap: 12px; margin-bottom: 20px; }
+        .payment-method-card { flex: 1; padding: 16px; border: 2px solid var(--border); border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+        .payment-method-card:hover { border-color: var(--primary-light); }
+        .payment-method-card.selected { border-color: var(--primary); background-color: rgba(67, 97, 238, 0.05); }
+        .payment-method-icon { font-size: 1.5rem; margin-bottom: 8px; color: var(--gray); }
+        .payment-method-card.selected .payment-method-icon { color: var(--primary); }
+        .payment-method-name { font-weight: 600; }
+        .payment-status { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Review Section */
+        .review-section { padding: 16px; }
+        .review-info { margin-bottom: 20px; }
+        .review-info h4 { margin-bottom: 10px; color: var(--primary); }
+        .review-items { margin-bottom: 20px; }
+        .review-items h4 { margin-bottom: 10px; color: var(--primary); }
+        .review-total { background: #f1f5fd; padding: 16px; border-radius: 8px; }
+        .review-total h4 { margin-bottom: 10px; color: var(--primary); }
+        .po-sheet-btn-container { margin-top: 20px; text-align: center; }
+
+        /* Shipping Section */
+        .shipping-section { margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px; }
+        .shipping-toggle { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .shipping-form { display: none; }
+        .shipping-form.active { display: block; }
+
+        /* Edit Item Modal */
+        .edit-item-form .form-group {
+            margin-bottom: 16px;
+        }
+
+        /* Add Item Modal */
+        .add-item-form .form-group {
+            margin-bottom: 16px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: var(--shadow);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+        .notification.success {
+            background-color: var(--success);
+        }
+        .notification.error {
+            background-color: var(--danger);
+        }
+        .notification.warning {
+            background-color: var(--warning);
+        }
+        .notification.info {
+            background-color: var(--primary);
+        }
+
+        /* Payment Details */
+        .payment-details {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .payment-status-label {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Add Item Button */
+        .add-item-container {
+            margin-top: 16px;
+            text-align: center;
+            padding: 16px;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .add-item-container:hover {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        .add-item-text {
+            color: var(--primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <div class="container">
+        <!-- Wizard Header -->
+        <div class="wizard-steps">
+            <div class="step-indicator active" id="indicator-1"><div class="step-icon"><i class="fas fa-file-alt"></i></div>Info</div>
+            <div class="step-indicator" id="indicator-2"><div class="step-icon"><i class="fas fa-box"></i></div>Item</div>
+            <div class="step-indicator" id="indicator-3"><div class="step-icon"><i class="fas fa-check"></i></div>Review</div>
+        </div>
+        
+        <!-- PAGE 1: INFO -->
+        <div id="page-1" class="page active">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-info-circle"></i> Informasi Pembelian</div>
+                <div class="card-body">
+                    <button id="load-draft-btn" class="btn btn-outline" style="margin-bottom: 20px;"><i class="fas fa-folder-open"></i> Ambil dari Draft</button>
+                    <div class="form-group">
+                        <label for="purchase-type" class="form-label required">Tipe Pembelian</label>
+                        <select class="form-select" id="purchase-type" required>
+                            <option value="purchase_order">Purchase Order</option>
+                            <option value="offline">Offline</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="po-number" class="form-label">Nomor PO</label>
+                        <input type="text" class="form-control" id="po-number" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplier" class="form-label required">Supplier</label>
+                        <div class="input-group">
+                            <select class="form-select" id="supplier" required>
+                                <option value="" selected disabled>Memuat...</option>
+                            </select>
+                            <button id="manage-supplier-btn" class="btn-icon"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="purchase-date" class="form-label required">Tanggal</label>
+                        <input type="date" class="form-control" id="purchase-date" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PAGE 2: ITEM -->
+        <div id="page-2" class="page">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-search"></i> Cari & Tambah Item</div>
+                <div class="card-body">
+                    <div class="form-group item-search-wrapper">
+                        <label for="item-search" class="form-label">Cari Item Tunggal</label>
+                        <input type="text" class="form-control" id="item-search" placeholder="Ketik nama item...">
+                        <div id="item-search-results" class="hidden"></div>
+                    </div>
+                    <button id="bulk-add-btn" class="btn btn-outline"><i class="fas fa-list-ul"></i> Pilih dari Daftar (Bulk)</button>
+                    
+                    <!-- Add Item Button -->
+                    <div class="add-item-container" id="add-item-btn">
+                        <i class="fas fa-plus-circle" style="font-size: 1.5rem; color: var(--primary); margin-bottom: 8px;"></i>
+                        <div class="add-item-text">Tambah Item Baru</div>
+                        <div style="font-size: 0.8rem; color: var(--gray); margin-top: 4px;">Klik untuk menambahkan item yang tidak ada di daftar</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header"><i class="fas fa-shopping-cart"></i> Keranjang Item</div>
+                <div class="card-body">
+                    <div id="item-list-container"></div>
+                    <div class="total-summary" id="total-summary-container">
+                        <div class="summary-row total">Total: Rp 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Section -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-truck"></i> Ongkos Kirim</div>
+                <div class="card-body">
+                    <div class="shipping-section">
+                        <div class="shipping-toggle">
+                            <span class="form-label">Aktifkan Ongkos Kirim</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="shipping-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="shipping-form" id="shipping-form">
+                            <div class="form-group">
+                                <label for="shipping-cost" class="form-label">Biaya Ongkos Kirim</label>
+                                <input type="number" class="form-control" id="shipping-cost" placeholder="Masukkan biaya ongkos kirim" min="0">
+                            </div>
+                            <button id="add-shipping-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Ongkos Kirim</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PAGE 3: REVIEW -->
+        <div id="page-3" class="page">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-clipboard-check"></i> Ringkasan Pembelian</div>
+                <div class="card-body review-section" id="review-container">
+                    <!-- Review content will be generated here -->
+                </div>
+            </div>
+
+            <!-- Payment Method Section -->
+            <div class="card">
+                <div class="card-header"><i class="fas fa-credit-card"></i> Metode Pembayaran</div>
+                <div class="card-body">
+                    <div class="payment-method-section">
+                        <div class="form-group">
+                            <label for="payment-date" class="form-label">Tanggal Pembayaran</label>
+                            <input type="date" class="form-control" id="payment-date">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Metode Pembayaran</label>
+                            <div class="payment-method-cards">
+                                <div class="payment-method-card" data-method="tunai">
+                                    <div class="payment-method-icon">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <div class="payment-method-name">Tunai</div>
+                                </div>
+                                <div class="payment-method-card" data-method="transfer">
+                                    <div class="payment-method-icon">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </div>
+                                    <div class="payment-method-name">Transfer</div>
+                                </div>
+                                <div class="payment-method-card" data-method="kredit">
+                                    <div class="payment-method-icon">
+                                        <i class="fas fa-credit-card"></i>
+                                    </div>
+                                    <div class="payment-method-name">Kredit</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-details">
+                            <div class="form-group">
+                                <label for="paid-amount" class="form-label">Nominal Pembayaran</label>
+                                <input type="number" class="form-control" id="paid-amount" placeholder="Masukkan nominal pembayaran" min="0">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="payment-notes" class="form-label">Catatan Pembayaran</label>
+                                <textarea class="form-control" id="payment-notes" rows="3" placeholder="Tambahkan catatan pembayaran (opsional)"></textarea>
+                            </div>
+                            
+                            <div class="payment-status">
+                                <div>
+                                    <span class="payment-status-label">Status Pembayaran: </span>
+                                    <span id="payment-status-text">Pending</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="payment-status">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="po-sheet-btn-container">
+                        <button id="view-po-btn-review" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Lihat Lembar PO</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div id="nav-main" class="bottom-nav-main">
+            <button id="back-btn" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Kembali</button>
+            <button id="next-btn" class="btn btn-primary">Lanjut <i class="fas fa-arrow-right"></i></button>
+        </div>
+        <div id="nav-review" class="bottom-nav-review hidden">
+            <button id="back-to-edit-btn" class="btn btn-outline"><i class="fas fa-edit"></i> Edit</button>
+            <button id="save-draft-btn" class="btn btn-warning"><i class="fas fa-save"></i> Draft</button>
+            <button id="submit-btn" class="btn btn-success"><i class="fas fa-paper-plane"></i> Kirim</button>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="bulk-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Pilih Item</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="bulk-item-list"></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline close-btn"><i class="fas fa-times"></i> Batal</button>
+                <button id="add-selected-items-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Terpilih</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="draft-list-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Pilih Draft</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="draft-list-container"></div>
+        </div>
+    </div>
+    
+    <div id="supplier-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Manajemen Supplier</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="supplier-id">
+                <div class="form-group">
+                    <label class="form-label required">ID Supplier</label>
+                    <input type="text" id="supplier-id-input" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Nama Supplier</label>
+                    <input type="text" id="supplier-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Nomor Kontak</label>
+                    <input type="text" id="supplier-contact" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Alamat Email</label>
+                    <input type="email" id="supplier-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Alamat Supplier</label>
+                    <textarea id="supplier-address" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Nama Rekening</label>
+                    <input type="text" id="supplier-account-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Bank</label>
+                    <input type="text" id="supplier-bank" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Nomor Rekening</label>
+                    <input type="text" id="supplier-account-number" class="form-control" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline close-btn"><i class="fas fa-times"></i> Batal</button>
+                <button id="save-supplier-btn" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="po-sheet-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-body po-sheet-body" id="po-sheet-content"></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline close-btn"><i class="fas fa-times"></i> Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="edit-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Item</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="edit-item-form">
+                    <input type="hidden" id="edit-item-sku">
+                    <div class="form-group">
+                        <label class="form-label">Nama Item</label>
+                        <input type="text" id="edit-item-name" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">SKU</label>
+                        <input type="text" id="edit-item-sku-display" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Harga</label>
+                        <input type="number" id="edit-item-price" class="form-control" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Jumlah</label>
+                        <input type="number" id="edit-item-quantity" class="form-control" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Keterangan</label>
+                        <textarea id="edit-item-description" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline close-btn"><i class="fas fa-times"></i> Batal</button>
+                <button id="save-item-btn" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="add-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Item Baru</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="add-item-form">
+                    <div class="form-group">
+                        <label class="form-label required">Nama Item</label>
+                        <input type="text" id="add-item-name" class="form-control" placeholder="Masukkan nama item" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">SKU</label>
+                        <input type="text" id="add-item-sku" class="form-control" placeholder="Masukkan SKU item" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kategori</label>
+                        <input type="text" id="add-item-category" class="form-control" placeholder="Masukkan kategori item">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Satuan</label>
+                        <input type="text" id="add-item-unit" class="form-control" placeholder="Masukkan satuan item (pcs, kg, etc)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Harga</label>
+                        <input type="number" id="add-item-price" class="form-control" placeholder="Masukkan harga item" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Jumlah</label>
+                        <input type="number" id="add-item-quantity" class="form-control" value="1" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Keterangan</label>
+                        <textarea id="add-item-description" class="form-control" rows="3" placeholder="Tambahkan keterangan item (opsional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline close-btn"><i class="fas fa-times"></i> Batal</button>
+                <button id="save-new-item-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Item</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // Self-executing anonymous function to encapsulate code
+    (function() {
+        // Webhook URLs
+        const WH_GET_ITEMS = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/ambildarisheet';
+        const WH_SAVE_DRAFT = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/simpandraft_formpembelian';
+        const WH_GET_DRAFTS = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/draft_po';
+        const WH_GET_SUPPLIERS = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/ambil_data_supplier';
+        const WH_SAVE_SUPPLIER = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/tambah_informasi_supplier';
+        const WH_SUBMIT_FORM = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/hasilformpembelian';
+        const WH_EDIT_ITEM = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/status_edit';
+ 
+        let state = {
+            currentStep: 1, 
+            allItems: [], 
+            cart: [], 
+            allSuppliers: [], 
+            allDrafts: [],
+            currentDraft: null,
+            shippingEnabled: false,
+            paymentMethod: null,
+            paymentDate: '',
+            paymentStatus: false,
+            paidAmount: 0,
+            paymentNotes: ''
+        };
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // DOM Elements Cache
+        const D = document;
+        const byId = id => D.getElementById(id);
+
+        function initializeApp() {
+            attachEventListeners();
+            Promise.all([fetchItems(), fetchSuppliers()]);
+            byId('purchase-date').value = new Date().toISOString().split('T')[0];
+            byId('payment-date').value = new Date().toISOString().split('T')[0];
+            updateNavButtons();
+            renderCart();
+            
+            showNotification('Aplikasi berhasil diinisialisasi', 'success');
+        }
+
+        function attachEventListeners() {
+            // Navigation
+            byId('next-btn').addEventListener('click', () => navigateStep('next'));
+            byId('back-btn').addEventListener('click', () => navigateStep('back'));
+            byId('back-to-edit-btn').addEventListener('click', () => navigateToStep(2));
+            
+            // Main actions
+            byId('load-draft-btn').addEventListener('click', openDraftModal);
+            byId('bulk-add-btn').addEventListener('click', openBulkItemModal);
+            byId('manage-supplier-btn').addEventListener('click', () => openSupplierModal());
+            byId('save-draft-btn').addEventListener('click', saveDraft);
+            byId('view-po-btn-review').addEventListener('click', generatePOSheet);
+            byId('submit-btn').addEventListener('click', submitPurchase);
+            
+            // Form inputs
+            byId('purchase-date').addEventListener('change', generatePONumber);
+            byId('supplier').addEventListener('change', generatePONumber);
+            byId('item-search').addEventListener('input', handleItemSearch);
+
+            // Shipping
+            byId('shipping-toggle').addEventListener('change', toggleShipping);
+            byId('add-shipping-btn').addEventListener('click', addShippingCost);
+
+            // Payment Method
+            byId('payment-date').addEventListener('change', function() {
+                state.paymentDate = this.value;
+            });
+            
+            byId('paid-amount').addEventListener('change', function() {
+                state.paidAmount = parseFloat(this.value) || 0;
+            });
+            
+            byId('payment-notes').addEventListener('change', function() {
+                state.paymentNotes = this.value;
+            });
+            
+            byId('payment-status').addEventListener('change', function() {
+                state.paymentStatus = this.checked;
+                updatePaymentStatusText();
+            });
+            
+            // Payment Method Cards
+            document.querySelectorAll('.payment-method-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    document.querySelectorAll('.payment-method-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    
+                    // Set payment method
+                    state.paymentMethod = this.dataset.method;
+                });
+            });
+
+            // Edit Item
+            byId('save-item-btn').addEventListener('click', saveItemChanges);
+
+            // Add Item
+            byId('add-item-btn').addEventListener('click', openAddItemModal);
+            byId('save-new-item-btn').addEventListener('click', saveNewItem);
+
+            // Modals
+            setupModal('bulk-item-modal');
+            setupModal('draft-list-modal');
+            setupModal('supplier-modal');
+            setupModal('po-sheet-modal');
+            setupModal('edit-item-modal');
+            setupModal('add-item-modal');
+            byId('add-selected-items-btn').addEventListener('click', addSelectedItemsFromBulk);
+            byId('save-supplier-btn').addEventListener('click', saveSupplier);
+        }
+
+        function updatePaymentStatusText() {
+            const statusText = byId('payment-status-text');
+            statusText.textContent = state.paymentStatus ? 'Paid' : 'Pending';
+            statusText.style.color = state.paymentStatus ? 'var(--success)' : 'var(--warning)';
+            statusText.style.fontWeight = '600';
+        }
+
+        // --- Navigation ---
+        function navigateStep(direction) {
+            const nextStep = direction === 'next' ? state.currentStep + 1 : state.currentStep - 1;
+            if (direction === 'next' && !validateStep(state.currentStep)) return;
+            navigateToStep(nextStep);
+        }
+
+        function navigateToStep(step) {
+            if (step < 1 || step > 3) return;
+            if (step === 3) generateReview();
+            
+            D.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            byId(`page-${step}`).classList.add('active');
+            
+            // Update step indicators
+            D.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+                indicator.classList.remove('active', 'completed');
+                if (index + 1 === step) {
+                    indicator.classList.add('active');
+                } else if (index + 1 < step) {
+                    indicator.classList.add('completed');
+                }
+            });
+            
+            state.currentStep = step;
+            updateNavButtons();
+            
+            showNotification(`Navigasi ke langkah ${step}`, 'info');
+        }
+
+        function updateNavButtons() {
+            const navMain = byId('nav-main');
+            const navReview = byId('nav-review');
+            
+            if (state.currentStep === 3) {
+                navMain.classList.add('hidden');
+                navReview.classList.remove('hidden');
+            } else {
+                navMain.classList.remove('hidden');
+                navReview.classList.add('hidden');
+                
+                // Update button texts
+                byId('back-btn').style.display = state.currentStep === 1 ? 'none' : 'flex';
+                byId('next-btn').innerHTML = state.currentStep === 2 ? 'Review <i class="fas fa-arrow-right"></i>' : 'Lanjut <i class="fas fa-arrow-right"></i>';
+            }
+        }
+
+        function validateStep(step) {
+            if (step === 1 && (!byId('supplier').value || !byId('purchase-date').value)) {
+                showNotification('Harap pilih Supplier dan Tanggal', 'error');
+                return false;
+            }
+            if (step === 2 && state.cart.length === 0) {
+                showNotification('Keranjang masih kosong', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        // --- Data Fetching ---
+        async function fetchItems() {
+            showNotification('Memuat data items...', 'info');
+            try {
+                const response = await fetchData(WH_GET_ITEMS);
+                if (response && response.success) {
+                    // Perbaikan: Ambil data dari properti data
+                    state.allItems = response.data.map(item => ({
+                        sku: item.sku,
+                        name: item.name,
+                        category: item.category,
+                        unit: item.unit,
+                        price: parseFloat(item.price) || 0,
+                        description: item.description || ''
+                    }));
+                    showNotification(`Berhasil memuat ${state.allItems.length} item`, 'success');
+                } else {
+                    showNotification('Gagal memuat data items', 'error');
+                }
+            } catch (error) {
+                showNotification(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function fetchSuppliers() {
+            showNotification('Memuat data supplier...', 'info');
+            try {
+                const suppliers = await fetchData(WH_GET_SUPPLIERS);
+                if (suppliers) {
+                    state.allSuppliers = suppliers;
+                    populateSupplierDropdown();
+                    showNotification(`Berhasil memuat ${suppliers.length} supplier`, 'success');
+                }
+            } catch (error) {
+                showNotification(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function populateSupplierDropdown() {
+            const select = byId('supplier');
+            select.innerHTML = '<option value="" disabled selected>Pilih Supplier</option>';
+            state.allSuppliers.forEach(s => {
+                const option = D.createElement('option');
+                option.value = s.id_supplier;
+                option.textContent = s.nama_supplier;
+                select.appendChild(option);
+            });
+        }
+        
+        // --- PO Number Generation ---
+        function generatePONumber() {
+            const date = new Date(byId('purchase-date').value);
+            const supplierId = byId('supplier').value;
+            if (!supplierId || isNaN(date)) {
+                byId('po-number').value = '';
+                return;
+            }
+            const yyyymmdd = date.getFullYear() + ('0' + (date.getMonth() + 1)).slice(-2) + ('0' + date.getDate()).slice(-2);
+            byId('po-number').value = `PO-${yyyymmdd}-${supplierId}`;
+        }
+        
+        // --- Bulk Item Logic ---
+        function openBulkItemModal() {
+            const container = byId('bulk-item-list');
+            container.innerHTML = state.allItems.map(item => `
+                <label class="bulk-item-list-item">
+                    <input type="checkbox" class="bulk-item-checkbox" value="${item.sku}">
+                    <div>
+                        <div class="item-card-name">${item.name}</div>
+                        <div class="item-card-price">SKU: ${item.sku} - ${formatCurrency(item.price)}</div>
+                    </div>
+                </label>
+            `).join('');
+            byId('bulk-item-modal').classList.add('show');
+        }
+
+        function addSelectedItemsFromBulk() {
+            const selectedItems = [];
+            D.querySelectorAll('.bulk-item-checkbox:checked').forEach(checkbox => {
+                const sku = checkbox.value;
+                const item = state.allItems.find(i => i.sku === sku);
+                if (item) {
+                    const existing = state.cart.find(ci => ci.sku === sku);
+                    if (!existing) {
+                        state.cart.push({ ...item, quantity: 1 });
+                        selectedItems.push(item.name);
+                    }
+                }
+            });
+            
+            if (selectedItems.length > 0) {
+                showNotification(`Menambahkan ${selectedItems.length} item ke keranjang`, 'success');
+                renderCart();
+            } else {
+                showNotification('Tidak ada item yang dipilih untuk ditambahkan', 'warning');
+            }
+            
+            closeModal('bulk-item-modal');
+        }
+
+        // --- Add Item Logic ---
+        function openAddItemModal() {
+            // Reset form
+            byId('add-item-name').value = '';
+            byId('add-item-sku').value = '';
+            byId('add-item-category').value = '';
+            byId('add-item-unit').value = '';
+            byId('add-item-price').value = '';
+            byId('add-item-quantity').value = '1';
+            byId('add-item-description').value = '';
+            
+            byId('add-item-modal').classList.add('show');
+        }
+
+        async function saveNewItem() {
+            const name = byId('add-item-name').value.trim();
+            const sku = byId('add-item-sku').value.trim();
+            const category = byId('add-item-category').value.trim();
+            const unit = byId('add-item-unit').value.trim();
+            const price = parseFloat(byId('add-item-price').value);
+            const quantity = parseInt(byId('add-item-quantity').value);
+            const description = byId('add-item-description').value.trim();
+            
+            // Validasi
+            if (!name) {
+                showNotification('Nama item harus diisi', 'error');
+                return;
+            }
+            
+            if (!sku) {
+                showNotification('SKU item harus diisi', 'error');
+                return;
+            }
+            
+            if (!price || price <= 0) {
+                showNotification('Harga harus lebih dari 0', 'error');
+                return;
+            }
+            
+            if (!quantity || quantity <= 0) {
+                showNotification('Jumlah harus lebih dari 0', 'error');
+                return;
+            }
+            
+            // Cek apakah SKU sudah ada
+            const existingItem = state.allItems.find(item => item.sku === sku);
+            if (existingItem) {
+                showNotification('SKU sudah ada di daftar item', 'error');
+                return;
+            }
+            
+            // Buat item baru
+            const newItem = {
+                sku: sku,
+                name: name,
+                category: category || 'Lainnya',
+                unit: unit || 'pcs',
+                price: price,
+                quantity: quantity,
+                description: description
+            };
+            
+            // Kirim ke webhook untuk menambahkan item baru
+            try {
+                const addItemData = {
+                    action: 'add_item',
+                    item: newItem,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const result = await postData(WH_EDIT_ITEM, addItemData);
+                if (result) {
+                    showNotification('Item berhasil ditambahkan', 'success');
+                    
+                    // Tambahkan ke daftar item dan keranjang
+                    state.allItems.push(newItem);
+                    state.cart.push({ ...newItem, quantity: quantity });
+                    
+                    renderCart();
+                    closeModal('add-item-modal');
+                }
+            } catch (error) {
+                showNotification('Gagal menambahkan item', 'error');
+            }
+        }
+
+        // --- Shipping Logic ---
+        function toggleShipping() {
+            state.shippingEnabled = byId('shipping-toggle').checked;
+            const shippingForm = byId('shipping-form');
+            
+            if (state.shippingEnabled) {
+                shippingForm.classList.add('active');
+            } else {
+                shippingForm.classList.remove('active');
+                // Hapus item ongkos kirim jika ada
+                state.cart = state.cart.filter(item => item.sku !== 'SHIPPING');
+                renderCart();
+            }
+        }
+
+        function addShippingCost() {
+            const shippingCost = parseFloat(byId('shipping-cost').value);
+            
+            if (!shippingCost || shippingCost <= 0) {
+                showNotification('Biaya ongkos kirim harus lebih dari 0', 'error');
+                return;
+            }
+            
+            // Hapus item ongkos kirim lama jika ada
+            state.cart = state.cart.filter(item => item.sku !== 'SHIPPING');
+            
+            // Tambahkan item ongkos kirim baru
+            state.cart.push({
+                sku: 'SHIPPING',
+                name: 'Ongkos Kirim',
+                category: 'Biaya Pengiriman',
+                unit: 'Pengiriman',
+                price: shippingCost,
+                quantity: 1,
+                description: 'Biaya pengiriman barang'
+            });
+            
+            renderCart();
+            showNotification(`Ongkos kirim sebesar ${formatCurrency(shippingCost)} berhasil ditambahkan`, 'success');
+            byId('shipping-cost').value = '';
+        }
+
+        // --- Edit Item Logic ---
+        function openEditItemModal(sku) {
+            const item = state.cart.find(i => i.sku === sku);
+            if (!item) {
+                showNotification('Item tidak ditemukan', 'error');
+                return;
+            }
+            
+            byId('edit-item-sku').value = item.sku;
+            byId('edit-item-name').value = item.name;
+            byId('edit-item-sku-display').value = item.sku;
+            byId('edit-item-price').value = item.price;
+            byId('edit-item-quantity').value = item.quantity;
+            byId('edit-item-description').value = item.description || '';
+            
+            byId('edit-item-modal').classList.add('show');
+        }
+
+        async function saveItemChanges() {
+            const sku = byId('edit-item-sku').value;
+            const price = parseFloat(byId('edit-item-price').value);
+            const quantity = parseInt(byId('edit-item-quantity').value);
+            const description = byId('edit-item-description').value;
+            
+            if (!price || price <= 0) {
+                showNotification('Harga harus lebih dari 0', 'error');
+                return;
+            }
+            
+            if (!quantity || quantity <= 0) {
+                showNotification('Jumlah harus lebih dari 0', 'error');
+                return;
+            }
+            
+            const itemIndex = state.cart.findIndex(i => i.sku === sku);
+            if (itemIndex === -1) {
+                showNotification('Item tidak ditemukan di keranjang', 'error');
+                return;
+            }
+            
+            // Update item di keranjang
+            state.cart[itemIndex].price = price;
+            state.cart[itemIndex].quantity = quantity;
+            state.cart[itemIndex].description = description;
+            
+            // Kirim perubahan ke webhook
+            try {
+                const editData = {
+                    sku: sku,
+                    price: price,
+                    quantity: quantity,
+                    description: description,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const result = await postData(WH_EDIT_ITEM, editData);
+                if (result) {
+                    showNotification('Perubahan berhasil disimpan', 'success');
+                }
+            } catch (error) {
+                showNotification('Gagal menyimpan perubahan', 'error');
+            }
+            
+            renderCart();
+            closeModal('edit-item-modal');
+        }
+
+        // --- Draft Logic ---
+        async function saveDraft() {
+            showNotification('Menyimpan draft...', 'info');
+            const draftData = {
+                draftName: `Draft PO ${byId('po-number').value || new Date().toLocaleString()}`,
+                formData: collectFormData()
+            };
+            
+            try {
+                const result = await postData(WH_SAVE_DRAFT, draftData);
+                if (result) {
+                    showNotification('Draft berhasil disimpan!', 'success');
+                    return true;
+                }
+            } catch (error) {
+                showNotification('Gagal menyimpan draft', 'error');
+            }
+            return false;
+        }
+
+        async function openDraftModal() {
+            showNotification('Memuat draft...', 'info');
+            try {
+                const drafts = await fetchData(WH_GET_DRAFTS);
+                if (drafts) {
+                    state.allDrafts = drafts;
+                    const container = byId('draft-list-container');
+                    
+                    // Perbaikan: Gunakan poNumber sebagai nama draft
+                    container.innerHTML = drafts.map((draft, index) => {
+                        const items = draft.items ? JSON.parse(draft.items) : [];
+                        const itemList = items.map(item => item.name).join(', ');
+                        
+                        return `
+                            <div class="draft-item" data-index="${index}">
+                                <div class="draft-po-number">${draft.poNumber || `Draft ${draft.row_number || index + 1}`}</div>
+                                <div class="draft-supplier">Supplier: ${getSupplierName(draft.supplier)}</div>
+                                <div class="draft-items">Items: ${itemList || 'Tidak ada item'}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    container.querySelectorAll('.draft-item').forEach(item => {
+                        item.addEventListener('click', (e) => loadDraft(e.currentTarget.dataset.index));
+                    });
+                    byId('draft-list-modal').classList.add('show');
+                    showNotification(`Berhasil memuat ${drafts.length} draft`, 'success');
+                }
+            } catch (error) {
+                showNotification('Gagal memuat draft', 'error');
+            }
+        }
+        
+        function getSupplierName(supplierId) {
+            const supplier = state.allSuppliers.find(s => s.id_supplier === supplierId);
+            return supplier ? supplier.nama_supplier : supplierId;
+        }
+        
+        function loadDraft(index) {
+            const draft = state.allDrafts[index];
+            if (!draft) {
+                showNotification('Draft tidak ditemukan', 'error');
+                return;
+            }
+            
+            // Simpan draft yang sedang aktif
+            state.currentDraft = draft;
+            
+            // Populate form fields from draft data
+            byId('purchase-type').value = draft.purchaseType || 'purchase_order';
+            byId('po-number').value = draft.poNumber || '';
+            byId('supplier').value = draft.supplier || '';
+            byId('purchase-date').value = draft.purchaseDate || '';
+            
+            // Populate payment data if available
+            if (draft.paymentDate) {
+                byId('payment-date').value = draft.paymentDate;
+                state.paymentDate = draft.paymentDate;
+            }
+            
+            if (draft.paymentMethod) {
+                state.paymentMethod = draft.paymentMethod;
+                // Select the payment method card
+                document.querySelectorAll('.payment-method-card').forEach(card => {
+                    card.classList.remove('selected');
+                    if (card.dataset.method === draft.paymentMethod) {
+                        card.classList.add('selected');
+                    }
+                });
+            }
+            
+            if (draft.paymentStatus !== undefined) {
+                state.paymentStatus = draft.paymentStatus === 'paid';
+                byId('payment-status').checked = state.paymentStatus;
+                updatePaymentStatusText();
+            }
+            
+            if (draft.paidAmount) {
+                state.paidAmount = draft.paidAmount;
+                byId('paid-amount').value = draft.paidAmount;
+            }
+            
+            if (draft.paymentNotes) {
+                state.paymentNotes = draft.paymentNotes;
+                byId('payment-notes').value = draft.paymentNotes;
+            }
+            
+            // Parse items from draft (items is a JSON string)
+            try {
+                if (draft.items) {
+                    const itemsData = JSON.parse(draft.items);
+                    state.cart = itemsData.map(item => ({
+                        sku: item.sku,
+                        name: item.name,
+                        category: item.category,
+                        unit: item.unit,
+                        price: parseFloat(item.price) || 0,
+                        quantity: parseInt(item.quantity) || 1,
+                        description: item.description || ''
+                    }));
+                } else {
+                    state.cart = [];
+                }
+            } catch (error) {
+                state.cart = [];
+            }
+            
+            renderCart();
+            generatePONumber();
+            closeModal('draft-list-modal');
+            
+            // Langsung navigasi ke halaman item untuk editing
+            navigateToStep(2);
+            
+            showNotification(`Draft "${draft.poNumber}" berhasil dimuat`, 'success');
+        }
+
+        // --- Supplier Management ---
+        function openSupplierModal() {
+            // Reset form
+            byId('supplier-id').value = '';
+            byId('supplier-id-input').value = '';
+            byId('supplier-name').value = '';
+            byId('supplier-contact').value = '';
+            byId('supplier-email').value = '';
+            byId('supplier-address').value = '';
+            byId('supplier-account-name').value = '';
+            byId('supplier-bank').value = '';
+            byId('supplier-account-number').value = '';
+            
+            byId('supplier-modal').classList.add('show');
+        }
+
+        async function saveSupplier() {
+            // Validasi form
+            const requiredFields = [
+                'supplier-id-input', 'supplier-name', 'supplier-contact', 
+                'supplier-email', 'supplier-address', 'supplier-account-name',
+                'supplier-bank', 'supplier-account-number'
+            ];
+            
+            for (const fieldId of requiredFields) {
+                if (!byId(fieldId).value.trim()) {
+                    showNotification(`Field ${byId(fieldId).previousElementSibling.textContent} harus diisi`, 'error');
+                    return;
+                }
+            }
+            
+            const supplierData = {
+                id_supplier: byId('supplier-id-input').value,
+                nama_supplier: byId('supplier-name').value,
+                nomor_kontak_supplier: byId('supplier-contact').value,
+                alamat_email: byId('supplier-email').value,
+                alamat_supplier: byId('supplier-address').value,
+                nama_rekening: byId('supplier-account-name').value,
+                bank_rek: byId('supplier-bank').value,
+                rekening_supplier: byId('supplier-account-number').value
+            };
+            
+            try {
+                const result = await postData(WH_SAVE_SUPPLIER, supplierData);
+                if (result) {
+                    showNotification('Supplier berhasil disimpan!', 'success');
+                    closeModal('supplier-modal');
+                    fetchSuppliers(); // Reload suppliers
+                }
+            } catch (error) {
+                showNotification('Gagal menyimpan supplier', 'error');
+            }
+        }
+
+        // --- PO Sheet ---
+        function generatePOSheet() {
+            const supplier = state.allSuppliers.find(s => s.id_supplier === byId('supplier').value);
+            if (!supplier) { 
+                showNotification('Supplier tidak ditemukan', 'error');
+                return; 
+            }
+            
+            const myCompany = { 
+                name: 'Masa Muda Coffee and Space', 
+                address: 'Jl. Alternatif IPB, Cikarawang, Dramaga, Bogor', 
+                contact: '085156973933 / masamuda.cs@gmail.com' 
+            };
+            
+            const poDate = new Date(byId('purchase-date').value).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            const itemsHtml = state.cart.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>${item.quantity} ${item.unit || ''}</td>
+                </tr>
+            `).join('');
+
+            const poHtml = `
+                <div class="po-header">
+                    <h2>PURCHASE ORDER</h2>
+                    <p>${myCompany.name}</p>
+                </div>
+                <div class="po-addresses">
+                    <div>
+                        <h4>KEPADA:</h4>
+                        <p>
+                            ${supplier.nama_supplier}<br>
+                            ${supplier.alamat_supplier || ''}<br>
+                            ${supplier.nomor_kontak_supplier || ''}<br>
+                            ${supplier.alamat_email || ''}
+                        </p>
+                    </div>
+                    <div>
+                        <h4>DARI:</h4>
+                        <p>
+                            ${myCompany.name}<br>
+                            ${myCompany.address}<br>
+                            ${myCompany.contact}
+                        </p>
+                    </div>
+                </div>
+                <div class="po-meta">
+                    <div><strong>No. PO:</strong> ${byId('po-number').value}</div>
+                    <div><strong>Tanggal:</strong> ${poDate}</div>
+                </div>
+                <table class="po-item-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Nama Barang</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+                <div class="po-footer">
+                    <p>Terima kasih atas kerja samanya.</p>
+                </div>
+            `;
+            byId('po-sheet-content').innerHTML = poHtml;
+            byId('po-sheet-modal').classList.add('show');
+            showNotification('Lembar PO berhasil dibuat', 'success');
+        }
+
+        // --- Submit Purchase ---
+        async function submitPurchase() {
+            showNotification('Mengirim data pembelian...', 'info');
+            const formData = collectFormData();
+            
+            try {
+                const result = await postData(WH_SUBMIT_FORM, formData);
+                if (result) {
+                    showNotification('Data pembelian berhasil dikirim!', 'success');
+                    alert('Pembelian berhasil dikirim!');
+                    // Reset form or redirect to success page
+                    resetForm();
+                }
+            } catch (error) {
+                showNotification('Gagal mengirim data pembelian', 'error');
+            }
+        }
+
+        function resetForm() {
+            // Reset form to initial state
+            byId('purchase-type').value = 'purchase_order';
+            byId('po-number').value = '';
+            byId('supplier').value = '';
+            byId('purchase-date').value = new Date().toISOString().split('T')[0];
+            byId('payment-date').value = new Date().toISOString().split('T')[0];
+            state.cart = [];
+            state.currentDraft = null;
+            state.shippingEnabled = false;
+            state.paymentMethod = null;
+            state.paymentDate = '';
+            state.paymentStatus = false;
+            state.paidAmount = 0;
+            state.paymentNotes = '';
+            byId('shipping-toggle').checked = false;
+            byId('shipping-form').classList.remove('active');
+            byId('payment-status').checked = false;
+            byId('paid-amount').value = '';
+            byId('payment-notes').value = '';
+            document.querySelectorAll('.payment-method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            updatePaymentStatusText();
+            renderCart();
+            navigateToStep(1);
+        }
+
+        // --- Helper & Utility functions ---
+        function collectFormData() {
+            return {
+                purchaseType: byId('purchase-type').value,
+                poNumber: byId('po-number').value,
+                supplier: byId('supplier').value,
+                purchaseDate: byId('purchase-date').value,
+                paymentDate: state.paymentDate,
+                paymentMethod: state.paymentMethod,
+                paymentStatus: state.paymentStatus ? 'paid' : 'pending',
+                paidAmount: state.paidAmount,
+                paymentNotes: state.paymentNotes,
+                cart: state.cart
+            };
+        }
+        
+        function renderCart() {
+            const container = byId('item-list-container');
+            if (state.cart.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--gray);">Keranjang masih kosong</p>';
+                updateTotalSummary();
+                return;
+            }
+            
+            container.innerHTML = state.cart.map(item => `
+                <div class="item-card" data-sku="${item.sku}">
+                    <div class="item-card-info" onclick="openEditItemModal('${item.sku}')">
+                        <div class="item-card-name">${item.name}</div>
+                        <div class="item-card-price">${formatCurrency(item.price)} per ${item.unit || 'unit'}</div>
+                        ${item.description ? `<div class="item-card-description" style="font-size: 0.8rem; color: var(--gray); margin-top: 4px;">${item.description}</div>` : ''}
+                    </div>
+                    <div class="item-card-actions">
+                        <button class="quantity-btn minus" data-sku="${item.sku}">-</button>
+                        <input type="text" class="quantity-input" value="${item.quantity}" data-sku="${item.sku}">
+                        <button class="quantity-btn plus" data-sku="${item.sku}">+</button>
+                        <button class="remove-item-btn" data-sku="${item.sku}"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add event listeners for quantity buttons
+            container.querySelectorAll('.quantity-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sku = this.dataset.sku;
+                    const item = state.cart.find(i => i.sku === sku);
+                    if (item) {
+                        if (this.classList.contains('plus')) {
+                            item.quantity++;
+                        } else if (this.classList.contains('minus') && item.quantity > 1) {
+                            item.quantity--;
+                        }
+                        renderCart();
+                    }
+                });
+            });
+            
+            // Add event listeners for remove buttons
+            container.querySelectorAll('.remove-item-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sku = this.dataset.sku;
+                    state.cart = state.cart.filter(i => i.sku !== sku);
+                    showNotification('Item dihapus dari keranjang', 'info');
+                    renderCart();
+                });
+            });
+            
+            updateTotalSummary();
+        }
+        
+        function updateTotalSummary() {
+            const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const summaryContainer = byId('total-summary-container');
+            summaryContainer.innerHTML = `
+                <div class="summary-row total">Total: ${formatCurrency(total)}</div>
+            `;
+        }
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        function generateReview() {
+            const container = byId('review-container');
+            const supplier = state.allSuppliers.find(s => s.id_supplier === byId('supplier').value);
+            
+            let html = `
+                <div class="review-info">
+                    <h4>Informasi Pembelian</h4>
+                    <p><strong>Tipe:</strong> ${byId('purchase-type').value === 'purchase_order' ? 'Purchase Order' : 'Offline'}</p>
+                    <p><strong>No. PO:</strong> ${byId('po-number').value}</p>
+                    <p><strong>Supplier:</strong> ${supplier ? supplier.nama_supplier : 'Tidak diketahui'}</p>
+                    <p><strong>Tanggal:</strong> ${new Date(byId('purchase-date').value).toLocaleDateString('id-ID')}</p>
+                </div>
+                <div class="review-items">
+                    <h4>Item Pembelian</h4>
+            `;
+            
+            state.cart.forEach(item => {
+                html += `
+                    <div class="item-card">
+                        <div class="item-card-info">
+                            <div class="item-card-name">${item.name}</div>
+                            <div class="item-card-price">${formatCurrency(item.price)} x ${item.quantity} ${item.unit || ''}</div>
+                            ${item.description ? `<div class="item-card-description" style="font-size: 0.8rem; color: var(--gray); margin-top: 4px;">${item.description}</div>` : ''}
+                        </div>
+                        <div class="item-card-actions">
+                            <span>${formatCurrency(item.price * item.quantity)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            html += `
+                </div>
+                <div class="review-total">
+                    <h4>Ringkasan Total</h4>
+                    <div class="summary-row total">Total: ${formatCurrency(total)}</div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        function handleItemSearch() {
+            const query = byId('item-search').value.toLowerCase();
+            const resultsContainer = byId('item-search-results');
+            
+            if (query.length < 2) {
+                resultsContainer.classList.add('hidden');
+                return;
+            }
+            
+            const filteredItems = state.allItems.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                (item.sku && item.sku.toLowerCase().includes(query))
+            );
+            
+            if (filteredItems.length === 0) {
+                resultsContainer.innerHTML = '<div class="search-result-item">Tidak ada hasil</div>';
+            } else {
+                resultsContainer.innerHTML = filteredItems.map(item => `
+                    <div class="search-result-item" data-sku="${item.sku}">
+                        <div class="item-card-name">${item.name}</div>
+                        <div class="item-card-price">SKU: ${item.sku} - ${formatCurrency(item.price)}</div>
+                    </div>
+                `).join('');
+                
+                // Add event listeners to search results
+                resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const sku = this.dataset.sku;
+                        const selectedItem = state.allItems.find(i => i.sku === sku);
+                        if (selectedItem && !state.cart.find(i => i.sku === sku)) {
+                            state.cart.push({ ...selectedItem, quantity: 1 });
+                            renderCart();
+                            showNotification(`"${selectedItem.name}" ditambahkan ke keranjang`, 'success');
+                        } else if (state.cart.find(i => i.sku === sku)) {
+                            showNotification(`"${selectedItem.name}" sudah ada di keranjang`, 'warning');
+                        }
+                        byId('item-search').value = '';
+                        resultsContainer.classList.add('hidden');
+                    });
+                });
+            }
+            
+            resultsContainer.classList.remove('hidden');
+        }
+        
+        async function fetchData(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+        
+        async function postData(url, data) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                throw error;
+            }
+        }
+        
+        function setupModal(modalId) {
+            const modal = byId(modalId);
+            modal.querySelectorAll('.close-btn').forEach(btn => {
+                btn.addEventListener('click', () => closeModal(modalId));
+            });
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal(modalId);
+                }
+            });
+        }
+        
+        function closeModal(modalId) {
+            byId(modalId).classList.remove('show');
+        }
+
+        // Make openEditItemModal globally accessible
+        window.openEditItemModal = openEditItemModal;
+
+        // Run the app
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    })();
+    </script>
+</body>
+</html>
