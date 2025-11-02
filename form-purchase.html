@@ -12,6 +12,7 @@
             --success: #4cc9f0; --danger: #f72585; --warning: #f8961e; --light: #f8f9fa; --dark: #212529;
             --gray: #6c757d; --border: #e0e0e0; --bg-body: #f5f7fa;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); --radius: 12px;
+            --whatsapp: #25D366;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
@@ -555,6 +556,7 @@
         .btn-success { background: var(--success); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         .btn-warning { background: var(--warning); color: white; }
+        .btn-whatsapp { background: var(--whatsapp); color: white; }
         .hidden { display: none; }
 
         /* Payment Method Section */
@@ -1209,6 +1211,8 @@
             <div class="modal-footer">
                 <button class="btn btn-outline close-btn"><i class="fas fa-times"></i> </button>
                 <button id="print-po-btn" class="btn btn-primary"><i class="fas fa-print"></i> Print</button>
+                <!-- TOMBOL WHATSAPP BARU -->
+                <button id="share-whatsapp-btn" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Bagikan ke WhatsApp</button>
             </div>
         </div>
     </div>
@@ -1421,9 +1425,9 @@
         </div>
     </div>
     <!-- !!! AKHIR DARI KODE BARU !!! -->
-
+ 
     <script>
-    // Self-executing anonymous function to encapsulate code
+    // Self-executing anonymous function to encapsulate code 
     (function() {
         // Webhook URLs
         const WH_GET_ITEMS = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/ambildarisheet';
@@ -1435,7 +1439,7 @@
         const WH_EDIT_ITEM = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/status_edit';
         const WH_GET_HISTORY = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/history-formpembelian';
         const WH_DELETE_HISTORY = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/delete-historyformpembelian';
-        const WH_DELETE_DRAFT = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/delete-draft';
+        const WH_DELETE_DRAFT = 'https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/delete-draft'; 
 
         let state = {
             currentStep: 1, 
@@ -1595,6 +1599,9 @@
 
             // Print PO Sheet - PERBAIKAN: Tombol print dipindah ke modal footer
             byId('print-po-btn').addEventListener('click', printPOSheet);
+
+            // !!! TOMBOL WHATSAPP BARU !!!
+            byId('share-whatsapp-btn').addEventListener('click', shareToWhatsApp);
 
             // !!! PENAMBAHAN UNTUK TOMBOL PANDUAN !!!
             byId('show-guide-btn').addEventListener('click', () => {
@@ -2440,6 +2447,49 @@
             printWindow.document.close();
         }
 
+        // !!! FUNGSI BARU UNTUK SHARE KE WHATSAPP !!!
+        function shareToWhatsApp() {
+            const supplier = state.allSuppliers.find(s => s.id_supplier === byId('supplier').value);
+            if (!supplier) { 
+                showNotification('Supplier tidak ditemukan', 'error');
+                return; 
+            }
+            
+            const poDate = new Date(byId('purchase-date').value).toLocaleDateString('id-ID', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+            
+            // Format pesan sesuai permintaan
+            let message = `PURCHASE ORDER\n`;
+            message += `Masa Muda Coffee and Space\n`;
+            message += `No. PO: ${byId('po-number').value || 'Tidak tersedia'}\n`;
+            message += `Tanggal: ${poDate}\n\n`;
+            
+            message += `Kepada:\n`;
+            message += `${supplier.nama_supplier || ''}\n`;
+            message += `${supplier.alamat_supplier || ''}\n\n`;
+            
+            message += `Daftar Item:\n`;
+            state.cart.forEach((item, index) => {
+                message += `${index + 1}. ${item.name} - ${item.quantity} ${item.unit || ''}\n`;
+            });
+            
+            const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            message += `\nTotal: ${formatCurrency(total)}\n\n`;
+            message += `Terima kasih atas kerja samanya.`;
+            
+            // Encode message untuk URL
+            const encodedMessage = encodeURIComponent(message);
+            
+            // Buka WhatsApp dengan pesan yang sudah terisi
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+            
+            showNotification('Membuka WhatsApp...', 'info');
+        }
+
         // --- Submit Purchase ---
         async function submitPurchase() {
             const telegramId = getTelegramId();
@@ -2928,7 +2978,7 @@
                     fetchHistory(); // Refresh data history
                 } else {
                     showNotification('Gagal menghapus data', 'error');
-                console.error('Delete failed:', result);
+                    console.error('Delete failed:', result);
                 }
             } catch (error) {
                 showNotification('Gagal menghapus data: ' + error.message, 'error');
@@ -3019,7 +3069,7 @@ Metode Bayar: ${getPaymentMethodText(item.paymentMethod)}
 Status: ${item.paymentStatus === 'paid' ? 'LUNAS' : 'PENDING'}
 
 Items:
-${itemsList}
+${itemsList} 
 
 Total: ${formatCurrency(calculateTotal(items))}
             `;
