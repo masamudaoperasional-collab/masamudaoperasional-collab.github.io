@@ -2447,48 +2447,46 @@
             printWindow.document.close();
         }
 
-        // !!! FUNGSI BARU UNTUK SHARE KE WHATSAPP !!!
-        function shareToWhatsApp() {
-            const supplier = state.allSuppliers.find(s => s.id_supplier === byId('supplier').value);
-            if (!supplier) { 
-                showNotification('Supplier tidak ditemukan', 'error');
-                return; 
-            }
-            
-            const poDate = new Date(byId('purchase-date').value).toLocaleDateString('id-ID', { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric' 
-            });
-            
-            // Format pesan sesuai permintaan
-            let message = `PURCHASE ORDER\n`;
-            message += `Masa Muda Coffee and Space\n`;
-            message += `No. PO: ${byId('po-number').value || 'Tidak tersedia'}\n`;
-            message += `Tanggal: ${poDate}\n\n`;
-            
-            message += `Kepada:\n`;
-            message += `${supplier.nama_supplier || ''}\n`;
-            message += `${supplier.alamat_supplier || ''}\n\n`;
-            
-            message += `Daftar Item:\n`;
-            state.cart.forEach((item, index) => {
-                message += `${index + 1}. ${item.name} - ${item.quantity} ${item.unit || ''}\n`;
-            });
-            
-            const total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            message += `\nTotal: ${formatCurrency(total)}\n\n`;
-            message += `Terima kasih atas kerja samanya.`;
-            
-            // Encode message untuk URL
-            const encodedMessage = encodeURIComponent(message);
-            
-            // Buka WhatsApp dengan pesan yang sudah terisi
-            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-            window.open(whatsappUrl, '_blank');
-            
-            showNotification('Membuka WhatsApp...', 'info');
-        }
+// !!! FUNGSI BARU UNTUK SHARE KE WHATSAPP !!!
+function shareToWhatsApp() {
+    const supplier = state.allSuppliers.find(s => s.id_supplier === byId('supplier').value);
+    if (!supplier) { 
+        showNotification('Supplier tidak ditemukan', 'error');
+        return; 
+    }
+    
+    const poDate = new Date(byId('purchase-date').value).toLocaleDateString('id-ID', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+    });
+    
+    // Format pesan sesuai permintaan
+    let message = `PURCHASE ORDER\n`;
+    message += `Masa Muda Coffee and Space\n`;
+    message += `No. PO: ${byId('po-number').value || 'Tidak tersedia'}\n`;
+    message += `Tanggal: ${poDate}\n\n`;
+    
+    message += `Kepada:\n`;
+    message += `${supplier.nama_supplier || ''}\n`;
+    message += `${supplier.alamat_supplier || ''}\n\n`;
+    
+    message += `Daftar Item:\n`;
+    state.cart.forEach((item, index) => {
+        message += `${index + 1}. ${item.name} - ${item.quantity} ${item.unit || ''}\n`;
+    });
+    
+    message += `\nTerima kasih atas kerja samanya.`;
+    
+    // Encode message untuk URL
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Buka WhatsApp dengan pesan yang sudah terisi
+    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+    
+    showNotification('Membuka WhatsApp...', 'info');
+}
 
         // --- Submit Purchase ---
         async function submitPurchase() {
