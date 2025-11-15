@@ -32,8 +32,7 @@
     
     /* Main App Section */
     #mainApp{display:none;}
-    .card{background:#fff;border-radius:16px;padding:25px;box-shadow:0 5px 15px rgba(0,0,0,.05);position:relative;}
-    .dw-toggle{position:absolute;width:15%;top:20px;right:20px;border:none;border-radius:9px;box-shadow:0 5px 15px rgba(0,0,0,.05);font-size:17px;color:#fff;cursor:pointer;padding:5px;background:#A8A4A0;}
+    .card{background:#fff;border-radius:16px;padding:25px;box-shadow:0 5px 15px rgba(0,0,0,.05);}
     .card-title{font-size:20px;color:#333;margin-bottom:20px;text-align:center;font-weight:500;}
     .user-info{background:#f0f3f5;border-radius:10px;padding:15px;margin-bottom:20px;text-align:center;position:relative;}
     .user-name{font-size:18px;font-weight:500;color:#7c895d;}
@@ -72,12 +71,6 @@
     .btn-confirm{background:#7c895d;color:#fff;}
     .btn-confirm:hover{background:#6a7850;}
     
-    /* DW Section */
-    .dw-section{margin-top:25px;padding:20px;background:#f8f9fa;border-radius:10px;display:none;}
-    .dw-title{font-size:18px;color:#333;margin-bottom:15px;text-align:center;font-weight:500;}
-    .payment-buttons{display:flex;gap:12px;margin-bottom:15px;}
-    .payment-btn{flex:1;padding:12px;border:1px solid #dee2e6;border-radius:8px;font-size:14px;background:#fff;cursor:pointer;transition:.3s;font-weight:400;}
-    .payment-btn.active{background:#7c895d;color:#fff;border-color:#7c895d;}
     .footer{text-align:center;margin-top:25px;color:#6c757d;font-size:14px;}
     
     /* Logout Modal */
@@ -150,7 +143,6 @@
     <!-- Main App Section -->
     <div id="mainApp">
       <div class="card">
-        <button class="dw-toggle" id="dwToggle">DW</button>
         <h2 class="card-title">Absensi Karyawan</h2>
         <div class="user-info">
           <div class="user-name" id="userName">-</div>
@@ -170,13 +162,6 @@
         </div>
         <button class="btn-record" id="btnRecord" disabled>Rekam Absen</button>
         <div class="msg" id="msg"></div>
-        <div class="dw-section" id="dwSection">
-          <h3 class="dw-title">Keterangan Terima Pembayaran</h3>
-          <div class="payment-buttons">
-            <button class="payment-btn" id="paymentSudah">Sudah</button>
-            <button class="payment-btn" id="paymentBelum">Belum</button>
-          </div>
-        </div>
       </div>
       <div class="footer">&copy; 2024 masa.muda - All rights reserved</div>
     </div>
@@ -220,7 +205,7 @@
           <button class="btn-back" id="backToAttendance">Kembali ke Absensi</button>
           <button class="btn-whatsapp" id="shareToWhatsapp" disabled>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893 c0 11.89-5.335 11.888-11.893 11.888"/>
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893c0-3.176-1.24-6.165-3.495-8.411"/>
             </svg>
             Bagikan ke WhatsApp
           </button>
@@ -263,7 +248,6 @@
     const RADIUS_METERS = 100;
     const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/attendance-receiver";
     const LOGOUT_PASSWORD = "masamuda2024";
-    const WHATSAPP_NUMBER = "6281234567890"; // Ganti dengan nomor WhatsApp tujuan
     
     // ==================== SESSION MANAGER ====================
     class SessionManager {
@@ -414,7 +398,7 @@
 
     // ==================== ATTENDANCE SYSTEM ====================
     const sessionManager = new SessionManager();
-    let userLocation = null, selectedShift = "", currentDistance = 0, paymentStatus = "";
+    let userLocation = null, selectedShift = "", currentDistance = 0;
 
     // DOM Elements
     const msgEl = document.getElementById("msg"),
@@ -423,10 +407,6 @@
           userName = document.getElementById("userName"),
           deviceInfo = document.getElementById("deviceInfo"),
           btnRecord = document.getElementById("btnRecord"),
-          dwToggle = document.getElementById("dwToggle"),
-          dwSection = document.getElementById("dwSection"),
-          paymentSudah = document.getElementById("paymentSudah"),
-          paymentBelum = document.getElementById("paymentBelum"),
           loginSection = document.getElementById("loginSection"),
           mainApp = document.getElementById("mainApp"),
           employeeSelect = document.getElementById("employeeSelect"),
@@ -530,8 +510,7 @@
         <div class="review-item"><div class="review-label">Waktu:</div><div class="review-value">${new Date().toLocaleString()}</div></div>
         <div class="review-item"><div class="review-label">Jarak:</div><div class="review-value">${Math.round(currentDistance)} meter</div></div>
         <div class="review-item"><div class="review-label">Status Lokasi:</div><div class="review-value">${currentDistance <= RADIUS_METERS ? 'VALID' : 'TIDAK VALID'}</div></div>
-        <div class="review-item"><div class="review-label">Device ID:</div><div class="review-value">${currentSession.deviceId}</div></div>
-        <div class="review-item"><div class="review-label">Pembayaran:</div><div class="review-value">${paymentStatus || "---"}</div></div>`;
+        <div class="review-item"><div class="review-label">Device ID:</div><div class="review-value">${currentSession.deviceId}</div></div>`;
       
       locationStatusReview.innerHTML = `<div class="${statusClass}">${statusLokasiTxt}</div>`;
       document.getElementById("reviewModal").style.display = "flex";
@@ -543,12 +522,6 @@
       document.getElementById("shiftClosing").classList.remove("active");
       document.getElementById("shift" + s).classList.add("active");
       if (userLocation) btnRecord.disabled = false;
-    }
-
-    function selectPaymentStatus(s) {
-      paymentStatus = s;
-      paymentSudah.classList.toggle("active", s === "Sudah");
-      paymentBelum.classList.toggle("active", s === "Belum");
     }
 
     // ==================== REPORTING FUNCTIONS ====================
@@ -677,15 +650,14 @@
 
     function shareToWhatsApp() {
       const message = generateWhatsAppMessage();
-      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
       
-      // Buka WhatsApp di tab baru
+      // Buka WhatsApp tanpa nomor tujuan (user pilih kontak manual)
+      const whatsappUrl = `https://wa.me/?text=${message}`;
+      
       window.open(whatsappUrl, '_blank');
       
-      // Tampilkan konfirmasi
-      showMessage("✅ Membuka WhatsApp... Silakan kirim laporan ke grup yang ditentukan", "success");
+      showMessage("✅ Membuka WhatsApp... Silakan pilih kontak tujuan untuk mengirim laporan", "success");
       
-      // Kembali ke halaman absensi setelah 3 detik
       setTimeout(() => {
         reportingSection.style.display = 'none';
         mainApp.style.display = 'block';
@@ -697,7 +669,6 @@
       document.getElementById('cashStart').value = '';
       document.getElementById('cashNotes').value = '';
       selectedShift = "";
-      paymentStatus = "";
       
       document.getElementById("shiftPagi").classList.remove("active");
       document.getElementById("shiftClosing").classList.remove("active");
@@ -763,7 +734,6 @@
         mainApp.style.display = 'none';
         employeeSelect.value = "";
         selectedShift = "";
-        paymentStatus = "";
       } else {
         alert("Password logout salah!");
       }
@@ -809,20 +779,12 @@
         distance: Math.round(currentDistance),
         statusLokasi: statusLokasi,
         lokasi: userLocation,
-        pembayaran: paymentStatus || "---",
         loginTimestamp: currentSession.loginTimestamp
       };
       
       sendAttendance(data);
       document.getElementById("reviewModal").style.display = "none";
     };
-
-    dwToggle.onclick = () => {
-      dwSection.style.display = (dwSection.style.display === 'block' ? 'none' : 'block');
-    };
-
-    paymentSudah.onclick = () => selectPaymentStatus("Sudah");
-    paymentBelum.onclick = () => selectPaymentStatus("Belum");
 
     // Logout modal handlers
     document.getElementById("logoutCancelBtn").onclick = () => {
