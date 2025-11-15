@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Absensi - masa.muda</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* CSS existing Anda tetap sama, tambahan untuk login section */
+    * {margin:0;padding:0;box-sizing:border-box;}
+    @font-face {
+      font-family: 'Bristol';
+      src: url('https://fonts.cdnfonts.com/s/85309/Bristol.woff') format('woff');
+      font-weight: normal;
+      font-style: italic;
+    }
+    body{font-family:'Poppins',sans-serif;background:#f8f9fa;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;color:#333;line-height:1.5;}
+    .container{width:100%;max-width:450px;}
+    .header{text-align:center;margin-bottom:25px;}
+    .logo{font-family:'Poppins',sans-serif;font-size:36px;color:#7c895d;margin-bottom:5px;font-weight:500;letter-spacing:1px;}
+    .subtitle{color:#6c757d;font-size:15px;font-weight:400;}
+    
+    /* Login Section */
+    .login-section{display:block;}
+    .login-card{background:#fff;border-radius:16px;padding:25px;box-shadow:0 5px 15px rgba(0,0,0,.05);}
+    .login-title{font-size:20px;color:#333;margin-bottom:20px;text-align:center;font-weight:500;}
+    .form-group{margin-bottom:20px;}
+    .form-label{display:block;margin-bottom:8px;font-weight:500;color:#555;}
+    .form-select, .form-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;font-family:'Poppins',sans-serif;}
+    .login-btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;transition:.3s;background:#7c895d;color:#fff;margin-top:10px;}
+    .login-btn:hover{background:#6a7850;}
+    .login-btn:disabled{background:#a8b4a0;cursor:not-allowed;}
+    
+    /* Main App Section */
+    #mainApp{display:none;}
+    .card{background:#fff;border-radius:16px;padding:25px;box-shadow:0 5px 15px rgba(0,0,0,.05);position:relative;}
+    .dw-toggle{position:absolute;width:15%;top:20px;right:20px;border:none;border-radius:9px;box-shadow:0 5px 15px rgba(0,0,0,.05);font-size:17px;color:#fff;cursor:pointer;padding:5px;background:#A8A4A0;}
+    .card-title{font-size:20px;color:#333;margin-bottom:20px;text-align:center;font-weight:500;}
+    .user-info{background:#f0f3f5;border-radius:10px;padding:15px;margin-bottom:20px;text-align:center;position:relative;}
+    .user-name{font-size:18px;font-weight:500;color:#7c895d;}
+    .logout-btn{background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:5px;font-size:12px;margin-top:8px;cursor:pointer;}
+    .device-info{font-size:12px;color:#666;margin-top:5px;}
+    .shift-buttons{display:flex;gap:12px;margin-bottom:20px;}
+    .shift-btn{flex:1;padding:14px;border:1px solid #dee2e6;border-radius:10px;font-size:15px;background:#fff;cursor:pointer;transition:.3s;font-weight:400;}
+    .shift-btn.active{background:#7c895d;color:#fff;border-color:#7c895d;}
+    .location-info{background:#f0f7f0;border-radius:10px;padding:15px;margin-bottom:20px;font-size:14px;}
+    .location-status{display:flex;align-items:center;margin-bottom:8px;}
+    .location-icon{margin-right:10px;font-size:16px;color:#7c895d;}
+    .distance-info{font-weight:500;margin-top:8px;padding-top:8px;border-top:1px dashed #ccc;}
+    .btn-record{width:100%;padding:16px;border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;transition:.3s;background:#7c895d;color:#fff;margin-top:10px;}
+    .btn-record:hover{background:#6a7850;}
+    .btn-record:disabled{background:#a8b4a0;cursor:not-allowed;}
+    .msg{margin-top:20px;padding:12px 16px;border-radius:8px;text-align:center;font-weight:500;display:none;}
+    .msg.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;display:block;}
+    .msg.error{background:#ffebee;color:#c62828;border:1px solid #ffcdd2;display:block;}
+    .msg.info{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;display:block;}
+    
+    /* Modal */
+    .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px;}
+    .modal-content{background:#fff;border-radius:16px;padding:25px;width:100%;max-width:400px;box-shadow:0 10px 25px rgba(0,0,0,.1);}
+    .modal-title{font-size:20px;color:#333;margin-bottom:20px;text-align:center;font-weight:500;}
+    .review-item{margin-bottom:12px;display:flex;}
+    .review-label{font-weight:500;width:100px;color:#6c757d;}
+    .review-value{flex:1;color:#333;}
+    .location-status-review{margin-top:15px;padding:12px;border-radius:8px;text-align:center;font-weight:500;}
+    .location-valid{background:#e8f5e9;color:#2e7d32;}
+    .location-invalid{background:#ffebee;color:#c62828;}
+    .modal-buttons{display:flex;gap:12px;margin-top:25px;}
+    .modal-buttons button{flex:1;padding:14px;border-radius:10px;font-weight:500;border:none;cursor:pointer;transition:.3s;}
+    .btn-cancel{background:#f5f5f5;color:#666;}
+    .btn-cancel:hover{background:#e0e0e0;}
+    .btn-confirm{background:#7c895d;color:#fff;}
+    .btn-confirm:hover{background:#6a7850;}
+    
+    /* DW Section */
+    .dw-section{margin-top:25px;padding:20px;background:#f8f9fa;border-radius:10px;display:none;}
+    .dw-title{font-size:18px;color:#333;margin-bottom:15px;text-align:center;font-weight:500;}
+    .payment-buttons{display:flex;gap:12px;margin-bottom:15px;}
+    .payment-btn{flex:1;padding:12px;border:1px solid #dee2e6;border-radius:8px;font-size:14px;background:#fff;cursor:pointer;transition:.3s;font-weight:400;}
+    .payment-btn.active{background:#7c895d;color:#fff;border-color:#7c895d;}
+    .footer{text-align:center;margin-top:25px;color:#6c757d;font-size:14px;}
+    
+    /* Logout Modal */
+    .logout-modal .modal-content{max-width:350px;}
+    .password-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;margin-bottom:15px;font-family:'Poppins',sans-serif;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">masa.muda</div>
+      <div class="subtitle">Sistem Absensi Karyawan</div>
+    </div>
+
+    <!-- Login Section -->
+    <div class="login-section" id="loginSection">
+      <div class="login-card">
+        <h2 class="login-title">Login Absensi</h2>
+        <div class="form-group">
+          <label class="form-label">Pilih Karyawan</label>
+          <select class="form-select" id="employeeSelect">
+            <option value="">Pilih nama Anda</option>
+            <option value="EMP001">Ahmad Wijaya</option>
+            <option value="EMP002">Siti Nurhaliza</option>
+            <option value="EMP003">Budi Santoso</option>
+            <option value="EMP004">Dewi Lestari</option>
+            <option value="EMP005">Rina Melati</option>
+          </select>
+        </div>
+        <button class="login-btn" id="loginBtn">Masuk ke Sistem</button>
+      </div>
+    </div>
+
+    <!-- Main App Section -->
+    <div id="mainApp">
+      <div class="card">
+        <button class="dw-toggle" id="dwToggle">DW</button>
+        <h2 class="card-title">Absensi Karyawan</h2>
+        <div class="user-info">
+          <div class="user-name" id="userName">-</div>
+          <div class="device-info" id="deviceInfo"></div>
+          <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+        <div class="shift-buttons">
+          <button class="shift-btn" id="shiftPagi">Shift Pagi</button>
+          <button class="shift-btn" id="shiftClosing">Shift Closing</button>
+        </div>
+        <div class="location-info">
+          <div class="location-status">
+            <span class="location-icon">📍</span>
+            <span id="locationStatus">Mendapatkan lokasi...</span>
+          </div>
+          <div class="distance-info" id="distanceInfo"></div>
+        </div>
+        <button class="btn-record" id="btnRecord" disabled>Rekam Absen</button>
+        <div class="msg" id="msg"></div>
+        <div class="dw-section" id="dwSection">
+          <h3 class="dw-title">Keterangan Terima Pembayaran</h3>
+          <div class="payment-buttons">
+            <button class="payment-btn" id="paymentSudah">Sudah</button>
+            <button class="payment-btn" id="paymentBelum">Belum</button>
+          </div>
+        </div>
+      </div>
+      <div class="footer">&copy; 2024 masa.muda - All rights reserved</div>
+    </div>
+  </div>
+
+  <!-- Modal Review Absensi -->
+  <div class="modal" id="reviewModal">
+    <div class="modal-content">
+      <h3 class="modal-title">Konfirmasi Absensi</h3>
+      <div id="reviewText"></div>
+      <div id="locationStatusReview"></div>
+      <div class="modal-buttons">
+        <button class="btn-cancel" id="cancelBtn">Batal</button>
+        <button class="btn-confirm" id="confirmBtn">Rekam Absen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Logout Confirmation -->
+  <div class="modal logout-modal" id="logoutModal">
+    <div class="modal-content">
+      <h3 class="modal-title">Konfirmasi Logout</h3>
+      <p style="margin-bottom:15px;text-align:center;">Masukkan password untuk logout:</p>
+      <input type="password" class="password-input" id="logoutPassword" placeholder="Password logout">
+      <div class="modal-buttons">
+        <button class="btn-cancel" id="logoutCancelBtn">Batal</button>
+        <button class="btn-confirm" id="logoutConfirmBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== CONFIGURATION ====================
+    const OFFICE_LAT = -6.6049869170401125;
+    const OFFICE_LON = 106.77342191765905;
+    const RADIUS_METERS = 100;
+    const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver";
+    const LOGOUT_PASSWORD = "masamuda2024"; // Password sederhana untuk logout
+    
+    // ==================== SESSION MANAGER ====================
+    class SessionManager {
+      constructor() {
+        this.SESSION_KEY = 'attendance_session';
+        this.DEVICE_KEY = 'attendance_device_id';
+        this.EXPIRY_DAYS = 30;
+      }
+
+      saveSession(employeeData) {
+        const sessionData = {
+          employeeId: employeeData.id,
+          employeeName: employeeData.name,
+          deviceId: this.getOrCreateDeviceId(),
+          deviceFingerprint: this.generateDeviceFingerprint(),
+          loginTimestamp: new Date().toISOString(),
+          sessionExpiry: new Date(Date.now() + (this.EXPIRY_DAYS * 24 * 60 * 60 * 1000)).toISOString()
+        };
+        
+        localStorage.setItem(this.SESSION_KEY, JSON.stringify(sessionData));
+        return sessionData;
+      }
+
+      getCurrentSession() {
+        const sessionStr = localStorage.getItem(this.SESSION_KEY);
+        if (!sessionStr) return null;
+        
+        try {
+          const session = JSON.parse(sessionStr);
+          if (new Date(session.sessionExpiry) < new Date()) {
+            this.clearSession();
+            return null;
+          }
+          return session;
+        } catch (e) {
+          this.clearSession();
+          return null;
+        }
+      }
+
+      clearSession() {
+        localStorage.removeItem(this.SESSION_KEY);
+        // Note: deviceId tetap disimpan untuk consistency
+      }
+
+      getOrCreateDeviceId() {
+        let deviceId = localStorage.getItem(this.DEVICE_KEY);
+        if (!deviceId) {
+          deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem(this.DEVICE_KEY, deviceId);
+        }
+        return deviceId;
+      }
+
+      generateDeviceFingerprint() {
+        const components = [
+          navigator.userAgent,
+          navigator.language,
+          navigator.hardwareConcurrency || 'unknown',
+          screen.width + 'x' + screen.height,
+          new Date().getTimezoneOffset(),
+          navigator.platform
+        ];
+        return btoa(components.join('|'));
+      }
+    }
+
+    // ==================== ATTENDANCE SYSTEM ====================
+    const sessionManager = new SessionManager();
+    let userLocation = null, selectedShift = "", currentDistance = 0, paymentStatus = "";
+
+    // DOM Elements
+    const msgEl = document.getElementById("msg"),
+          locationStatus = document.getElementById("locationStatus"),
+          distanceInfo = document.getElementById("distanceInfo"),
+          userName = document.getElementById("userName"),
+          deviceInfo = document.getElementById("deviceInfo"),
+          btnRecord = document.getElementById("btnRecord"),
+          dwToggle = document.getElementById("dwToggle"),
+          dwSection = document.getElementById("dwSection"),
+          paymentSudah = document.getElementById("paymentSudah"),
+          paymentBelum = document.getElementById("paymentBelum"),
+          loginSection = document.getElementById("loginSection"),
+          mainApp = document.getElementById("mainApp"),
+          employeeSelect = document.getElementById("employeeSelect"),
+          loginBtn = document.getElementById("loginBtn"),
+          logoutBtn = document.getElementById("logoutBtn");
+
+    // Geolocation Functions
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const toRad = x => x * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function getLocation() {
+      if (!navigator.geolocation) {
+        locationStatus.textContent = "Browser tidak mendukung geolokasi.";
+        return;
+      }
+      
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          currentDistance = getDistance(OFFICE_LAT, OFFICE_LON, userLocation.lat, userLocation.lng);
+          locationStatus.textContent = "Lokasi berhasil didapatkan";
+          distanceInfo.textContent = `Jarak dari masa.muda: ${Math.round(currentDistance)} meter`;
+          distanceInfo.style.color = (currentDistance <= RADIUS_METERS ? '#2e7d32' : '#c62828');
+          if (selectedShift) btnRecord.disabled = false;
+        },
+        err => {
+          locationStatus.textContent = 'Gagal mendapatkan lokasi.';
+          const saved = localStorage.getItem('userLocation');
+          if (saved) {
+            userLocation = JSON.parse(saved);
+            currentDistance = getDistance(OFFICE_LAT, OFFICE_LON, userLocation.lat, userLocation.lng);
+            distanceInfo.textContent = `Jarak dari kantor: ${Math.round(currentDistance)} meter`;
+            distanceInfo.style.color = (currentDistance <= RADIUS_METERS ? '#2e7d32' : '#c62828');
+            if (selectedShift) btnRecord.disabled = false;
+          }
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+      );
+    }
+
+    // Attendance Functions
+    function sendAttendance(data) {
+      showMessage("Mengirim data absensi...", "info");
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(r => {
+        if (r.ok) {
+          showMessage("Absensi berhasil dikirim!", "success");
+        } else {
+          showMessage("Gagal mengirim absensi.", "error");
+        }
+      })
+      .catch(err => {
+        showMessage("Error koneksi.", "error");
+      });
+    }
+
+    function showMessage(msg, type) {
+      msgEl.textContent = msg;
+      msgEl.className = "msg " + type;
+    }
+
+    function showReview() {
+      const reviewText = document.getElementById("reviewText"),
+            locationStatusReview = document.getElementById("locationStatusReview");
+      
+      const currentSession = sessionManager.getCurrentSession();
+      let statusLokasiTxt = "", statusClass = "";
+      
+      if (currentDistance <= RADIUS_METERS) {
+        statusLokasiTxt = "Lokasi sesuai untuk absensi";
+        statusClass = "location-status-review location-valid";
+      } else {
+        statusLokasiTxt = "Lokasi tidak sesuai";
+        statusClass = "location-status-review location-invalid";
+      }
+      
+      reviewText.innerHTML = `
+        <div class="review-item"><div class="review-label">ID:</div><div class="review-value">${currentSession.employeeId}</div></div>
+        <div class="review-item"><div class="review-label">Nama:</div><div class="review-value">${currentSession.employeeName}</div></div>
+        <div class="review-item"><div class="review-label">Shift:</div><div class="review-value">${selectedShift}</div></div>
+        <div class="review-item"><div class="review-label">Waktu:</div><div class="review-value">${new Date().toLocaleString()}</div></div>
+        <div class="review-item"><div class="review-label">Jarak:</div><div class="review-value">${Math.round(currentDistance)} meter</div></div>
+        <div class="review-item"><div class="review-label">Device ID:</div><div class="review-value">${currentSession.deviceId}</div></div>
+        <div class="review-item"><div class="review-label">Pembayaran:</div><div class="review-value">${paymentStatus || "---"}</div></div>`;
+      
+      locationStatusReview.innerHTML = `<div class="${statusClass}">${statusLokasiTxt}</div>`;
+      document.getElementById("reviewModal").style.display = "flex";
+    }
+
+    function selectShift(s) {
+      selectedShift = s;
+      document.getElementById("shiftPagi").classList.remove("active");
+      document.getElementById("shiftClosing").classList.remove("active");
+      document.getElementById("shift" + s).classList.add("active");
+      if (userLocation) btnRecord.disabled = false;
+    }
+
+    function selectPaymentStatus(s) {
+      paymentStatus = s;
+      paymentSudah.classList.toggle("active", s === "Sudah");
+      paymentBelum.classList.toggle("active", s === "Belum");
+    }
+
+    // Login/Logout Functions
+    function initializeApp() {
+      const currentSession = sessionManager.getCurrentSession();
+      
+      if (currentSession) {
+        // Auto-login dengan session existing
+        handleAutoLogin(currentSession);
+      } else {
+        // Tampilkan login section
+        loginSection.style.display = 'block';
+        mainApp.style.display = 'none';
+      }
+    }
+
+    function handleAutoLogin(session) {
+      loginSection.style.display = 'none';
+      mainApp.style.display = 'block';
+      
+      userName.textContent = session.employeeName;
+      deviceInfo.textContent = `Device: ${session.deviceId.substring(0, 10)}...`;
+      
+      console.log(`Auto-login sebagai: ${session.employeeName}`);
+      getLocation(); // Initialize location setelah login
+    }
+
+    function handleManualLogin() {
+      const selectedEmployeeId = employeeSelect.value;
+      if (!selectedEmployeeId) {
+        alert("Silakan pilih karyawan terlebih dahulu");
+        return;
+      }
+
+      const employees = {
+        'EMP001': { id: 'EMP001', name: 'Ahmad Wijaya' },
+        'EMP002': { id: 'EMP002', name: 'Siti Nurhaliza' },
+        'EMP003': { id: 'EMP003', name: 'Budi Santoso' },
+        'EMP004': { id: 'EMP004', name: 'Dewi Lestari' },
+        'EMP005': { id: 'EMP005', name: 'Rina Melati' }
+      };
+
+      const employeeData = employees[selectedEmployeeId];
+      if (employeeData) {
+        const session = sessionManager.saveSession(employeeData);
+        handleAutoLogin(session);
+      }
+    }
+
+    function showLogoutModal() {
+      document.getElementById("logoutPassword").value = "";
+      document.getElementById("logoutModal").style.display = "flex";
+    }
+
+    function handleLogout() {
+      const password = document.getElementById("logoutPassword").value;
+      if (password === LOGOUT_PASSWORD) {
+        sessionManager.clearSession();
+        document.getElementById("logoutModal").style.display = "none";
+        loginSection.style.display = 'block';
+        mainApp.style.display = 'none';
+        // Reset form
+        employeeSelect.value = "";
+        selectedShift = "";
+        paymentStatus = "";
+      } else {
+        alert("Password logout salah!");
+      }
+    }
+
+    // Event Listeners
+    window.addEventListener('load', initializeApp);
+
+    loginBtn.addEventListener('click', handleManualLogin);
+    logoutBtn.addEventListener('click', showLogoutModal);
+
+    document.getElementById("shiftPagi").onclick = () => selectShift("Pagi");
+    document.getElementById("shiftClosing").onclick = () => selectShift("Closing");
+    
+    document.getElementById("btnRecord").onclick = () => {
+      if (!selectedShift) {
+        showMessage("Pilih shift dulu", "error");
+        return;
+      }
+      if (!userLocation) {
+        showMessage("Lokasi tidak tersedia", "error");
+        return;
+      }
+      showReview();
+    };
+
+    document.getElementById("cancelBtn").onclick = () => {
+      document.getElementById("reviewModal").style.display = "none";
+    };
+
+    document.getElementById("confirmBtn").onclick = () => {
+      const currentSession = sessionManager.getCurrentSession();
+      const statusLokasi = (currentDistance <= RADIUS_METERS) ? "Valid" : "Invalid";
+      
+      const data = {
+        id: currentSession.employeeId,
+        nama: currentSession.employeeName,
+        deviceId: currentSession.deviceId,
+        deviceFingerprint: currentSession.deviceFingerprint,
+        shift: selectedShift,
+        tipe: "selesai",
+        datetime: new Date().toISOString(),
+        distance: Math.round(currentDistance),
+        statusLokasi: statusLokasi,
+        lokasi: userLocation,
+        pembayaran: paymentStatus || "---",
+        loginTimestamp: currentSession.loginTimestamp
+      };
+      
+      sendAttendance(data);
+      document.getElementById("reviewModal").style.display = "none";
+    };
+
+    dwToggle.onclick = () => {
+      dwSection.style.display = (dwSection.style.display === 'block' ? 'none' : 'block');
+    };
+
+    paymentSudah.onclick = () => selectPaymentStatus("Sudah");
+    paymentBelum.onclick = () => selectPaymentStatus("Belum");
+
+    // Logout modal handlers
+    document.getElementById("logoutCancelBtn").onclick = () => {
+      document.getElementById("logoutModal").style.display = "none";
+    };
+
+    document.getElementById("logoutConfirmBtn").onclick = handleLogout;
+
+    // Enter key untuk logout password
+    document.getElementById("logoutPassword").addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleLogout();
+      }
+    });
+  </script>
+</body>
+</html>
