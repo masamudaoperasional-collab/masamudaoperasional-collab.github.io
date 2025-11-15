@@ -6,7 +6,6 @@
   <title>Absensi - masa.muda</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    /* CSS existing Anda tetap sama, tambahan untuk login section */
     * {margin:0;padding:0;box-sizing:border-box;}
     @font-face {
       font-family: 'Bristol';
@@ -54,6 +53,7 @@
     .msg.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;display:block;}
     .msg.error{background:#ffebee;color:#c62828;border:1px solid #ffcdd2;display:block;}
     .msg.info{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;display:block;}
+    .msg.warning{background:#fff3e0;color:#ef6c00;border:1px solid #ffcc80;display:block;}
     
     /* Modal */
     .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px;}
@@ -83,6 +83,42 @@
     /* Logout Modal */
     .logout-modal .modal-content{max-width:350px;}
     .password-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;margin-bottom:15px;font-family:'Poppins',sans-serif;}
+    
+    /* Reporting Section */
+    .reporting-section { display: none; }
+    .reporting-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,.05); }
+    .reporting-title { font-size: 20px; color: #333; margin-bottom: 20px; text-align: center; font-weight: 500; }
+    .shift-info { background: #f0f7f0; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center; }
+    .shift-type { font-size: 18px; font-weight: 500; color: #7c895d; }
+    
+    /* Task Checklist */
+    .task-section { margin-bottom: 25px; }
+    .task-title { font-size: 16px; font-weight: 500; color: #333; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #7c895d; }
+    .task-list { list-style: none; }
+    .task-item { margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #dee2e6; }
+    .task-item.checked { background: #e8f5e9; border-left-color: #4caf50; }
+    .task-checkbox { margin-right: 10px; transform: scale(1.2); }
+    .task-label { font-size: 14px; cursor: pointer; }
+    
+    /* Cash Drawer Section */
+    .cash-section { background: #fff3e0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    .cash-title { font-size: 16px; font-weight: 500; color: #e65100; margin-bottom: 15px; }
+    .cash-input-group { margin-bottom: 12px; }
+    .cash-label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; font-size: 14px; }
+    .cash-input { width: 100%; padding: 10px; border: 1px solid #ffcc80; border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; }
+    
+    /* Action Buttons */
+    .action-buttons { display: flex; gap: 12px; margin-top: 25px; }
+    .btn-back { flex: 1; padding: 14px; border: 1px solid #7c895d; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; transition: .3s; background: #fff; color: #7c895d; }
+    .btn-back:hover { background: #f8f9fa; }
+    .btn-whatsapp { flex: 2; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; transition: .3s; background: #25D366; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-whatsapp:hover { background: #128C7E; }
+    .btn-whatsapp:disabled { background: #a8b4a0; cursor: not-allowed; }
+    
+    /* Progress Info */
+    .progress-info { background: #e3f2fd; border-radius: 8px; padding: 12px; margin-bottom: 15px; text-align: center; font-size: 14px; }
+    .progress-bar { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+    .progress-fill { height: 100%; background: #4caf50; border-radius: 4px; transition: width 0.3s ease; }
   </style>
 </head>
 <body>
@@ -144,6 +180,54 @@
       </div>
       <div class="footer">&copy; 2024 masa.muda - All rights reserved</div>
     </div>
+
+    <!-- Reporting Section -->
+    <div class="reporting-section" id="reportingSection">
+      <div class="reporting-card">
+        <h2 class="reporting-title">Laporan Shift Harian</h2>
+        
+        <div class="shift-info">
+          <div class="shift-type" id="currentShiftType">Shift Pagi</div>
+          <div style="font-size: 14px; color: #666; margin-top: 5px;" id="reportingEmployee">Ahmad Wijaya</div>
+        </div>
+
+        <!-- Progress Info -->
+        <div class="progress-info">
+          <div id="progressText">Progress: 0/0 task (0%)</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+          <div style="font-size: 12px; color: #666;">Minimal 80% task harus diselesaikan</div>
+        </div>
+
+        <!-- Cash Drawer Information -->
+        <div class="cash-section">
+          <h3 class="cash-title">💰 Informasi Cash Drawer</h3>
+          <div class="cash-input-group">
+            <label class="cash-label">Cash Awal Shift (Opsional)</label>
+            <input type="number" class="cash-input" id="cashStart" placeholder="Masukkan jumlah cash awal shift">
+          </div>
+          <div class="cash-input-group">
+            <label class="cash-label">Catatan Tambahan</label>
+            <input type="text" class="cash-input" id="cashNotes" placeholder="Catatan mengenai cash drawer...">
+          </div>
+        </div>
+
+        <!-- Task Checklist akan dimuat secara dinamis -->
+        <div id="taskChecklistContainer"></div>
+
+        <div class="action-buttons">
+          <button class="btn-back" id="backToAttendance">Kembali ke Absensi</button>
+          <button class="btn-whatsapp" id="shareToWhatsapp" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893 c0 11.89-5.335 11.888-11.893 11.888"/>
+            </svg>
+            Bagikan ke WhatsApp
+          </button>
+        </div>
+      </div>
+      <div class="footer">&copy; 2024 masa.muda - All rights reserved</div>
+    </div>
   </div>
 
   <!-- Modal Review Absensi -->
@@ -177,8 +261,9 @@
     const OFFICE_LAT = -6.6049869170401125;
     const OFFICE_LON = 106.77342191765905;
     const RADIUS_METERS = 100;
-    const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/attendance-receiver";
-    const LOGOUT_PASSWORD = "masamuda2024"; // Password sederhana untuk logout
+    const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/attendance-receiver";
+    const LOGOUT_PASSWORD = "masamuda2024";
+    const WHATSAPP_NUMBER = "6281234567890"; // Ganti dengan nomor WhatsApp tujuan
     
     // ==================== SESSION MANAGER ====================
     class SessionManager {
@@ -221,7 +306,6 @@
 
       clearSession() {
         localStorage.removeItem(this.SESSION_KEY);
-        // Note: deviceId tetap disimpan untuk consistency
       }
 
       getOrCreateDeviceId() {
@@ -246,6 +330,88 @@
       }
     }
 
+    // ==================== TASK DATA ====================
+    const TASK_TEMPLATES = {
+      pagi: {
+        title: "🔄 TRAVEL PATH SHIFT PAGI",
+        tasks: [
+          "Nyalain AC/kipas",
+          "Merapihkan (front of Bar) - nyalain kasir",
+          "Merapihkan (front of Bar) - tab dipastikan terisi batre",
+          "Merapihkan (front of Bar) - EDC",
+          "Merapihkan (front of Bar) - keluarin buku menu",
+          "Merapihkan (front of Bar) - display kue²",
+          "Merapihkan (front of Bar) - masang barmet²",
+          "Merapihkan (front of Bar) - cek air mesin",
+          "Merapihkan (front of Bar) - nyalain mesin",
+          "Merapihkan (front of Bar) - nyalain grinder",
+          "Merapihkan (front of Bar) - isi beans di hooper",
+          "Merapihkan (front of Bar) - menata tamper, knock box",
+          "Merapihkan (front of Bar) - pastikan kain untuk knock box kering",
+          "Merapihkan (front of Bar) - pastikan kain untuk steamer lembab (basah dikit)",
+          "Merapihkan (front of Bar) - mengisi tempat tissu",
+          "Merapihkan (front of Bar) - menata barmet & dipastikan tidak berair",
+          "Merapihkan (front of Bar) - menata powder² & dipastikan terisi",
+          "Merapihkan (front of Bar) - menata bar-set dalam knock box berisi ½ air",
+          "Merapihkan (front of Bar) - menata syrup² produksi bar & dipastikan terisi",
+          "Merapihkan (front of Bar) - memastikan Ice Cube stoknya ready di freezer",
+          "Merapihkan (front of Bar) - mengisi trashbag dalam tempat sampah",
+          "Merapihkan Toilet - mengisi trashbag ditempat sampah",
+          "Merapihkan Toilet - pastikan tissu² toilet terisi",
+          "Merapihkan Toilet - pastikan liquid handwash terisi",
+          "Merapihkan Area atas - mengisi trashbag ditempat sampah",
+          "Merapihkan Area atas - mengisi tissu multifold",
+          "Merapihkan Area atas - menata astray (usbag)",
+          "Merapihkan Area atas - turn on kipas",
+          "Merapihkan Area atas - buka jendela",
+          "Merapihkan Area atas - sapu tangga",
+          "Mengelap meja² - meja area atas",
+          "Mengelap meja² - meja area indoor",
+          "Mengelap Kaca dan cermin - kaca pintu atas",
+          "Mengelap Kaca dan cermin - cermin wastafel",
+          "Mengelap Kaca dan cermin - kaca pintu bawah",
+          "Mengelap Kaca dan cermin - kaca² jendela",
+          "Memastikan lantai bersih - lantai atas",
+          "Memastikan lantai bersih - lantai indoor",
+          "Memastikan lantai bersih - lantai bar",
+          "Memastikan lantai bersih - Lantai kamar mandi",
+          "Memastikan bahan baku/based produk ready"
+        ]
+      },
+      closing: {
+        title: "🔄 TRAVEL PATH AWAL SHIFT CLOSING",
+        tasks: [
+          "Pastikan AC/Kipas menyala",
+          "Merapihkan (front of Bar) - tab & EDC dipastikan terisi batre",
+          "Merapihkan (front of Bar) - cek air mesin",
+          "Merapihkan (front of Bar) - menata tamper, knock box",
+          "Merapihkan (front of Bar) - pastikan kain untuk knock box kering",
+          "Merapihkan (front of Bar) - pastikan kain untuk steamer lembab (basah dikit)",
+          "Merapihkan (front of Bar) - mengisi tempat tissu multifold",
+          "Merapihkan (back bar) - menata barmet & dipastikan tidak berair",
+          "Merapihkan (back bar) - menata powder² & dipastikan terisi",
+          "Merapihkan (back bar) - menata bar-set dalam knock box berisi ½ air",
+          "Merapihkan (back bar) - menata syrup² produksi bar & dipastikan terisi",
+          "Merapihkan (back bar) - PREPARE BAHAN BAKU YG MENIPIS/HABIS",
+          "Merapihkan (back bar) - mengecek stok ice cube",
+          "Merapihkan Toilet - pastikan tissu² toilet terisi",
+          "Merapihkan Toilet - pastikan liquid handwash terisi",
+          "Merapihkan Area atas - mengisi tissu multifold",
+          "Merapihkan Area atas - menata astray (usbag)",
+          "Mengelap meja² yg basah/berdebu/bercak - meja area atas",
+          "Mengelap meja² yg basah/berdebu/bercak - meja area indoor",
+          "Mengelap Kaca dan cermin - kaca pintu pertama",
+          "Mengelap Kaca dan cermin - cermin selfie",
+          "Mengelap Kaca dan cermin - kaca pintu kedua",
+          "Mengelap Kaca dan cermin - cermin wastafel samping",
+          "Memastikan lantai bersih - lantai atas",
+          "Memastikan lantai bersih - lantai indoor",
+          "Memastikan lantai bersih - lantai bar",
+          "Clear up gelas & piring jika kosong"
+        ]
+      }
+    };
+
     // ==================== ATTENDANCE SYSTEM ====================
     const sessionManager = new SessionManager();
     let userLocation = null, selectedShift = "", currentDistance = 0, paymentStatus = "";
@@ -265,7 +431,8 @@
           mainApp = document.getElementById("mainApp"),
           employeeSelect = document.getElementById("employeeSelect"),
           loginBtn = document.getElementById("loginBtn"),
-          logoutBtn = document.getElementById("logoutBtn");
+          logoutBtn = document.getElementById("logoutBtn"),
+          reportingSection = document.getElementById("reportingSection");
 
     // Geolocation Functions
     function getDistance(lat1, lon1, lat2, lon2) {
@@ -317,7 +484,16 @@
       })
       .then(r => {
         if (r.ok) {
-          showMessage("Absensi berhasil dikirim!", "success");
+          const statusLokasi = (currentDistance <= RADIUS_METERS) ? "VALID" : "TIDAK VALID";
+          const statusClass = (currentDistance <= RADIUS_METERS) ? "success" : "warning";
+          const icon = (currentDistance <= RADIUS_METERS) ? "✅" : "⚠️";
+          
+          showMessage(`${icon} Absensi berhasil dikirim! (Status: ${statusLokasi})`, statusClass);
+          
+          setTimeout(() => {
+            showReportingPage(selectedShift.toLowerCase());
+          }, 2000);
+          
         } else {
           showMessage("Gagal mengirim absensi.", "error");
         }
@@ -343,7 +519,7 @@
         statusLokasiTxt = "Lokasi sesuai untuk absensi";
         statusClass = "location-status-review location-valid";
       } else {
-        statusLokasiTxt = "Lokasi tidak sesuai";
+        statusLokasiTxt = "Lokasi tidak sesuai - Absensi tetap dapat dikirim";
         statusClass = "location-status-review location-invalid";
       }
       
@@ -353,6 +529,7 @@
         <div class="review-item"><div class="review-label">Shift:</div><div class="review-value">${selectedShift}</div></div>
         <div class="review-item"><div class="review-label">Waktu:</div><div class="review-value">${new Date().toLocaleString()}</div></div>
         <div class="review-item"><div class="review-label">Jarak:</div><div class="review-value">${Math.round(currentDistance)} meter</div></div>
+        <div class="review-item"><div class="review-label">Status Lokasi:</div><div class="review-value">${currentDistance <= RADIUS_METERS ? 'VALID' : 'TIDAK VALID'}</div></div>
         <div class="review-item"><div class="review-label">Device ID:</div><div class="review-value">${currentSession.deviceId}</div></div>
         <div class="review-item"><div class="review-label">Pembayaran:</div><div class="review-value">${paymentStatus || "---"}</div></div>`;
       
@@ -374,15 +551,166 @@
       paymentBelum.classList.toggle("active", s === "Belum");
     }
 
-    // Login/Logout Functions
+    // ==================== REPORTING FUNCTIONS ====================
+    function showReportingPage(shiftType) {
+      mainApp.style.display = 'none';
+      reportingSection.style.display = 'block';
+      
+      document.getElementById('currentShiftType').textContent = `Shift ${shiftType === 'pagi' ? 'Pagi' : 'Closing'}`;
+      
+      const currentSession = sessionManager.getCurrentSession();
+      document.getElementById('reportingEmployee').textContent = currentSession.employeeName;
+      
+      loadTaskChecklist(shiftType);
+    }
+
+    function loadTaskChecklist(shiftType) {
+      const container = document.getElementById('taskChecklistContainer');
+      const template = TASK_TEMPLATES[shiftType];
+      
+      if (!template) {
+        container.innerHTML = '<div class="msg error">Template task tidak ditemukan</div>';
+        return;
+      }
+      
+      let html = `
+        <div class="task-section">
+          <h3 class="task-title">${template.title}</h3>
+          <ul class="task-list" id="taskList">
+      `;
+      
+      template.tasks.forEach((task, index) => {
+        html += `
+          <li class="task-item" id="taskItem-${index}">
+            <input type="checkbox" class="task-checkbox" id="task-${index}" data-task="${task}">
+            <label class="task-label" for="task-${index}">${task}</label>
+          </li>
+        `;
+      });
+      
+      html += `</ul></div>`;
+      container.innerHTML = html;
+      
+      template.tasks.forEach((_, index) => {
+        document.getElementById(`task-${index}`).addEventListener('change', updateProgress);
+      });
+    }
+
+    function updateProgress() {
+      const checkboxes = document.querySelectorAll('.task-checkbox');
+      const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+      const totalCount = checkboxes.length;
+      const minRequired = Math.ceil(totalCount * 0.8);
+      const completionRate = Math.round((checkedCount / totalCount) * 100);
+      
+      const progressText = document.getElementById('progressText');
+      const progressFill = document.getElementById('progressFill');
+      const whatsappBtn = document.getElementById('shareToWhatsapp');
+      
+      progressText.textContent = `Progress: ${checkedCount}/${totalCount} task (${completionRate}%)`;
+      progressFill.style.width = `${completionRate}%`;
+      
+      if (checkedCount >= minRequired) {
+        whatsappBtn.disabled = false;
+        whatsappBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893c0-3.176-1.24-6.165-3.495-8.411"/>
+          </svg>
+          Bagikan ke WhatsApp (${checkedCount}/${totalCount})
+        `;
+      } else {
+        whatsappBtn.disabled = true;
+        whatsappBtn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893c0-3.176-1.24-6.165-3.495-8.411"/>
+          </svg>
+          Lengkapi Task (${checkedCount}/${minRequired})
+        `;
+      }
+      
+      checkboxes.forEach((checkbox, index) => {
+        const taskItem = document.getElementById(`taskItem-${index}`);
+        taskItem.classList.toggle('checked', checkbox.checked);
+      });
+    }
+
+    function generateWhatsAppMessage() {
+      const currentSession = sessionManager.getCurrentSession();
+      const checkboxes = document.querySelectorAll('.task-checkbox');
+      const completedTasks = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.getAttribute('data-task'));
+      const totalTasks = checkboxes.length;
+      const completionRate = Math.round((completedTasks.length / totalTasks) * 100);
+      
+      const cashStart = document.getElementById('cashStart').value;
+      const cashNotes = document.getElementById('cashNotes').value;
+      
+      let message = `📋 *LAPORAN SHIFT ${selectedShift.toUpperCase()} - masa.muda*\n\n`;
+      message += `👤 *Karyawan:* ${currentSession.employeeName}\n`;
+      message += `🕒 *Shift:* ${selectedShift}\n`;
+      message += `📅 *Tanggal:* ${new Date().toLocaleDateString('id-ID')}\n`;
+      message += `⏰ *Waktu:* ${new Date().toLocaleTimeString('id-ID')}\n\n`;
+      
+      message += `💰 *CASH DRAWER*\n`;
+      message += `Cash Awal: ${cashStart ? 'Rp ' + parseInt(cashStart).toLocaleString('id-ID') : 'Tidak diisi'}\n`;
+      if (cashNotes) message += `Catatan: ${cashNotes}\n`;
+      message += `\n`;
+      
+      message += `✅ *TASK COMPLETION*\n`;
+      message += `Progress: ${completedTasks.length}/${totalTasks} task (${completionRate}%)\n\n`;
+      
+      message += `📝 *TASK YANG DISELESAIKAN:*\n`;
+      completedTasks.forEach((task, index) => {
+        message += `${index + 1}. ${task}\n`;
+      });
+      
+      message += `\n`;
+      message += `📊 *SUMMARY*\n`;
+      message += `Total Task: ${totalTasks}\n`;
+      message += `Diselesaikan: ${completedTasks.length}\n`;
+      message += `Belum Selesai: ${totalTasks - completedTasks.length}\n`;
+      message += `Completion Rate: ${completionRate}%\n\n`;
+      
+      message += `_Laporan ini dikirim otomatis dari Sistem Absensi masa.muda_`;
+      
+      return encodeURIComponent(message);
+    }
+
+    function shareToWhatsApp() {
+      const message = generateWhatsAppMessage();
+      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+      
+      // Buka WhatsApp di tab baru
+      window.open(whatsappUrl, '_blank');
+      
+      // Tampilkan konfirmasi
+      showMessage("✅ Membuka WhatsApp... Silakan kirim laporan ke grup yang ditentukan", "success");
+      
+      // Kembali ke halaman absensi setelah 3 detik
+      setTimeout(() => {
+        reportingSection.style.display = 'none';
+        mainApp.style.display = 'block';
+        resetReportingForm();
+      }, 3000);
+    }
+
+    function resetReportingForm() {
+      document.getElementById('cashStart').value = '';
+      document.getElementById('cashNotes').value = '';
+      selectedShift = "";
+      paymentStatus = "";
+      
+      document.getElementById("shiftPagi").classList.remove("active");
+      document.getElementById("shiftClosing").classList.remove("active");
+      btnRecord.disabled = true;
+    }
+
+    // ==================== LOGIN/LOGOUT FUNCTIONS ====================
     function initializeApp() {
       const currentSession = sessionManager.getCurrentSession();
       
       if (currentSession) {
-        // Auto-login dengan session existing
         handleAutoLogin(currentSession);
       } else {
-        // Tampilkan login section
         loginSection.style.display = 'block';
         mainApp.style.display = 'none';
       }
@@ -396,7 +724,7 @@
       deviceInfo.textContent = `Device: ${session.deviceId.substring(0, 10)}...`;
       
       console.log(`Auto-login sebagai: ${session.employeeName}`);
-      getLocation(); // Initialize location setelah login
+      getLocation();
     }
 
     function handleManualLogin() {
@@ -433,7 +761,6 @@
         document.getElementById("logoutModal").style.display = "none";
         loginSection.style.display = 'block';
         mainApp.style.display = 'none';
-        // Reset form
         employeeSelect.value = "";
         selectedShift = "";
         paymentStatus = "";
@@ -442,7 +769,7 @@
       }
     }
 
-    // Event Listeners
+    // ==================== EVENT LISTENERS ====================
     window.addEventListener('load', initializeApp);
 
     loginBtn.addEventListener('click', handleManualLogin);
@@ -503,6 +830,14 @@
     };
 
     document.getElementById("logoutConfirmBtn").onclick = handleLogout;
+
+    // Reporting handlers
+    document.getElementById('backToAttendance').addEventListener('click', () => {
+      reportingSection.style.display = 'none';
+      mainApp.style.display = 'block';
+    });
+
+    document.getElementById('shareToWhatsapp').addEventListener('click', shareToWhatsApp);
 
     // Enter key untuk logout password
     document.getElementById("logoutPassword").addEventListener('keypress', (e) => {
