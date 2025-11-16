@@ -30,6 +30,28 @@
     .login-btn:hover{background:#6a7850;}
     .login-btn:disabled{background:#a8b4a0;cursor:not-allowed;}
     
+    /* Loading Spinner */
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #7c895d;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loading-text {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
     /* Main App Section */
     #mainApp{display:none;}
     .card{background:#fff;border-radius:16px;padding:25px;box-shadow:0 5px 15px rgba(0,0,0,.05);}
@@ -133,15 +155,15 @@
         <div class="form-group">
           <label class="form-label">Pilih Karyawan</label>
           <select class="form-select" id="employeeSelect">
-            <option value="">Pilih nama Anda</option>
-            <option value="EMP001">Ahmad Wijaya</option>
-            <option value="EMP002">Siti Nurhaliza</option>
-            <option value="EMP003">Budi Santoso</option>
-            <option value="EMP004">Dewi Lestari</option>
-            <option value="EMP005">Rina Melati</option>
+            <option value="">Memuat data karyawan...</option>
           </select>
         </div>
-        <button class="login-btn" id="loginBtn">Masuk ke Sistem</button>
+        <button class="login-btn" id="loginBtn" disabled>
+          <span class="loading-text">
+            <span class="spinner"></span>
+            Memuat data...
+          </span>
+        </button>
       </div>
     </div>
 
@@ -175,7 +197,7 @@
         <div class="msg" id="msg"></div>
       </div>
       <div class="footer">&copy; 2025 masa.muda - All rights reserved</div>
-    </div
+    </div>
 
     <!-- Reporting Section -->
     <div class="reporting-section" id="reportingSection">
@@ -222,7 +244,7 @@
           </button>
         </div>
       </div>
-      <div class="footer">&copy; 2024 masa.muda - All rights reserved</div>
+      <div class="footer">&copy; 2025 masa.muda - All rights reserved</div>
     </div>
   </div>
 
@@ -258,7 +280,8 @@
     const OFFICE_LON = 106.77342191765905;
     const RADIUS_METERS = 100;
     const WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/attendance-receiver";
-    const LOGOUT_PASSWORD = "masamuda2024";
+    const EMPLOYEE_WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/employeeId";
+    const LOGOUT_PASSWORD = "masamuda2025";
     
     // ==================== SESSION MANAGER ====================
     class SessionManager {
@@ -270,8 +293,8 @@
 
       saveSession(employeeData) {
         const sessionData = {
-          employeeId: employeeData.id,
-          employeeName: employeeData.name,
+          employeeId: employeeData.employeeId,
+          employeeName: employeeData.Name,
           deviceId: this.getOrCreateDeviceId(),
           deviceFingerprint: this.generateDeviceFingerprint(),
           loginTimestamp: new Date().toISOString(),
@@ -322,6 +345,74 @@
           navigator.platform
         ];
         return btoa(components.join('|'));
+      }
+    }
+
+    // ==================== EMPLOYEE DATA MANAGER ====================
+    class EmployeeManager {
+      constructor() {
+        this.EMPLOYEE_KEY = 'employee_data';
+        this.CACHE_DURATION = 30 * 60 * 1000; // 30 menit
+      }
+
+      async fetchEmployees() {
+        try {
+          const response = await fetch(EMPLOYEE_WEBHOOK_URL);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const employees = await response.json();
+          
+          // Simpan ke cache dengan timestamp
+          const cacheData = {
+            employees: employees,
+            timestamp: Date.now()
+          };
+          localStorage.setItem(this.EMPLOYEE_KEY, JSON.stringify(cacheData));
+          
+          return employees;
+        } catch (error) {
+          console.error('Error fetching employees:', error);
+          // Fallback ke cache jika ada
+          const cached = this.getCachedEmployees();
+          if (cached) {
+            return cached;
+          }
+          throw error;
+        }
+      }
+
+      getCachedEmployees() {
+        try {
+          const cached = localStorage.getItem(this.EMPLOYEE_KEY);
+          if (!cached) return null;
+          
+          const cacheData = JSON.parse(cached);
+          const isExpired = Date.now() - cacheData.timestamp > this.CACHE_DURATION;
+          
+          if (!isExpired) {
+            return cacheData.employees;
+          }
+        } catch (e) {
+          console.error('Error reading cached employees:', e);
+        }
+        return null;
+      }
+
+      populateEmployeeSelect(employees) {
+        const select = document.getElementById('employeeSelect');
+        select.innerHTML = '<option value="">Pilih nama Anda</option>';
+        
+        employees.forEach(employee => {
+          const option = document.createElement('option');
+          option.value = employee.employeeId;
+          option.textContent = `${employee.Name} (${employee.employeeId})`;
+          select.appendChild(option);
+        });
+      }
+
+      getEmployeeById(employeeId, employees) {
+        return employees.find(emp => emp.employeeId === employeeId);
       }
     }
 
@@ -409,7 +500,8 @@
 
     // ==================== ATTENDANCE SYSTEM ====================
     const sessionManager = new SessionManager();
-    let userLocation = null, selectedShift = "", currentDistance = 0;
+    const employeeManager = new EmployeeManager();
+    let userLocation = null, selectedShift = "", currentDistance = 0, employeesData = [];
 
     // DOM Elements
     const msgEl = document.getElementById("msg"),
@@ -687,7 +779,10 @@
     }
 
     // ==================== LOGIN/LOGOUT FUNCTIONS ====================
-    function initializeApp() {
+    async function initializeApp() {
+      // Coba load data karyawan terlebih dahulu
+      await loadEmployees();
+      
       const currentSession = sessionManager.getCurrentSession();
       
       if (currentSession) {
@@ -695,6 +790,24 @@
       } else {
         loginSection.style.display = 'block';
         mainApp.style.display = 'none';
+      }
+    }
+
+    async function loadEmployees() {
+      try {
+        employeesData = await employeeManager.fetchEmployees();
+        employeeManager.populateEmployeeSelect(employeesData);
+        
+        // Enable login button
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = "Masuk ke Sistem";
+        
+      } catch (error) {
+        console.error('Failed to load employees:', error);
+        employeeSelect.innerHTML = '<option value="">Gagal memuat data karyawan</option>';
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = "Gagal memuat data";
+        showMessage("Gagal memuat data karyawan. Silakan refresh halaman.", "error");
       }
     }
 
@@ -716,18 +829,12 @@
         return;
       }
 
-      const employees = {
-        'EMP001': { id: 'EMP001', name: 'Ahmad Wijaya' },
-        'EMP002': { id: 'EMP002', name: 'Siti Nurhaliza' },
-        'EMP003': { id: 'EMP003', name: 'Budi Santoso' },
-        'EMP004': { id: 'EMP004', name: 'Dewi Lestari' },
-        'EMP005': { id: 'EMP005', name: 'Rina Melati' }
-      };
-
-      const employeeData = employees[selectedEmployeeId];
+      const employeeData = employeeManager.getEmployeeById(selectedEmployeeId, employeesData);
       if (employeeData) {
         const session = sessionManager.saveSession(employeeData);
         handleAutoLogin(session);
+      } else {
+        alert("Data karyawan tidak ditemukan");
       }
     }
 
