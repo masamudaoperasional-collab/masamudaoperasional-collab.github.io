@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Jadwal Karyawan - masa.muda</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -17,22 +17,27 @@
       background: #f8f9fa;
       color: #333;
       line-height: 1.5;
-      padding: 20px;
+      padding: 15px;
+      font-size: 14px;
     }
     
     .container {
-      max-width: 1200px;
+      max-width: 100%;
       margin: 0 auto;
     }
     
     .header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     
     .logo {
       font-family: 'Poppins', sans-serif;
-      font-size: 36px;
+      font-size: 28px;
       color: #7c895d;
       margin-bottom: 5px;
       font-weight: 500;
@@ -41,15 +46,12 @@
     
     .subtitle {
       color: #6c757d;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 400;
     }
     
     .admin-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       background: #fff;
       padding: 15px;
       border-radius: 10px;
@@ -57,22 +59,25 @@
     }
     
     .admin-buttons {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
+      margin-bottom: 15px;
     }
     
-    .edit-btn, .save-btn, .load-btn, .date-btn {
+    .edit-btn, .save-btn, .load-btn, .date-btn, .guide-btn {
       background: #7c895d;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      font-size: 14px;
+      padding: 12px 10px;
+      border-radius: 8px;
+      font-size: 13px;
       cursor: pointer;
       transition: .3s;
+      font-family: 'Poppins', sans-serif;
     }
     
-    .edit-btn:hover, .save-btn:hover, .load-btn:hover, .date-btn:hover {
+    .edit-btn:hover, .save-btn:hover, .load-btn:hover, .date-btn:hover, .guide-btn:hover {
       background: #6a7850;
     }
     
@@ -108,7 +113,49 @@
       background: #5a2d91;
     }
     
-    .password-modal {
+    .guide-btn {
+      background: #fd7e14;
+      grid-column: 1 / -1;
+    }
+    
+    .guide-btn:hover {
+      background: #e66a00;
+    }
+    
+    .week-navigation {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    
+    .week-nav-btn {
+      background: #6c757d;
+      color: white;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .week-nav-btn:hover {
+      background: #5a6268;
+    }
+    
+    #currentWeekDisplay {
+      font-weight: 500;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    .password-modal, .date-modal, .guide-modal, .legend-modal {
       display: none;
       position: fixed;
       top: 0;
@@ -119,56 +166,35 @@
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      padding: 15px;
     }
     
-    .password-modal-content {
+    .password-modal-content, .date-modal-content, .guide-modal-content, .legend-modal-content {
       background: #fff;
-      padding: 30px;
+      padding: 20px;
       border-radius: 10px;
-      width: 90%;
+      width: 100%;
       max-width: 400px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      max-height: 90vh;
+      overflow-y: auto;
     }
     
-    .password-modal h3 {
+    .modal-title {
       margin-bottom: 15px;
       text-align: center;
+      font-size: 18px;
+      color: #7c895d;
     }
     
-    .password-input {
+    .password-input, .date-input {
       width: 100%;
       padding: 12px;
       border: 1px solid #ddd;
       border-radius: 5px;
       margin-bottom: 15px;
       font-family: 'Poppins', sans-serif;
-    }
-    
-    .date-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .date-modal-content {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    
-    .date-modal h3 {
-      margin-bottom: 15px;
-      text-align: center;
+      font-size: 14px;
     }
     
     .date-input-group {
@@ -179,14 +205,7 @@
       display: block;
       margin-bottom: 5px;
       font-weight: 500;
-    }
-    
-    .date-input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
     }
     
     .modal-buttons {
@@ -196,11 +215,12 @@
     
     .modal-buttons button {
       flex: 1;
-      padding: 10px;
+      padding: 12px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       font-family: 'Poppins', sans-serif;
+      font-size: 14px;
     }
     
     .btn-cancel {
@@ -214,31 +234,37 @@
     }
     
     .schedule-section {
-      margin-bottom: 40px;
+      margin-bottom: 25px;
     }
     
     .section-title {
-      font-size: 20px;
+      font-size: 16px;
       color: #7c895d;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       padding-bottom: 8px;
       border-bottom: 2px solid #7c895d;
+    }
+    
+    .schedule-table-container {
+      overflow-x: auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      background: #fff;
     }
     
     .schedule-table {
       width: 100%;
       border-collapse: collapse;
       background: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      min-width: 600px;
     }
     
     .schedule-table th,
     .schedule-table td {
-      padding: 12px 8px;
+      padding: 10px 6px;
       text-align: center;
       border: 1px solid #e0e0e0;
+      font-size: 12px;
     }
     
     .schedule-table th {
@@ -250,10 +276,12 @@
       background: #7c895d;
       color: white;
       font-weight: 500;
+      font-size: 12px;
     }
     
     .employee-name {
       font-weight: 500;
+      font-size: 13px;
     }
     
     .shift-cell {
@@ -262,31 +290,34 @@
     
     .shift-display {
       display: inline-block;
-      width: 30px;
-      height: 30px;
-      line-height: 30px;
+      width: 26px;
+      height: 26px;
+      line-height: 26px;
       border-radius: 50%;
       font-weight: 500;
       text-align: center;
+      font-size: 11px;
     }
     
     .shift-select {
       width: 100%;
-      padding: 5px;
+      padding: 4px;
       border: 1px solid #ddd;
       border-radius: 5px;
       background: white;
       font-family: 'Poppins', sans-serif;
       text-align: center;
+      font-size: 11px;
     }
     
     .employee-select {
       width: 100%;
-      padding: 8px;
+      padding: 6px;
       border: 1px solid #ddd;
       border-radius: 5px;
       background: white;
       font-family: 'Poppins', sans-serif;
+      font-size: 12px;
     }
     
     /* Warna untuk status shift */
@@ -303,6 +334,7 @@
       border-radius: 5px;
       text-align: center;
       display: none;
+      font-size: 13px;
     }
     
     .message.success {
@@ -326,61 +358,133 @@
       display: block;
     }
     
-    .week-navigation {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .legend-card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
     }
     
-    .week-nav-btn {
-      background: #6c757d;
-      color: white;
-      border: none;
-      width: 30px;
-      height: 30px;
+    .legend-title {
+      font-size: 16px;
+      color: #7c895d;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    
+    .legend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    
+    .legend-color {
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: 500;
+      font-size: 10px;
+    }
+    
+    .guide-content {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    
+    .guide-section {
+      margin-bottom: 15px;
+    }
+    
+    .guide-section h4 {
+      color: #7c895d;
+      margin-bottom: 8px;
       font-size: 14px;
     }
     
-    .week-nav-btn:hover {
-      background: #5a6268;
+    .guide-section ul {
+      padding-left: 20px;
+    }
+    
+    .guide-section li {
+      margin-bottom: 5px;
     }
     
     .footer {
       text-align: center;
-      margin-top: 40px;
+      margin-top: 30px;
       color: #6c757d;
-      font-size: 14px;
+      font-size: 12px;
+      padding: 15px;
     }
     
-    @media (max-width: 768px) {
-      .schedule-table {
-        font-size: 14px;
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 1001;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 300px;
+      display: none;
+    }
+    
+    .notification.success {
+      background: #28a745;
+    }
+    
+    .notification.error {
+      background: #dc3545;
+    }
+    
+    .notification.info {
+      background: #17a2b8;
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+        font-size: 13px;
+      }
+      
+      .admin-buttons {
+        grid-template-columns: 1fr;
       }
       
       .schedule-table th,
       .schedule-table td {
         padding: 8px 4px;
+        font-size: 11px;
       }
       
-      .admin-controls {
-        flex-direction: column;
-        gap: 10px;
+      .shift-display {
+        width: 22px;
+        height: 22px;
+        line-height: 22px;
+        font-size: 10px;
       }
       
-      .admin-buttons {
-        width: 100%;
-        justify-content: space-between;
-        flex-wrap: wrap;
+      .legend-grid {
+        grid-template-columns: 1fr;
       }
-      
-      .week-navigation {
-        width: 100%;
-        justify-content: center;
+    }
+    
+    @media (min-width: 768px) {
+      .container {
+        max-width: 750px;
       }
     }
   </style>
@@ -392,12 +496,43 @@
       <div class="subtitle">Manajemen Penjadwalan Karyawan</div>
     </div>
     
+    <div class="legend-card">
+      <div class="legend-title">Keterangan Shift</div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <div class="legend-color shift-P">P</div>
+          <span>Shift Pagi</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-C">C</div>
+          <span>Shift Closing</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-L">L</div>
+          <span>Libur</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-S">S</div>
+          <span>Sakit</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-U">U</div>
+          <span>Cuti</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-I">I</div>
+          <span>Izin</span>
+        </div>
+      </div>
+    </div>
+    
     <div class="admin-controls">
       <div class="admin-buttons">
         <button class="edit-btn" id="editScheduleBtn">Edit Jadwal</button>
-        <button class="save-btn" id="saveScheduleBtn" style="display: none;">Simpan ke Server</button>
-        <button class="load-btn" id="loadScheduleBtn">Muat dari Server</button>
+        <button class="save-btn" id="saveScheduleBtn" style="display: none;">Simpan</button>
+        <button class="load-btn" id="loadScheduleBtn">Muat Data</button>
         <button class="date-btn" id="editDateBtn" style="display: none;">Ubah Tanggal</button>
+        <button class="guide-btn" id="guideBtn">Panduan & SOP</button>
       </div>
       <div class="week-navigation">
         <button class="week-nav-btn" id="prevWeekBtn">‹</button>
@@ -408,67 +543,40 @@
     
     <div class="message" id="message"></div>
     
-    <!-- Modal untuk password admin -->
-    <div class="password-modal" id="passwordModal">
-      <div class="password-modal-content">
-        <h3>Masukkan Password Admin</h3>
-        <input type="password" class="password-input" id="adminPassword" placeholder="Password admin">
-        <div class="modal-buttons">
-          <button class="btn-cancel" id="cancelPassword">Batal</button>
-          <button class="btn-confirm" id="confirmPassword">Masuk</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Modal untuk edit tanggal -->
-    <div class="date-modal" id="dateModal">
-      <div class="date-modal-content">
-        <h3>Ubah Periode Jadwal</h3>
-        <div class="date-input-group">
-          <label for="startDate">Tanggal Mulai (Hari Pertama):</label>
-          <input type="date" class="date-input" id="startDate">
-        </div>
-        <div class="date-input-group">
-          <label>Periode yang akan ditampilkan:</label>
-          <div id="datePreview"></div>
-        </div>
-        <div class="modal-buttons">
-          <button class="btn-cancel" id="cancelDate">Batal</button>
-          <button class="btn-confirm" id="confirmDate">Terapkan</button>
-        </div>
-      </div>
-    </div>
-    
     <!-- Tabel Jadwal Barista -->
     <div class="schedule-section">
       <h2 class="section-title">📋 Jadwal Barista</h2>
-      <table class="schedule-table" id="baristaSchedule">
-        <thead>
-          <tr>
-            <th>Nama Karyawan</th>
-            <!-- Kolom tanggal akan diisi oleh JavaScript -->
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Baris karyawan akan diisi oleh JavaScript -->
-        </tbody>
-      </table>
+      <div class="schedule-table-container">
+        <table class="schedule-table" id="baristaSchedule">
+          <thead>
+            <tr>
+              <th>Nama Karyawan</th>
+              <!-- Kolom tanggal akan diisi oleh JavaScript -->
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Baris karyawan akan diisi oleh JavaScript -->
+          </tbody>
+        </table>
+      </div>
     </div>
     
     <!-- Tabel Jadwal Kitchen -->
     <div class="schedule-section">
       <h2 class="section-title">🍳 Jadwal Kitchen</h2>
-      <table class="schedule-table" id="kitchenSchedule">
-        <thead>
-          <tr>
-            <th>Nama Karyawan</th>
-            <!-- Kolom tanggal akan diisi oleh JavaScript -->
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Baris karyawan akan diisi oleh JavaScript -->
-        </tbody>
-      </table>
+      <div class="schedule-table-container">
+        <table class="schedule-table" id="kitchenSchedule">
+          <thead>
+            <tr>
+              <th>Nama Karyawan</th>
+              <!-- Kolom tanggal akan diisi oleh JavaScript -->
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Baris karyawan akan diisi oleh JavaScript -->
+          </tbody>
+        </table>
+      </div>
     </div>
     
     <div class="footer">
@@ -476,9 +584,94 @@
     </div>
   </div>
 
+  <!-- Modal untuk password admin -->
+  <div class="password-modal" id="passwordModal">
+    <div class="password-modal-content">
+      <h3 class="modal-title">Masukkan Password Admin</h3>
+      <input type="password" class="password-input" id="adminPassword" placeholder="Password admin">
+      <div class="modal-buttons">
+        <button class="btn-cancel" id="cancelPassword">Batal</button>
+        <button class="btn-confirm" id="confirmPassword">Masuk</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal untuk edit tanggal -->
+  <div class="date-modal" id="dateModal">
+    <div class="date-modal-content">
+      <h3 class="modal-title">Ubah Periode Jadwal</h3>
+      <div class="date-input-group">
+        <label for="startDate">Tanggal Mulai (Hari Pertama):</label>
+        <input type="date" class="date-input" id="startDate">
+      </div>
+      <div class="date-input-group">
+        <label>Periode yang akan ditampilkan:</label>
+        <div id="datePreview" style="font-weight: 500; text-align: center; padding: 8px; background: #f8f9fa; border-radius: 5px;"></div>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-cancel" id="cancelDate">Batal</button>
+        <button class="btn-confirm" id="confirmDate">Terapkan</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal untuk panduan dan SOP -->
+  <div class="guide-modal" id="guideModal">
+    <div class="guide-modal-content">
+      <h3 class="modal-title">Panduan & SOP Perubahan Jadwal</h3>
+      <div class="guide-content">
+        <div class="guide-section">
+          <h4>📝 Cara Mengedit Jadwal:</h4>
+          <ul>
+            <li>Klik tombol "Edit Jadwal" dan masukkan password admin</li>
+            <li>Pilih karyawan dari dropdown di kolom nama</li>
+            <li>Atur shift untuk setiap hari dengan dropdown di setiap sel</li>
+            <li>Gunakan tombol "Ubah Tanggal" untuk mengubah periode jadwal</li>
+            <li>Klik "Simpan" untuk menyimpan perubahan ke server</li>
+          </ul>
+        </div>
+        
+        <div class="guide-section">
+          <h4>⚙️ SOP Perubahan Jadwal:</h4>
+          <ul>
+            <li><strong>Karyawan Sakit:</strong>
+              <ul>
+                <li>Koordinasi dengan admin untuk perubahan jadwal</li>
+                <li>Admin mencari backup pengganti yang dapat dihubungi</li>
+                <li>Wajib menyertakan surat keterangan dokter sebagai bukti</li>
+              </ul>
+            </li>
+            <li><strong>Perubahan Lainnya:</strong>
+              <ul>
+                <li>Semua perubahan jadwal harus didiskusikan dengan penanggung jawab penjadwalan</li>
+                <li>Perubahan harus disetujui sebelum diterapkan</li>
+                <li>Catatan perubahan harus disimpan untuk dokumentasi</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="guide-section">
+          <h4>🔐 Hak Akses:</h4>
+          <ul>
+            <li>Hanya admin yang dapat mengedit jadwal</li>
+            <li>Karyawan hanya dapat melihat jadwal yang sudah ditetapkan</li>
+            <li>Password admin hanya diberikan kepada penanggung jawab penjadwalan</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-confirm" id="closeGuide">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifikasi Popup -->
+  <div class="notification" id="notification"></div>
+
   <script>
     // Konfigurasi
-    const ADMIN_PASSWORD = "admin123"; // Password untuk akses edit
+    const ADMIN_PASSWORD = "admin123";
     const DAYS_OF_WEEK = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const WEBHOOK_GET_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/ambil-shift";
     const WEBHOOK_POST_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/simpan-shift";
@@ -499,10 +692,12 @@
     const saveScheduleBtn = document.getElementById('saveScheduleBtn');
     const loadScheduleBtn = document.getElementById('loadScheduleBtn');
     const editDateBtn = document.getElementById('editDateBtn');
+    const guideBtn = document.getElementById('guideBtn');
     const prevWeekBtn = document.getElementById('prevWeekBtn');
     const nextWeekBtn = document.getElementById('nextWeekBtn');
     const passwordModal = document.getElementById('passwordModal');
     const dateModal = document.getElementById('dateModal');
+    const guideModal = document.getElementById('guideModal');
     const adminPasswordInput = document.getElementById('adminPassword');
     const startDateInput = document.getElementById('startDate');
     const datePreview = document.getElementById('datePreview');
@@ -510,18 +705,17 @@
     const confirmPasswordBtn = document.getElementById('confirmPassword');
     const cancelDateBtn = document.getElementById('cancelDate');
     const confirmDateBtn = document.getElementById('confirmDate');
+    const closeGuideBtn = document.getElementById('closeGuide');
     const currentWeekDisplay = document.getElementById('currentWeekDisplay');
     const baristaSchedule = document.getElementById('baristaSchedule');
     const kitchenSchedule = document.getElementById('kitchenSchedule');
     const messageEl = document.getElementById('message');
+    const notificationEl = document.getElementById('notification');
     
     // State aplikasi
     let isEditMode = false;
     let currentWeek = getCurrentWeek();
-    let employeesData = {
-      barista: [],
-      kitchen: []
-    };
+    let employeesData = [];
     
     // Inisialisasi aplikasi
     async function init() {
@@ -556,13 +750,13 @@
           
           // Proses data karyawan
           processEmployeeData(employees);
-          showMessage("✅ Data karyawan berhasil dimuat!", "success");
+          showNotification("✅ Data karyawan berhasil dimuat!", "success");
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       } catch (error) {
         console.error('Error loading employees:', error);
-        showMessage("❌ Gagal memuat data karyawan: " + error.message, "error");
+        showNotification("❌ Gagal memuat data karyawan", "error");
         
         // Fallback ke data karyawan default
         useDefaultEmployees();
@@ -573,46 +767,33 @@
     // Proses data karyawan dari webhook
     function processEmployeeData(employees) {
       // Reset data karyawan
-      employeesData = {
-        barista: [],
-        kitchen: []
-      };
+      employeesData = [];
       
-      // Asumsi: 4 karyawan pertama untuk barista, sisanya untuk kitchen
-      employees.forEach((employee, index) => {
-        const employeeData = {
+      // Konversi data dari webhook ke format yang diinginkan
+      employees.forEach(employee => {
+        employeesData.push({
           id: employee.employeeId,
           name: employee.Name
-        };
-        
-        if (index < 4) {
-          employeesData.barista.push(employeeData);
-        } else {
-          employeesData.kitchen.push(employeeData);
-        }
+        });
       });
       
       // Jika tidak ada data karyawan, gunakan default
-      if (employeesData.barista.length === 0 && employeesData.kitchen.length === 0) {
+      if (employeesData.length === 0) {
         useDefaultEmployees();
       }
     }
     
     // Gunakan data karyawan default jika webhook gagal
     function useDefaultEmployees() {
-      employeesData = {
-        barista: [
-          { id: 'EMP001', name: 'Atiyah' },
-          { id: 'EMP002', name: 'Rafli' },
-          { id: 'EMP003', name: 'Nayla' },
-          { id: 'EMP004', name: 'Lutfi' }
-        ],
-        kitchen: [
-          { id: 'EMP005', name: 'Andriyan' },
-          { id: 'EMP006', name: 'Idas' },
-          { id: 'EMP007', name: 'DW Backup' }
-        ]
-      };
+      employeesData = [
+        { id: 'EMP001', name: 'Atiyah' },
+        { id: 'EMP002', name: 'Rafli' },
+        { id: 'EMP003', name: 'Nayla' },
+        { id: 'EMP004', name: 'Lutfi' },
+        { id: 'EMP005', name: 'Andriyan' },
+        { id: 'EMP006', name: 'Idas' },
+        { id: 'EMP007', name: 'DW Backup' }
+      ];
     }
     
     // Setup event listeners
@@ -621,12 +802,14 @@
       saveScheduleBtn.addEventListener('click', saveScheduleToServer);
       loadScheduleBtn.addEventListener('click', loadScheduleFromServer);
       editDateBtn.addEventListener('click', openDateModal);
+      guideBtn.addEventListener('click', openGuideModal);
       prevWeekBtn.addEventListener('click', goToPrevWeek);
       nextWeekBtn.addEventListener('click', goToNextWeek);
       cancelPasswordBtn.addEventListener('click', closePasswordModal);
       confirmPasswordBtn.addEventListener('click', verifyAdminPassword);
       cancelDateBtn.addEventListener('click', closeDateModal);
       confirmDateBtn.addEventListener('click', applyDateChange);
+      closeGuideBtn.addEventListener('click', closeGuideModal);
       startDateInput.addEventListener('change', updateDatePreview);
       
       // Enter key untuk password
@@ -678,6 +861,16 @@
       dateModal.style.display = 'none';
     }
     
+    // Buka modal panduan
+    function openGuideModal() {
+      guideModal.style.display = 'flex';
+    }
+    
+    // Tutup modal panduan
+    function closeGuideModal() {
+      guideModal.style.display = 'none';
+    }
+    
     // Perbarui pratinjau tanggal
     function updateDatePreview() {
       const startDate = new Date(startDateInput.value);
@@ -694,7 +887,7 @@
     function applyDateChange() {
       const startDate = new Date(startDateInput.value);
       if (isNaN(startDate.getTime())) {
-        alert('Tanggal tidak valid!');
+        showNotification('Tanggal tidak valid!', 'error');
         return;
       }
       
@@ -707,7 +900,7 @@
       renderScheduleTables();
       closeDateModal();
       
-      showMessage(`Periode jadwal diubah menjadi ${currentWeek[0].date} - ${currentWeek[6].date}`, "success");
+      showNotification(`Periode jadwal diubah menjadi ${currentWeek[0].date} - ${currentWeek[6].date}`, "success");
     }
     
     // Pergi ke minggu sebelumnya
@@ -748,8 +941,9 @@
         editDateBtn.style.display = 'inline-block';
         closePasswordModal();
         renderScheduleTables();
+        showNotification('Mode edit diaktifkan', 'success');
       } else {
-        alert('Password salah!');
+        showNotification('Password salah!', 'error');
         adminPasswordInput.value = '';
         adminPasswordInput.focus();
       }
@@ -760,8 +954,6 @@
       const week = [];
       const date = new Date(startDate);
       
-      // Pastikan kita mulai dari hari Senin (1) atau Minggu (0) sesuai preferensi
-      // Di sini kita mulai dari hari yang dipilih
       for (let i = 0; i < 7; i++) {
         const currentDate = new Date(date);
         currentDate.setDate(date.getDate() + i);
@@ -769,14 +961,14 @@
         week.push({
           date: currentDate.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' }),
           day: DAYS_OF_WEEK[currentDate.getDay()],
-          fullDate: currentDate.toISOString().split('T')[0] // Format YYYY-MM-DD
+          fullDate: currentDate.toISOString().split('T')[0]
         });
       }
       
       return week;
     }
     
-    // Dapatkan minggu saat ini (7 hari dari hari ini)
+    // Dapatkan minggu saat ini
     function getCurrentWeek() {
       return getWeekFromDate(new Date());
     }
@@ -796,22 +988,25 @@
         lastUpdated: new Date().toISOString()
       };
       
-      // Inisialisasi data untuk setiap karyawan
-      employeesData.barista.forEach(employee => {
+      // Inisialisasi data untuk barista (4 baris)
+      for (let i = 0; i < 4; i++) {
+        const employee = employeesData[i] || { id: `temp-${i}`, name: 'Pilih Karyawan' };
         scheduleData.barista.push({
           employeeId: employee.id,
           employeeName: employee.name,
-          shifts: Array(7).fill('L') // Default: Libur
+          shifts: Array(7).fill('L')
         });
-      });
+      }
       
-      employeesData.kitchen.forEach(employee => {
+      // Inisialisasi data untuk kitchen (3 baris)
+      for (let i = 4; i < 7; i++) {
+        const employee = employeesData[i] || { id: `temp-${i}`, name: 'Pilih Karyawan' };
         scheduleData.kitchen.push({
           employeeId: employee.id,
           employeeName: employee.name,
-          shifts: Array(7).fill('L') // Default: Libur
+          shifts: Array(7).fill('L')
         });
-      });
+      }
       
       localStorage.setItem('schedule_data', JSON.stringify(scheduleData));
       return scheduleData;
@@ -841,8 +1036,8 @@
     // Render tabel jadwal untuk bagian tertentu
     function renderScheduleTable(section, tableElement) {
       const scheduleData = getScheduleData();
-      const employees = employeesData[section];
       const sectionData = scheduleData[section];
+      const rowCount = section === 'barista' ? 4 : 3;
       
       // Kosongkan tabel
       tableElement.querySelector('thead tr').innerHTML = '<th>Nama Karyawan</th>';
@@ -856,16 +1051,17 @@
       });
       
       // Render baris untuk setiap karyawan
-      employees.forEach((employee, index) => {
-        const employeeSchedule = sectionData.find(s => s.employeeId === employee.id);
+      for (let i = 0; i < rowCount; i++) {
+        const employeeSchedule = sectionData[i];
         
-        // Jika tidak ada data untuk karyawan ini, buat data default
+        // Jika tidak ada data untuk baris ini, buat data default
         if (!employeeSchedule) {
-          sectionData.push({
-            employeeId: employee.id,
-            employeeName: employee.name,
+          const defaultEmployee = employeesData[i] || { id: `temp-${i}`, name: 'Pilih Karyawan' };
+          sectionData[i] = {
+            employeeId: defaultEmployee.id,
+            employeeName: defaultEmployee.name,
             shifts: Array(7).fill('L')
-          });
+          };
           saveScheduleData(scheduleData);
         }
         
@@ -880,14 +1076,22 @@
           const select = document.createElement('select');
           select.className = 'employee-select';
           select.setAttribute('data-section', section);
-          select.setAttribute('data-index', index);
+          select.setAttribute('data-index', i);
           
-          // Tambahkan opsi untuk semua karyawan di bagian ini
-          employees.forEach(emp => {
+          // Opsi default
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = 'Pilih Karyawan';
+          defaultOption.disabled = true;
+          defaultOption.selected = !employeeSchedule.employeeId;
+          select.appendChild(defaultOption);
+          
+          // Tambahkan opsi untuk semua karyawan
+          employeesData.forEach(emp => {
             const option = document.createElement('option');
             option.value = emp.id;
             option.textContent = emp.name;
-            if (emp.id === employee.id) {
+            if (emp.id === employeeSchedule.employeeId) {
               option.selected = true;
             }
             select.appendChild(option);
@@ -897,13 +1101,14 @@
           nameCell.appendChild(select);
         } else {
           // Tampilkan nama saja
-          nameCell.textContent = employee.name;
+          const employee = employeesData.find(emp => emp.id === employeeSchedule.employeeId);
+          nameCell.textContent = employee ? employee.name : 'Belum dipilih';
         }
         
         row.appendChild(nameCell);
         
         // Kolom shift untuk setiap hari
-        const shifts = employeeSchedule ? employeeSchedule.shifts : Array(7).fill('L');
+        const shifts = employeeSchedule.shifts;
         shifts.forEach((shift, dayIndex) => {
           const shiftCell = document.createElement('td');
           shiftCell.className = 'shift-cell';
@@ -913,14 +1118,15 @@
             const select = document.createElement('select');
             select.className = 'shift-select';
             select.setAttribute('data-section', section);
-            select.setAttribute('data-employee-id', employee.id);
+            select.setAttribute('data-employee-id', employeeSchedule.employeeId);
             select.setAttribute('data-day-index', dayIndex);
             
             // Tambahkan opsi shift
             SHIFT_OPTIONS.forEach(option => {
               const optElement = document.createElement('option');
               optElement.value = option.code;
-              optElement.textContent = option.code + ' - ' + option.name;
+              optElement.textContent = option.code;
+              optElement.title = option.name;
               if (option.code === shift) {
                 optElement.selected = true;
               }
@@ -931,18 +1137,22 @@
             shiftCell.appendChild(select);
           } else {
             // Tampilkan shift dengan warna
-            const shiftDisplay = document.createElement('div');
-            shiftDisplay.className = `shift-display shift-${shift}`;
-            shiftDisplay.textContent = shift;
-            shiftDisplay.title = SHIFT_OPTIONS.find(s => s.code === shift)?.name || shift;
-            shiftCell.appendChild(shiftDisplay);
+            if (employeeSchedule.employeeId && employeeSchedule.employeeId !== '') {
+              const shiftDisplay = document.createElement('div');
+              shiftDisplay.className = `shift-display shift-${shift}`;
+              shiftDisplay.textContent = shift;
+              shiftDisplay.title = SHIFT_OPTIONS.find(s => s.code === shift)?.name || shift;
+              shiftCell.appendChild(shiftDisplay);
+            } else {
+              shiftCell.textContent = '-';
+            }
           }
           
           row.appendChild(shiftCell);
         });
         
         tableElement.querySelector('tbody').appendChild(row);
-      });
+      }
     }
     
     // Handle perubahan karyawan
@@ -953,18 +1163,12 @@
       const newEmployeeId = select.value;
       
       const scheduleData = getScheduleData();
-      const employees = employeesData[section];
+      const employeeSchedule = scheduleData[section][index];
       
-      // Cari data karyawan lama
-      const oldEmployeeId = scheduleData[section][index].employeeId;
-      
-      // Jika karyawan berubah, kita perlu mempertahankan jadwal
-      // Untuk sederhananya, kita reset jadwal untuk karyawan baru
-      if (newEmployeeId !== oldEmployeeId) {
-        const newEmployee = employees.find(emp => emp.id === newEmployeeId);
-        scheduleData[section][index].employeeId = newEmployeeId;
-        scheduleData[section][index].employeeName = newEmployee.name;
-        scheduleData[section][index].shifts = Array(7).fill('L'); // Reset ke libur
+      if (employeeSchedule) {
+        const newEmployee = employeesData.find(emp => emp.id === newEmployeeId);
+        employeeSchedule.employeeId = newEmployeeId;
+        employeeSchedule.employeeName = newEmployee ? newEmployee.name : 'Pilih Karyawan';
         
         saveScheduleData(scheduleData);
         renderScheduleTables(); // Render ulang untuk memperbarui tampilan
@@ -1015,7 +1219,7 @@
     
     // Simpan jadwal ke server
     async function saveScheduleToServer() {
-      showMessage("Mengirim data jadwal ke server...", "info");
+      showNotification("Mengirim data jadwal ke server...", "info");
       
       try {
         const scheduleData = formatScheduleDataForWebhook();
@@ -1029,19 +1233,19 @@
         });
         
         if (response.ok) {
-          showMessage("✅ Data jadwal berhasil disimpan ke server!", "success");
+          showNotification("✅ Data jadwal berhasil disimpan ke server!", "success");
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       } catch (error) {
         console.error('Error saving schedule:', error);
-        showMessage("❌ Gagal menyimpan data jadwal ke server: " + error.message, "error");
+        showNotification("❌ Gagal menyimpan data jadwal ke server", "error");
       }
     }
     
     // Muat jadwal dari server
     async function loadScheduleFromServer() {
-      showMessage("Memuat data jadwal dari server...", "info");
+      showNotification("Memuat data jadwal dari server...", "info");
       
       try {
         const response = await fetch(WEBHOOK_GET_URL);
@@ -1052,21 +1256,21 @@
           // Proses data dari server
           if (serverData && serverData.schedules) {
             processServerData(serverData);
-            showMessage("✅ Data jadwal berhasil dimuat dari server!", "success");
+            showNotification("✅ Data jadwal berhasil dimuat dari server!", "success");
           } else {
             // Jika server tidak mengembalikan data, gunakan data default
             initializeScheduleData();
-            showMessage("ℹ️ Tidak ada data di server, menggunakan data default", "info");
+            showNotification("ℹ️ Tidak ada data di server, menggunakan data default", "info");
           }
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       } catch (error) {
         console.error('Error loading schedule:', error);
-        showMessage("❌ Gagal memuat data jadwal dari server: " + error.message, "error");
+        showNotification("❌ Gagal memuat data jadwal dari server", "error");
         
         // Fallback ke data lokal
-        showMessage("ℹ️ Menggunakan data lokal sebagai fallback", "info");
+        showNotification("ℹ️ Menggunakan data lokal sebagai fallback", "info");
       }
       
       renderScheduleTables();
@@ -1089,26 +1293,22 @@
         }
       });
       
-      // Pastikan semua karyawan ada dalam data
-      employeesData.barista.forEach(employee => {
-        if (!scheduleData.barista.find(s => s.employeeId === employee.id)) {
-          scheduleData.barista.push({
-            employeeId: employee.id,
-            employeeName: employee.name,
-            shifts: Array(7).fill('L')
-          });
-        }
-      });
+      // Pastikan jumlah baris sesuai (4 untuk barista, 3 untuk kitchen)
+      while (scheduleData.barista.length < 4) {
+        scheduleData.barista.push({
+          employeeId: '',
+          employeeName: 'Pilih Karyawan',
+          shifts: Array(7).fill('L')
+        });
+      }
       
-      employeesData.kitchen.forEach(employee => {
-        if (!scheduleData.kitchen.find(s => s.employeeId === employee.id)) {
-          scheduleData.kitchen.push({
-            employeeId: employee.id,
-            employeeName: employee.name,
-            shifts: Array(7).fill('L')
-          });
-        }
-      });
+      while (scheduleData.kitchen.length < 3) {
+        scheduleData.kitchen.push({
+          employeeId: '',
+          employeeName: 'Pilih Karyawan',
+          shifts: Array(7).fill('L')
+        });
+      }
       
       saveScheduleData(scheduleData);
     }
@@ -1124,6 +1324,18 @@
           messageEl.style.display = 'none';
         }, 5000);
       }
+    }
+    
+    // Tampilkan notifikasi popup
+    function showNotification(message, type) {
+      notificationEl.textContent = message;
+      notificationEl.className = `notification ${type}`;
+      notificationEl.style.display = 'block';
+      
+      // Sembunyikan notifikasi setelah 4 detik
+      setTimeout(() => {
+        notificationEl.style.display = 'none';
+      }, 4000);
     }
     
     // Inisialisasi aplikasi ketika halaman dimuat
