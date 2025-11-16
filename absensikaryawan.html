@@ -832,27 +832,15 @@
       message += `📅 *Tanggal:* ${new Date().toLocaleDateString('id-ID')}\n`;
       message += `⏰ *Waktu:* ${new Date().toLocaleTimeString('id-ID')}\n\n`;
       
-      message += `💰 *CASH DRAWER*\n`;
-      message += `Cash Awal: ${cashStart ? 'Rp ' + parseInt(cashStart).toLocaleString('id-ID') : 'Tidak diisi'}\n`;
+      message += `💰 *PETTY CASH DRAWER*\n`;
+      message += `Petty Cash Awal: ${cashStart ? 'Rp ' + parseInt(cashStart).toLocaleString('id-ID') : 'Tidak diisi'}\n`;
       if (cashNotes) message += `Catatan: ${cashNotes}\n`;
       message += `\n`;
-      
-      message += `✅ *TASK COMPLETION*\n`;
-      message += `Progress: ${completedTasks.length}/${totalTasks} task (${completionRate}%)\n\n`;
       
       message += `📝 *TASK YANG DISELESAIKAN:*\n`;
       completedTasks.forEach((task, index) => {
         message += `${index + 1}. ${task}\n`;
       });
-      
-      message += `\n`;
-      message += `📊 *SUMMARY*\n`;
-      message += `Total Task: ${totalTasks}\n`;
-      message += `Diselesaikan: ${completedTasks.length}\n`;
-      message += `Belum Selesai: ${totalTasks - completedTasks.length}\n`;
-      message += `Completion Rate: ${completionRate}%\n\n`;
-      
-      message += `_Laporan ini dikirim otomatis dari Sistem Absensi masa.muda_`;
       
       return encodeURIComponent(message);
     }
