@@ -496,36 +496,6 @@
       <div class="subtitle">Manajemen Penjadwalan Karyawan</div>
     </div>
     
-    <div class="legend-card">
-      <div class="legend-title">Keterangan Shift</div>
-      <div class="legend-grid">
-        <div class="legend-item">
-          <div class="legend-color shift-P">P</div>
-          <span>Shift Pagi</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color shift-C">C</div>
-          <span>Shift Closing</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color shift-L">L</div>
-          <span>Libur</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color shift-S">S</div>
-          <span>Sakit</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color shift-U">U</div>
-          <span>Cuti</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color shift-I">I</div>
-          <span>Izin</span>
-        </div>
-      </div>
-    </div>
-    
     <div class="admin-controls">
       <div class="admin-buttons">
         <button class="edit-btn" id="editScheduleBtn">Edit Jadwal</button>
@@ -579,8 +549,39 @@
       </div>
     </div>
     
+    <!-- Card Keterangan Shift dipindahkan ke bawah tabel jadwal kitchen -->
+    <div class="legend-card">
+      <div class="legend-title">Keterangan Shift</div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <div class="legend-color shift-P">P</div>
+          <span>Shift Pagi</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-C">C</div>
+          <span>Shift Closing</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-L">L</div>
+          <span>Libur</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-S">S</div>
+          <span>Sakit</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-U">U</div>
+          <span>Cuti</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color shift-I">I</div>
+          <span>Izin</span>
+        </div>
+      </div>
+    </div>
+    
     <div class="footer">
-      &copy; 2024 masa.muda - All rights reserved
+      &copy; 2025 masa.muda - All rights reserved
     </div>
   </div>
 
@@ -673,9 +674,9 @@
     // Konfigurasi
     const ADMIN_PASSWORD = "admin123";
     const DAYS_OF_WEEK = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const WEBHOOK_GET_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/ambil-shift";
-    const WEBHOOK_POST_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/simpan-shift";
-    const EMPLOYEE_WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook-test/employeeId";
+    const WEBHOOK_GET_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/ambil-shift";
+    const WEBHOOK_POST_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/simpan-shift";
+    const EMPLOYEE_WEBHOOK_URL = "https://n8n-uievozfh3got.bgxy.sumopod.my.id/webhook/employeeId";
     
     // Opsi shift
     const SHIFT_OPTIONS = [
@@ -716,6 +717,7 @@
     let isEditMode = false;
     let currentWeek = getCurrentWeek();
     let employeesData = [];
+    let currentScheduleData = null;
     
     // Inisialisasi aplikasi
     async function init() {
@@ -1014,6 +1016,10 @@
     
     // Dapatkan data jadwal
     function getScheduleData() {
+      if (currentScheduleData) {
+        return currentScheduleData;
+      }
+      
       const data = localStorage.getItem('schedule_data');
       if (!data) {
         return initializeScheduleData();
@@ -1024,6 +1030,7 @@
     // Simpan data jadwal ke localStorage
     function saveScheduleData(data) {
       data.lastUpdated = new Date().toISOString();
+      currentScheduleData = data;
       localStorage.setItem('schedule_data', JSON.stringify(data));
     }
     
@@ -1192,7 +1199,7 @@
       }
     }
     
-    // Format data untuk dikirim ke webhook
+    // Format data untuk dikirim ke webhook - DIKEMBALIKAN ke format sebelumnya
     function formatScheduleDataForWebhook() {
       const scheduleData = getScheduleData();
       const webhookData = {
@@ -1217,7 +1224,7 @@
       return webhookData;
     }
     
-    // Simpan jadwal ke server
+    // Simpan jadwal ke server - DIKEMBALIKAN ke format sebelumnya
     async function saveScheduleToServer() {
       showNotification("Mengirim data jadwal ke server...", "info");
       
@@ -1254,7 +1261,7 @@
           const serverData = await response.json();
           
           // Proses data dari server
-          if (serverData && serverData.schedules) {
+          if (serverData && serverData.length > 0) {
             processServerData(serverData);
             showNotification("✅ Data jadwal berhasil dimuat dari server!", "success");
           } else {
@@ -1276,41 +1283,81 @@
       renderScheduleTables();
     }
     
-    // Proses data dari server
+    // Proses data dari server - DIPERBAIKI untuk format baru
     function processServerData(serverData) {
-      const scheduleData = {
-        barista: [],
-        kitchen: [],
-        lastUpdated: serverData.lastUpdated || new Date().toISOString()
-      };
+      // Cari data yang sesuai dengan minggu saat ini
+      const currentWeekString = JSON.stringify(currentWeek.map(day => day.fullDate));
+      let matchedData = null;
       
-      // Pisahkan data berdasarkan section
-      serverData.schedules.forEach(schedule => {
-        if (schedule.section === 'barista') {
-          scheduleData.barista.push(schedule);
-        } else if (schedule.section === 'kitchen') {
-          scheduleData.kitchen.push(schedule);
+      // Cari data yang cocok dengan minggu saat ini
+      for (const data of serverData) {
+        try {
+          const dataWeek = JSON.parse(data.week);
+          if (JSON.stringify(dataWeek) === currentWeekString) {
+            matchedData = data;
+            break;
+          }
+        } catch (e) {
+          console.error('Error parsing week data:', e);
         }
-      });
-      
-      // Pastikan jumlah baris sesuai (4 untuk barista, 3 untuk kitchen)
-      while (scheduleData.barista.length < 4) {
-        scheduleData.barista.push({
-          employeeId: '',
-          employeeName: 'Pilih Karyawan',
-          shifts: Array(7).fill('L')
-        });
       }
       
-      while (scheduleData.kitchen.length < 3) {
-        scheduleData.kitchen.push({
-          employeeId: '',
-          employeeName: 'Pilih Karyawan',
-          shifts: Array(7).fill('L')
-        });
+      // Jika tidak ada yang cocok, gunakan data terbaru
+      if (!matchedData && serverData.length > 0) {
+        matchedData = serverData[0];
       }
       
-      saveScheduleData(scheduleData);
+      if (matchedData) {
+        try {
+          // Parse data schedules dari string JSON
+          const schedules = JSON.parse(matchedData.schedules);
+          const weekDates = JSON.parse(matchedData.week);
+          
+          // Update current week berdasarkan data dari server
+          currentWeek = getWeekFromDate(new Date(weekDates[0]));
+          displayCurrentWeek();
+          
+          const scheduleData = {
+            barista: [],
+            kitchen: [],
+            lastUpdated: matchedData.last_update || new Date().toISOString()
+          };
+          
+          // Pisahkan data berdasarkan section
+          schedules.forEach(schedule => {
+            if (schedule.section === 'barista') {
+              scheduleData.barista.push(schedule);
+            } else if (schedule.section === 'kitchen') {
+              scheduleData.kitchen.push(schedule);
+            }
+          });
+          
+          // Pastikan jumlah baris sesuai (4 untuk barista, 3 untuk kitchen)
+          while (scheduleData.barista.length < 4) {
+            scheduleData.barista.push({
+              employeeId: '',
+              employeeName: 'Pilih Karyawan',
+              shifts: Array(7).fill('L')
+            });
+          }
+          
+          while (scheduleData.kitchen.length < 3) {
+            scheduleData.kitchen.push({
+              employeeId: '',
+              employeeName: 'Pilih Karyawan',
+              shifts: Array(7).fill('L')
+            });
+          }
+          
+          saveScheduleData(scheduleData);
+          return;
+        } catch (e) {
+          console.error('Error parsing schedule data:', e);
+        }
+      }
+      
+      // Fallback ke data default jika parsing gagal
+      initializeScheduleData();
     }
     
     // Tampilkan pesan
