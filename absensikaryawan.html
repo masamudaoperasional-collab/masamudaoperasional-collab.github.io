@@ -83,7 +83,7 @@
     
     /* Modal */
     .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:1000;padding:20px;}
-    .modal-content{background:#fff;border-radius:16px;padding:25px;width:100%;max-width:400px;box-shadow:0 10px 25px rgba(0,0,0,.1);}
+    .modal-content{background:#fff;border-radius:16px;padding:25px;width:100%;max-width:400px;box-shadow:0 10px 25px rgba(0,0,0,.1);max-height:90vh;overflow-y:auto;}
     .modal-title{font-size:20px;color:#333;margin-bottom:20px;text-align:center;font-weight:500;}
     .review-item{margin-bottom:12px;display:flex;}
     .review-label{font-weight:500;width:100px;color:#6c757d;}
@@ -111,14 +111,51 @@
     .shift-info { background: #f0f7f0; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center; }
     .shift-type { font-size: 18px; font-weight: 500; color: #7c895d; }
     
-    /* Task Checklist */
+    /* Task Checklist - NEW DESIGN */
     .task-section { margin-bottom: 25px; }
     .task-title { font-size: 16px; font-weight: 500; color: #333; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #7c895d; }
     .task-list { list-style: none; }
-    .task-item { margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #dee2e6; }
-    .task-item.checked { background: #e8f5e9; border-left-color: #4caf50; }
-    .task-checkbox { margin-right: 10px; transform: scale(1.2); }
-    .task-label { font-size: 14px; cursor: pointer; }
+    .task-item { 
+      margin-bottom: 12px; 
+      padding: 15px; 
+      background: #f8f9fa; 
+      border-radius: 12px; 
+      border-left: 4px solid #dee2e6;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+    }
+    .task-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .task-item.checked { 
+      background: #e8f5e9; 
+      border-left-color: #4caf50; 
+    }
+    .task-checkbox { 
+      margin-right: 15px; 
+      transform: scale(1.3);
+      cursor: pointer;
+    }
+    .task-label { 
+      font-size: 14px; 
+      cursor: pointer;
+      flex: 1;
+    }
+    .task-number {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      background: #7c895d;
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      margin-right: 10px;
+      font-size: 12px;
+      font-weight: 500;
+    }
     
     /* Cash Drawer Section */
     .cash-section { background: #fff3e0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
@@ -139,6 +176,67 @@
     .progress-info { background: #e3f2fd; border-radius: 8px; padding: 12px; margin-bottom: 15px; text-align: center; font-size: 14px; }
     .progress-bar { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; margin: 8px 0; overflow: hidden; }
     .progress-fill { height: 100%; background: #4caf50; border-radius: 4px; transition: width 0.3s ease; }
+    
+    /* Floating Help Button */
+    .floating-help-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: #7c895d;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      border: none;
+    }
+    .floating-help-btn:hover {
+      background: #6a7850;
+      transform: scale(1.1);
+    }
+    
+    /* Help Modal */
+    .help-modal .modal-content {
+      max-width: 500px;
+    }
+    .help-section {
+      margin-bottom: 20px;
+    }
+    .help-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #7c895d;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .help-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #555;
+    }
+    .help-list {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+    .help-list li {
+      margin-bottom: 8px;
+    }
+    .help-note {
+      background: #fff3e0;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 13px;
+      border-left: 4px solid #ff9800;
+    }
   </style>
 </head>
 <body>
@@ -270,6 +368,63 @@
       <div class="modal-buttons">
         <button class="btn-cancel" id="logoutCancelBtn">Batal</button>
         <button class="btn-confirm" id="logoutConfirmBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Help Button -->
+  <button class="floating-help-btn" id="helpBtn">?</button>
+
+  <!-- Help Modal -->
+  <div class="modal help-modal" id="helpModal">
+    <div class="modal-content">
+      <h3 class="modal-title">📋 Panduan Penggunaan Sistem</h3>
+      
+      <div class="help-section">
+        <div class="help-title">CARA PENGGUNAAN APLIKASI ABSENSI</div>
+        <div class="help-content">
+          <ol class="help-list">
+            <li><strong>Login:</strong> Pilih nama Anda dari dropdown dan klik "Masuk ke Sistem"</li>
+            <li><strong>Pilih Shift:</strong> Klik tombol "Shift Pagi" atau "Shift Closing" sesuai jadwal Anda</li>
+            <li><strong>Rekam Absensi:</strong> Pastikan lokasi sudah terdeteksi, lalu klik "Rekam Absen"</li>
+            <li><strong>Konfirmasi:</strong> Periksa data absensi dan klik "Rekam Absen" untuk mengirim</li>
+            <li><strong>Laporan Harian:</strong> Isi checklist task dan informasi cash drawer</li>
+            <li><strong>Share Laporan:</strong> Kirim laporan ke WhatsApp setelah menyelesaikan minimal 80% task</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-title">KETENTUM UMUM</div>
+        <div class="help-content">
+          <ul class="help-list">
+            <li>Absensi hanya bisa dilakukan dalam radius <strong>100 meter</strong> dari lokasi masa.muda</li>
+            <li>Pastikan GPS/Lokasi di perangkat Anda sudah diaktifkan</li>
+            <li>Data absensi akan tercatat secara otomatis dengan timestamp</li>
+            <li>Setiap karyawan hanya bisa login di satu perangkat</li>
+            <li>Laporan harian wajib dikirim sebelum akhir shift</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-title">TROUBLESHOOTING</div>
+        <div class="help-content">
+          <ul class="help-list">
+            <li><strong>Lokasi tidak terdeteksi:</strong> Pastikan izin lokasi sudah diberikan ke browser</li>
+            <li><strong>Gagal login:</strong> Refresh halaman dan coba kembali</li>
+            <li><strong>Tombol absen tidak aktif:</strong> Pastikan sudah memilih shift dan lokasi terdeteksi</li>
+            <li><strong>Data tidak muncul:</strong> Periksa koneksi internet Anda</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="help-note">
+        <strong>Catatan Penting:</strong> Sistem ini dirancang untuk memudahkan proses absensi dan pelaporan harian. Pastikan data yang dimasukkan akurat dan sesuai dengan kondisi sebenarnya.
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-confirm" id="closeHelpBtn">Mengerti</button>
       </div>
     </div>
   </div>
@@ -416,84 +571,32 @@
       }
     }
 
-    // ==================== TASK DATA ====================
+    // ==================== TASK DATA - UPDATED ====================
     const TASK_TEMPLATES = {
       pagi: {
-        title: "🔄 TRAVEL PATH SHIFT PAGI",
+        title: "TO DO LIST AWAL SHIFT OPENING",
         tasks: [
-          "Nyalain AC/kipas",
-          "Merapihkan (front of Bar) - nyalain kasir",
-          "Merapihkan (front of Bar) - tab dipastikan terisi batre",
-          "Merapihkan (front of Bar) - EDC",
-          "Merapihkan (front of Bar) - keluarin buku menu",
-          "Merapihkan (front of Bar) - display kue²",
-          "Merapihkan (front of Bar) - masang barmet²",
-          "Merapihkan (front of Bar) - cek air mesin",
-          "Merapihkan (front of Bar) - nyalain mesin",
-          "Merapihkan (front of Bar) - nyalain grinder",
-          "Merapihkan (front of Bar) - isi beans di hooper",
-          "Merapihkan (front of Bar) - menata tamper, knock box",
-          "Merapihkan (front of Bar) - pastikan kain untuk knock box kering",
-          "Merapihkan (front of Bar) - pastikan kain untuk steamer lembab (basah dikit)",
-          "Merapihkan (front of Bar) - mengisi tempat tissu",
-          "Merapihkan (front of Bar) - menata barmet & dipastikan tidak berair",
-          "Merapihkan (front of Bar) - menata powder² & dipastikan terisi",
-          "Merapihkan (front of Bar) - menata bar-set dalam knock box berisi ½ air",
-          "Merapihkan (front of Bar) - menata syrup² produksi bar & dipastikan terisi",
-          "Merapihkan (front of Bar) - memastikan Ice Cube stoknya ready di freezer",
-          "Merapihkan (front of Bar) - mengisi trashbag dalam tempat sampah",
-          "Merapihkan Toilet - mengisi trashbag ditempat sampah",
-          "Merapihkan Toilet - pastikan tissu² toilet terisi",
-          "Merapihkan Toilet - pastikan liquid handwash terisi",
-          "Merapihkan Area atas - mengisi trashbag ditempat sampah",
-          "Merapihkan Area atas - mengisi tissu multifold",
-          "Merapihkan Area atas - menata astray (usbag)",
-          "Merapihkan Area atas - turn on kipas",
-          "Merapihkan Area atas - buka jendela",
-          "Merapihkan Area atas - sapu tangga",
-          "Mengelap meja² - meja area atas",
-          "Mengelap meja² - meja area indoor",
-          "Mengelap Kaca dan cermin - kaca pintu atas",
-          "Mengelap Kaca dan cermin - cermin wastafel",
-          "Mengelap Kaca dan cermin - kaca pintu bawah",
-          "Mengelap Kaca dan cermin - kaca² jendela",
-          "Memastikan lantai bersih - lantai atas",
-          "Memastikan lantai bersih - lantai indoor",
-          "Memastikan lantai bersih - lantai bar",
-          "Memastikan lantai bersih - Lantai kamar mandi",
-          "Memastikan bahan baku/based produk ready"
+          "Travel Path",
+          "Prepare Bahan Baku", 
+          "Kebersihan Floor",
+          "Lampu & Dekor",
+          "Sound",
+          "Tissue WC & Wastafel",
+          "Cek Kebersihan Toilet",
+          "Kaca"
         ]
       },
       closing: {
-        title: "🔄 TRAVEL PATH AWAL SHIFT CLOSING",
+        title: "TO DO LIST AWAL SHIFT CLOSING",
         tasks: [
-          "Pastikan AC/Kipas menyala",
-          "Merapihkan (front of Bar) - tab & EDC dipastikan terisi batre",
-          "Merapihkan (front of Bar) - cek air mesin",
-          "Merapihkan (front of Bar) - menata tamper, knock box",
-          "Merapihkan (front of Bar) - pastikan kain untuk knock box kering",
-          "Merapihkan (front of Bar) - pastikan kain untuk steamer lembab (basah dikit)",
-          "Merapihkan (front of Bar) - mengisi tempat tissu multifold",
-          "Merapihkan (back bar) - menata barmet & dipastikan tidak berair",
-          "Merapihkan (back bar) - menata powder² & dipastikan terisi",
-          "Merapihkan (back bar) - menata bar-set dalam knock box berisi ½ air",
-          "Merapihkan (back bar) - menata syrup² produksi bar & dipastikan terisi",
-          "Merapihkan (back bar) - PREPARE BAHAN BAKU YG MENIPIS/HABIS",
-          "Merapihkan (back bar) - mengecek stok ice cube",
-          "Merapihkan Toilet - pastikan tissu² toilet terisi",
-          "Merapihkan Toilet - pastikan liquid handwash terisi",
-          "Merapihkan Area atas - mengisi tissu multifold",
-          "Merapihkan Area atas - menata astray (usbag)",
-          "Mengelap meja² yg basah/berdebu/bercak - meja area atas",
-          "Mengelap meja² yg basah/berdebu/bercak - meja area indoor",
-          "Mengelap Kaca dan cermin - kaca pintu pertama",
-          "Mengelap Kaca dan cermin - cermin selfie",
-          "Mengelap Kaca dan cermin - kaca pintu kedua",
-          "Mengelap Kaca dan cermin - cermin wastafel samping",
-          "Memastikan lantai bersih - lantai atas",
-          "Memastikan lantai bersih - lantai indoor",
-          "Memastikan lantai bersih - lantai bar",
-          "Clear up gelas & piring jika kosong"
+          "Travel Path",
+          "Prepare Bahan Baku",
+          "Kebersihan Floor", 
+          "Kebersihan Peralatan",
+          "Tissue WC & Wastafel",
+          "Kaca",
+          "Transfer Informasi dari Shift Opening",
+          "Mencatat bahan baku yang menipis"
         ]
       }
     };
@@ -659,7 +762,10 @@
         html += `
           <li class="task-item" id="taskItem-${index}">
             <input type="checkbox" class="task-checkbox" id="task-${index}" data-task="${task}">
-            <label class="task-label" for="task-${index}">${task}</label>
+            <label class="task-label" for="task-${index}">
+              <span class="task-number">${index + 1}</span>
+              ${task}
+            </label>
           </li>
         `;
       });
@@ -776,6 +882,15 @@
       document.getElementById("shiftPagi").classList.remove("active");
       document.getElementById("shiftClosing").classList.remove("active");
       btnRecord.disabled = true;
+    }
+
+    // ==================== HELP MODAL FUNCTIONS ====================
+    function showHelpModal() {
+      document.getElementById("helpModal").style.display = "flex";
+    }
+
+    function closeHelpModal() {
+      document.getElementById("helpModal").style.display = "none";
     }
 
     // ==================== LOGIN/LOGOUT FUNCTIONS ====================
@@ -919,10 +1034,22 @@
 
     document.getElementById('shareToWhatsapp').addEventListener('click', shareToWhatsApp);
 
+    // Help modal handlers
+    document.getElementById('helpBtn').addEventListener('click', showHelpModal);
+    document.getElementById('closeHelpBtn').addEventListener('click', closeHelpModal);
+
     // Enter key untuk logout password
     document.getElementById("logoutPassword").addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         handleLogout();
+      }
+    });
+
+    // Close modal ketika klik di luar konten
+    window.addEventListener('click', (e) => {
+      const helpModal = document.getElementById('helpModal');
+      if (e.target === helpModal) {
+        closeHelpModal();
       }
     });
   </script>
