@@ -48,6 +48,11 @@
     .btn-record{width:100%;padding:16px;border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;transition:.3s;background:#7c895d;color:#fff;margin-top:10px;}
     .btn-record:hover{background:#6a7850;}
     .btn-record:disabled{background:#a8b4a0;cursor:not-allowed;}
+    
+    /* Tombol Lihat Jadwal */
+    .btn-schedule{width:100%;padding:14px;border:1px solid #7c895d;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;transition:.3s;background:#fff;color:#7c895d;margin-top:15px;text-decoration:none;display:block;text-align:center;}
+    .btn-schedule:hover{background:#f8f9fa;border-color:#6a7850;color:#6a7850;}
+    
     .msg{margin-top:20px;padding:12px 16px;border-radius:8px;text-align:center;font-weight:500;display:none;}
     .msg.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;display:block;}
     .msg.error{background:#ffebee;color:#c62828;border:1px solid #ffcdd2;display:block;}
@@ -161,6 +166,12 @@
           <div class="distance-info" id="distanceInfo"></div>
         </div>
         <button class="btn-record" id="btnRecord" disabled>Rekam Absen</button>
+        
+        <!-- Tombol Lihat Jadwal -->
+        <a href="https://masamudaoperasional-collab.github.io/financemasmud.html" class="btn-schedule" target="_blank">
+          📅 Lihat Jadwal
+        </a>
+        
         <div class="msg" id="msg"></div>
       </div>
       <div class="footer">&copy; 2024 masa.muda - All rights reserved</div>
